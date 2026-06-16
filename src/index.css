@@ -110,6 +110,7 @@ img {
 
 .message_single {
   margin: 1em;
+  gap: .5em;
   &>.actual_message {
     gap: .3em;
   }
