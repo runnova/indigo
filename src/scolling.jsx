@@ -182,7 +182,7 @@ export function VirtualMessageList(props) {
                     }
                     content={msg()?.content}
                     id={msg().id}
-                    attachment={msg()?.attachment}
+                    attachments={msg()?.attachments}
                     reply={msg()?.replyTo?.content ?? msg()?.replyTo}
                     grouped={grouped()}
                   />
@@ -208,15 +208,15 @@ export function VirtualMessageList(props) {
           style={{
             position: "fixed",
             top: `${hoverRect().top}px`,
-            left: `${hoverRect().right - 150}px`,
+            right: `280px`,
             "z-index": 100,
           }}
         >
 
           <MessageActions
             content={hoveredMessage().content}
-            canEdit={hoveredMessage().user === tempState.conn.me.id}
-            canDelete={hoveredMessage().user === tempState.conn.me.id}
+            canEdit={hoveredMessage().user === tempState.conn.me().username}
+            canDelete={hoveredMessage().user === tempState.conn.me().username}
             onReply={() => console.log("reply", hoveredMessage())}
             onEdit={() => console.log("edit", hoveredMessage())}
             onDelete={() => console.log("delete", hoveredMessage())}

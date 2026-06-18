@@ -1,4 +1,5 @@
 import { createSignal, Show } from "solid-js";
+import { HiSolidChatBubbleOvalLeft, HiSolidFaceSmile, HiSolidPencil, HiSolidDocumentDuplicate, HiSolidTrash } from "solid-icons/hi";
 
 export function MessageActions(props) {
   return (
@@ -6,11 +7,11 @@ export function MessageActions(props) {
       class="message_actions"
       onMouseEnter={() => clearTimeout(hideTimer)}>
       <button onClick={() => props.onReply?.()}>
-        Reply
+        <HiSolidChatBubbleOvalLeft/>
       </button>
 
       <button onClick={() => props.onReact?.()}>
-        React
+        <HiSolidFaceSmile/>
       </button>
 
       <button
@@ -18,18 +19,18 @@ export function MessageActions(props) {
           navigator.clipboard.writeText(props.content);
         }}
       >
-        Copy
+        <HiSolidDocumentDuplicate/>
       </button>
 
       {props.canEdit && (
         <button onClick={() => props.onEdit?.()}>
-          Edit
+          <HiSolidPencil/>
         </button>
       )}
 
       {props.canDelete && (
         <button onClick={() => props.onDelete?.()}>
-          Delete
+          <HiSolidTrash/>
         </button>
       )}
     </div>

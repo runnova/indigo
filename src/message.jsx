@@ -80,9 +80,7 @@ function parseMarkdown(input) {
           );
         } else {
           parts.push(
-            <a href={token} target="_blank" rel="noopener noreferrer">
-              {token}
-            </a>
+            <EmbeddedLink url={token} />
           );
         }
       } else {
@@ -156,6 +154,81 @@ function getParsedMarkdown(id, content) {
 
   return parsed;
 }
+
+import { createResource, Show } from "solid-js";
+
+function EmbeddedLink(props) {
+  const [info] = createResource(async () => {
+    try {
+      const res = await fetch(props.url, {
+        method: "HEAD"
+      });
+
+      const type = res.headers.get("content-type") || "";
+
+      return {
+        type
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  return (
+    <Show
+      when={info()}
+      fallback={
+        <a href={props.url} target="_blank" rel="noopener noreferrer">
+          {props.url}
+        </a>
+      }
+    >
+      {(data) => {
+        const type = data().type;
+
+        if (type.startsWith("image/")) {
+          return (
+            <img
+              src={props.url}
+              alt=""
+              class="embedded_image"
+            />
+          );
+        }
+
+        if (type.startsWith("video/")) {
+          return (
+            <video
+              src={props.url}
+              controls
+              class="embedded_video"
+            />
+          );
+        }
+
+        if (type.startsWith("audio/")) {
+          return (
+            <audio
+              src={props.url}
+              controls
+            />
+          );
+        }
+
+        return (
+          <a
+            href={props.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {props.url}
+          </a>
+        );
+      }}
+    </Show>
+  );
+}
+
 export function Message(props) {
   const rendered = createMemo(() =>
     parseMarkdown(props.content)
@@ -174,7 +247,18 @@ export function Message(props) {
             <div class="time">{props.time}</div>
           </div>
         ) : (
-          <img src={props.avatar} alt="" class="pfp" />
+          <div className="pfpWO">
+              <img
+                src={`https://avatars.rotur.dev/${props.username}`}
+                alt=""
+                class="pfp"
+              />
+              <img
+                src={`https://avatars.rotur.dev/.overlay/${props.username}`}
+                alt=""
+                class="overlay"
+              />
+            </div>
         )}
 
         <div class="message_content y flex">
@@ -189,9 +273,55 @@ export function Message(props) {
             {rendered()}
           </div>
 
-          {props.attachment && (
-            <div class="attatchments">
-              <img src={props.attachment} alt="" class="attatched" />
+          {props.attachments?.length > 0 && (
+            <div class="attachments">
+              <For each={props.attachments}>
+                {(file) => {
+                  if (file.mime_type?.startsWith("image/")) {
+                    return (
+                      <img
+                        src={file.url}
+                        alt={file.name}
+                        class="attachment_image"
+                        loading="lazy"
+                      />
+                    );
+                  }
+
+                  if (file.mime_type?.startsWith("video/")) {
+                    return (
+                      <video
+                        src={file.url}
+                        controls
+                        class="attachment_video"
+                      />
+                    );
+                  }
+
+                  if (file.mime_type?.startsWith("audio/")) {
+                    return (
+                      <audio
+                        src={file.url}
+                        controls
+                        class="attachment_audio"
+                      />
+                    );
+                  }
+
+                  return (
+                    <a
+                      href={file.url}
+                      download={file.name}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="attachment_file"
+                    >
+                      <div class="file_name">{file.name}</div>
+                      <div class="file_type">{file.mime_type}</div>
+                    </a>
+                  );
+                }}
+              </For>
             </div>
           )}
         </div>

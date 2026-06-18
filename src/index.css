@@ -92,6 +92,24 @@ img {
   border-radius: .5em;
 }
 
+.embedded_image {
+  max-width: 300px;
+  max-height: 300px;
+  object-fit: scale-down;
+}
+
+.attachments {
+  overflow: hidden;
+  margin-top: .3em;
+
+  &>* {
+    max-width: 300px;
+    max-height: 300px;
+    object-fit: scale-down;
+    border-radius: .5em;
+  }
+}
+
 .server_bar,
 .topbar {
   background-color: var(--bg-two);
@@ -133,6 +151,7 @@ img {
   background-color: var(--bg-two);
   border-radius: .5em;
   padding: .5em;
+  margin-top: 1em;
 }
 
 .message_single {
@@ -216,12 +235,14 @@ img {
   }
 }
 
-.message_actions {
+.message-actions {
   display: flex;
-  gap: 4px;
-  background: var(--background);
+  gap: 0;
+  background: var(--bg-three);
   padding: 4px;
-  border-radius: 6px;
+  border-radius: .5em;
+  align-items: center;
+  transition: .3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .vml-root {
@@ -315,6 +336,7 @@ img {
 
 .channel_list {
   gap: .3em;
+  padding-bottom: 5em;
 
   &>.channel_item {
     padding: .5em .7em;
@@ -322,6 +344,7 @@ img {
     min-width: 150px;
     background-color: var(--bg-two);
     transition: .3s cubic-bezier(0.42, 1.67, 0.21, 0.90);
+    gap: .3em;
 
     &:hover {
       background-color: var(--bg-three);
@@ -342,8 +365,6 @@ img {
   height: 0;
   flex: 1;
 }
-
-.interactive_section {}
 
 .bar {
   height: calc(100% - 1em);
@@ -366,6 +387,12 @@ iframe#rotur-auth {
   width: 100%;
   margin-bottom: .5em;
   max-width: 275px;
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-two);
+  z-index: 55;
+  box-shadow: 0 -12px 10px 1em var(--bg-two);
+  border-radius: .5em;
 
   & img.banner {
     width: 100%;
@@ -409,10 +436,6 @@ iframe#rotur-auth {
     &:hover {
       background-color: var(--bg-two);
     }
-
-    & .pfp {
-      width: 2em;
-    }
   }
 }
 
@@ -429,4 +452,47 @@ a {
   background-color: var(--hl-four);
   padding: 3px 7px;
   border-radius: .5em;
+}
+
+hr {
+  width: calc(100% - 1.5em);
+  opacity: .2;
+}
+
+.member_popout {
+  background-color: var(--bg-two);
+  padding: .5em;
+  border-radius: .5em;
+  transition: .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 100;
+
+  .banner {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  & .pfpWO {
+    height: 5em;
+    width: 5em;
+  }
+}
+
+.pfpWO {
+  display: flex;
+  position: relative;
+  height: 45px;
+  width: 45px;
+  align-items: center;
+  justify-content: center;
+
+  &>* {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    &.pfp {
+      height: 80%;
+      width: 80%;
+    }
+  }
 }

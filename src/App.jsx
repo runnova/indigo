@@ -2,8 +2,10 @@ import { createSignal, For, Show, createEffect, onMount, createMemo } from "soli
 import { createStore } from "solid-js/store";
 import { useServerConnection } from "./server_connection";
 import { VirtualMessageList } from "./scolling"
-import { HiSolidChevronRight } from "solid-icons/hi";
+import { HiSolidChevronRight, HiSolidHashtag, HiSolidSpeakerWave, HiSolidMegaphone, HiSolidChatBubbleLeftRight } from "solid-icons/hi";
 import { Message } from "./message";
+import { openPopout } from "./popout";
+import MemberPopout from "./MemberPopout.jsx"
 
 const defaultState = {
   servers: [
@@ -22,6 +24,7 @@ export const [state, setState] = createStore(
 );
 
 export var tempState = {};
+window.tempState = tempState
 
 function App() {
   const conn = useServerConnection();
@@ -202,6 +205,12 @@ function App() {
 
     return sections;
   });
+  const channelIcons = {
+    text: HiSolidHashtag,
+    voice: HiSolidSpeakerWave,
+    announcement: HiSolidMegaphone,
+    forum: HiSolidChatBubbleLeftRight,
+  };
   return (
     <div class="main x">
 
@@ -238,15 +247,30 @@ function App() {
               </div>
             </div>
             <div class="channel_list y">
-              <For each={conn.channels().filter(c => c.type === "text")}>
-                {(ch) => (
-                  <div
-                    class={`channel_item${state.current.channel === ch.name ? " channel_item--active" : ""}`}
-                    onClick={() => selectChannel(ch.name)}
-                  >
-                    # {ch.display_name ?? ch.name}
-                  </div>
-                )}
+              <For each={conn.channels()}>
+                {(ch) =>
+                  ch.type === "separator" ? (
+                    <hr />
+                  ) : (
+                    (() => {
+                      const getChannelIcon = (type) =>
+                        channelIcons[type] || HiSolidHashtag;
+                      const Icon = getChannelIcon(ch.type);
+
+                      return (
+                        <div
+                          class={`x channel_item${state.current.channel === ch.name ? " channel_item--active" : ""}`}
+                          onClick={() => selectChannel(ch.name)}
+                        >
+                          <span class="channel_icon">
+                            <Icon />
+                          </span>
+                          {ch.display_name || ch.name}
+                        </div>
+                      );
+                    })()
+                  )
+                }
               </For>
             </div>
           </Show>
@@ -339,21 +363,29 @@ function App() {
                           const roleId = getHoistedRole(user) ?? user.roles?.[0];
                           const role = conn.roles?.()?.[roleId];
 
-                          const online =
-                            onlineUsers().has(user.username);
+                          const online = onlineUsers().has(user.username);
 
                           return (
-                            <div class="member_item x" style={{
-                              opacity: (online) ? 1 : .5
-                            }}>
-                              <img
-                                src={
-                                  "https://avatars.rotur.dev/" + user.username
-                                }
-                                loading="lazy"
-                                alt=""
-                                class="pfp"
-                              />
+                            <div
+                              class="member_item x"
+                              style={{
+                                opacity: online ? 1 : 0.5
+                              }}
+                              onClick={(e) => openPopout(user, e.currentTarget)}
+                            >
+
+                              <div className="pfpWO">
+                                <img
+                                  src={`https://avatars.rotur.dev/${user.username}`}
+                                  alt=""
+                                  class="pfp"
+                                />
+                                <img
+                                  src={`https://avatars.rotur.dev/.overlay/${user.username}`}
+                                  alt=""
+                                  class="overlay"
+                                />
+                              </div>
 
                               <span
                                 style={{
@@ -374,6 +406,7 @@ function App() {
           </div>
         </div>
       </div>
+      <MemberPopout />
     </div >
   );
 }

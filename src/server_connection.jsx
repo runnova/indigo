@@ -262,9 +262,6 @@ export function useServerConnection() {
 
    ws.onmessage = (ev) => {
   try {
-    console.log("WS packet size:", ev.data.length);
-    console.log("WS packet start:", ev.data.slice(0, 500));
-
     const packet = JSON.parse(ev.data);
     handlePacket(packet);
   } catch (e) {
