@@ -136,21 +136,41 @@ img {
 }
 
 .message_single {
-  margin: 1em;
   gap: .5em;
+  position: relative;
+  padding: .5em;
+  border-radius: .5em;
+  transition: background-color .2s;
+
+  &:hover {
+    background-color: var(--bg-two);
+
+    & .message_spacer {
+      opacity: 1;
+    }
+  }
 
   &>.actual_message {
     gap: .5em;
+    align-items: flex-start;
   }
 
   & .pfp {
-    width: 2.5em;
-    height: 2.5em;
-    border-radius: .5em;
+    height: 45px;
+    aspect-ratio: 1/1;
+    border-radius: .3em;
+  }
+
+  &.grouped {
+    padding: .3em .5em;
+
+    & .message_text {
+      margin: 0;
+    }
   }
 
   & .message_text {
-    margin: .3em 0;
+    margin-top: .3em;
   }
 
   & .message_meta {
@@ -158,9 +178,15 @@ img {
     align-items: center;
   }
 
+  & .message_content {
+    min-width: 0;
+    flex: 1;
+  }
+
   & .time {
-    font-size: small;
     opacity: .5;
+    font-family: monospace;
+    font-size: 9px;
   }
 
   & .reply_preview {
@@ -182,6 +208,20 @@ img {
       left: -23px;
     }
   }
+
+  & .message_spacer {
+    width: 45px;
+    flex-shrink: 0;
+    opacity: 0;
+  }
+}
+
+.message_actions {
+  display: flex;
+  gap: 4px;
+  background: var(--background);
+  padding: 4px;
+  border-radius: 6px;
 }
 
 .vml-root {
@@ -267,6 +307,12 @@ img {
   gap: .5em;
 }
 
+@keyframes tap {
+  50% {
+    transform: scaleX(.95);
+  }
+}
+
 .channel_list {
   gap: .3em;
 
@@ -275,9 +321,15 @@ img {
     border-radius: .5em;
     min-width: 150px;
     background-color: var(--bg-two);
+    transition: .3s cubic-bezier(0.42, 1.67, 0.21, 0.90);
 
     &:hover {
       background-color: var(--bg-three);
+      transform: translateX(5px);
+    }
+
+    &:active {
+      animation: tap .3s cubic-bezier(0.42, 1.67, 0.21, 0.90);
     }
 
     &.channel_item--active {
@@ -353,6 +405,7 @@ iframe#rotur-auth {
     align-items: center;
     padding: .2em;
     border-radius: .5em;
+
     &:hover {
       background-color: var(--bg-two);
     }
@@ -361,4 +414,19 @@ iframe#rotur-auth {
       width: 2em;
     }
   }
+}
+
+.inline_emoji {
+  height: 1em;
+  transform: scale(1.5);
+  margin: 0 .3em;
+  border-radius: 0;
+}
+
+a {
+  color: var(--hl-two);
+  text-decoration: none;
+  background-color: var(--hl-four);
+  padding: 3px 7px;
+  border-radius: .5em;
 }

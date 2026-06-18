@@ -7,20 +7,16 @@ const MAX_MESSAGES = 200;
 const TRIM_TO = 150;
 
 function sortMessages(msgs) {
-  return [...msgs].sort((a, b) => {
-    const ta = Number(a.timestamp);
-    const tb = Number(b.timestamp);
+  return [...(msgs ?? [])]
+    .filter((m) => m && m.id != null)
+    .sort((a, b) => {
+      const ta = Number(a.timestamp);
+      const tb = Number(b.timestamp);
 
-    if (ta !== tb) return ta - tb;
+      if (ta !== tb) return ta - tb;
 
-    return a.id.localeCompare(b.id);
-  });
-}
-
-function mergeMessages(existing, incoming) {
-  const map = new Map(existing.map((m) => [m.id, m]));
-  for (const m of incoming) map.set(m.id, m);
-  return sortMessages([...map.values()]);
+      return String(a.id).localeCompare(String(b.id));
+    });
 }
 
 export function createChannelMessages({
@@ -89,7 +85,7 @@ export function createChannelMessages({
   function handleMessagesGet(event) {
     const sorted = sortMessages(event.messages);
     setMessages(sorted);
-    setHasOlderMessages(event.messages.length >= PAGE_SIZE);
+    setHasOlderMessages((event.messages?.length ?? 0) >= PAGE_SIZE);
     setLastUpdate({ type: "initial" });
   }
 
@@ -100,40 +96,98 @@ export function createChannelMessages({
 
     pendingDirection = null;
     pendingAnchorId = null;
+
     const scrollEl = direction === "older" ? getScrollElement?.() : null;
-    const heightBefore = scrollEl ? scrollEl.scrollHeight : null;
+    const heightBefore = scrollEl?.scrollHeight ?? null;
 
     batch(() => {
-      setMessages((prev) => mergeMessages(prev, incoming));
+      setMessages((prev) => {
+        const map = new Map(prev.map((m) => [m.id, m]));
+
+        for (const m of incoming) {
+          map.set(m.id, m);
+        }
+
+        return [...map.values()].sort((a, b) => {
+          const ta = Number(a.timestamp);
+          const tb = Number(b.timestamp);
+
+          if (ta !== tb) return ta - tb;
+          return String(a.id).localeCompare(String(b.id));
+        });
+      });
+
       if (direction === "older") {
         setHasOlderMessages(incoming.length >= PAGE_SIZE);
+        setLoadingOlder(false);
       }
-      setLoadingOlder(false);
     });
+
     loadingOlderLock = false;
 
     if (direction === "older" && scrollEl && heightBefore != null) {
       requestAnimationFrame(() => {
-        const delta = scrollEl.scrollHeight - heightBefore;
-        scrollEl.scrollTop += delta;
+        requestAnimationFrame(() => {
+          const delta = scrollEl.scrollHeight - heightBefore;
+          scrollEl.scrollTop += delta;
+        });
       });
+
       setLastUpdate({ type: "prepend" });
-    } else if (direction === "jump") {
-      setLastUpdate({ type: "jump", targetId });
+    }
+
+    if (direction === "jump") {
+      setLastUpdate({
+        type: "jump",
+        targetId,
+      });
     }
   }
 
   function handleMessageNew(event) {
-    const merged = mergeMessages(messages(), [event.message]);
-    const overflowing = merged.length > MAX_MESSAGES && isNearBottom?.();
-    const next = overflowing ? merged.slice(merged.length - TRIM_TO) : merged;
+    const incomingMessage = event.message ?? event.val ?? event.data ?? null;
+
+    if (!incomingMessage || incomingMessage.id == null) return;
 
     batch(() => {
-      setMessages(next);
-      if (overflowing) setHasOlderMessages(true);
+      setMessages((prev) => {
+        const existingIndex = prev.findIndex(
+          (m) => m.id === incomingMessage.id
+        );
+
+        if (existingIndex !== -1) {
+          const next = prev.slice();
+          next[existingIndex] = incomingMessage;
+          return next;
+        }
+
+        const next = [...prev, incomingMessage];
+
+        let trimmed = false;
+
+        setMessages((prev) => {
+          const next = [...prev, incomingMessage];
+
+          if (next.length > MAX_MESSAGES && isNearBottom?.()) {
+            trimmed = true;
+            return next.slice(-TRIM_TO);
+          }
+
+          return next;
+        });
+
+        if (trimmed) {
+          setLastUpdate({ type: "reset" });
+        }
+
+        return next;
+      });
     });
 
-    setLastUpdate({ type: "append", message: event.message });
+    setLastUpdate({
+      type: "append",
+      message: incomingMessage,
+    });
   }
 
   function handleEvent(event) {

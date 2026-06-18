@@ -3,6 +3,7 @@ import { createStore } from "solid-js/store";
 import { useServerConnection } from "./server_connection";
 import { VirtualMessageList } from "./scolling"
 import { HiSolidChevronRight } from "solid-icons/hi";
+import { Message } from "./message";
 
 const defaultState = {
   servers: [
@@ -16,13 +17,16 @@ const defaultState = {
   serverChannels: {}
 };
 
-const [state, setState] = createStore(
+export const [state, setState] = createStore(
   JSON.parse(localStorage.getItem("state") || "null") ?? defaultState
 );
+
+export var tempState = {};
 
 function App() {
   const conn = useServerConnection();
   onMount(() => {
+    tempState.conn = conn;
     const server = state.current.server;
     if (!server) return;
 
@@ -339,22 +343,21 @@ function App() {
                             onlineUsers().has(user.username);
 
                           return (
-                            <div class="member_item x">
-                              {online && (
-                                <img
-                                  src={
-                                    "https://avatars.rotur.dev/" +
-                                    user.username
-                                  }
-                                  alt=""
-                                  class="pfp"
-                                />
-                              )}
+                            <div class="member_item x" style={{
+                              opacity: (online) ? 1 : .5
+                            }}>
+                              <img
+                                src={
+                                  "https://avatars.rotur.dev/" + user.username
+                                }
+                                loading="lazy"
+                                alt=""
+                                class="pfp"
+                              />
 
                               <span
                                 style={{
-                                  color: role?.color,
-                                  opacity: (online) ? 1 : .5
+                                  color: role?.color
                                 }}
                               >
                                 {user.username}
@@ -372,33 +375,6 @@ function App() {
         </div>
       </div>
     </div >
-  );
-}
-
-export function Message(props) {
-  return (
-    <div class="message_single y">
-      {props.reply && (
-        <div class="reply_preview x">
-          <div class="text">{props.reply}</div>
-        </div>
-      )}
-      <div class="actual_message x">
-        <img src={props.avatar} alt="" class="pfp" />
-        <div class="message_content y flex">
-          <div class="message_meta x">
-            <div class="username">{props.username}</div>
-            <div class="time">{props.time}</div>
-          </div>
-          <div class="message_text">{props.content}</div>
-          {props.attachment && (
-            <div class="attatchments">
-              <img src={props.attachment} alt="" class="attatched" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 
