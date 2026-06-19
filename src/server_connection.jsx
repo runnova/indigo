@@ -38,6 +38,7 @@ export function useServerConnection() {
   const [me, setMe] = createSignal(null);
   const [channels, setChannels] = createSignal([]);
   const [roles, setRoles] = createSignal([]);
+  const [emojis, setEmojis] = createSignal([]);
   const [members, setMembers] = createSignal([]);
   const [membersOnline, setMembersOnline] = createSignal([]);
   const [lastEvent, setLastEvent] = createSignal(null);
@@ -87,6 +88,7 @@ export function useServerConnection() {
         send({ cmd: "users_list" });
         send({ cmd: "users_online" });
         send({ cmd: "roles_list" });
+        send({ cmd: "emoji_list" });
         break;
       }
 
@@ -96,6 +98,10 @@ export function useServerConnection() {
 
       case "roles_list":
         setRoles(packet.val ?? []);
+        break;
+
+      case "emoji_list":
+        setEmojis(packet.emojis ?? []);
         break;
 
       case "users_list":
@@ -252,6 +258,7 @@ export function useServerConnection() {
     setMe(null);
     setChannels([]);
     setRoles([]);
+    setEmojis([]);
     setMembers([]);
     setMembersOnline([]);
 
@@ -303,6 +310,7 @@ export function useServerConnection() {
     me,
     channels,
     roles,
+    emojis,
     members,
     membersOnline,
     lastEvent,

@@ -1,4 +1,6 @@
 import { createSignal, createEffect, on, batch } from "solid-js";
+import { produce } from "solid-js/store";
+import { unreads, setUnreads } from "./App";
 
 const PAGE_SIZE = 20;
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -17,6 +19,36 @@ function sortMessages(msgs) {
 
       return String(a.id).localeCompare(String(b.id));
     });
+}
+
+function handleUnreadEvent(event) {
+  if (event.cmd === "unreads_get") {
+    setUnreads(event.unreads);
+  }
+
+  if (event.cmd === "unreads_update") {
+    setUnreads(
+      event.channel,
+      produce(channel => {
+        if (!channel) return;
+
+        channel.last_read = event.last_read;
+        channel.unread_count = 0;
+      })
+    );
+  }
+
+  if (event.cmd === "unreads_ack") {
+    setUnreads(
+      event.channel,
+      produce(channel => {
+        if (!channel) return;
+
+        channel.last_read = event.message_id;
+        channel.unread_count = 0;
+      })
+    );
+  }
 }
 
 export function createChannelMessages({
@@ -191,7 +223,18 @@ export function createChannelMessages({
   }
 
   function handleEvent(event) {
-    if (!event || event.channel !== channel()) return;
+    if (!event) return;
+
+    if (
+      event.cmd === "unreads_get" ||
+      event.cmd === "unreads_update" ||
+      event.cmd === "unreads_ack"
+    ) {
+      handleUnreadEvent(event);
+      return;
+    }
+
+    if (event.channel !== channel()) return;
 
     if (event.cmd === "messages_get") return handleMessagesGet(event);
     if (event.cmd === "messages_around") return handleMessagesAround(event);

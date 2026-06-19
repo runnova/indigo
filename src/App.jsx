@@ -1,11 +1,21 @@
-import { createSignal, For, Show, createEffect, onMount, createMemo } from "solid-js";
+import {
+  Show,
+  createEffect,
+  onMount,
+  createMemo
+} from "solid-js";
+
 import { createStore } from "solid-js/store";
+
 import { useServerConnection } from "./server_connection";
-import { VirtualMessageList } from "./scolling"
-import { HiSolidChevronRight, HiSolidHashtag, HiSolidSpeakerWave, HiSolidMegaphone, HiSolidChatBubbleLeftRight } from "solid-icons/hi";
-import { Message } from "./message";
-import { openPopout } from "./popout";
-import MemberPopout from "./MemberPopout.jsx"
+import MemberPopout from "./components/MemberPopout.jsx";
+
+import ServerBar from "./components/ServerBar.jsx";
+import ServerSidebar from "./components/ServerSidebar.jsx";
+import MemberList from "./components/MemberList.jsx";
+import MessageComposer from "./components/MessageComposer.jsx";
+
+import { VirtualMessageList } from "./scolling";
 
 const defaultState = {
   servers: [
@@ -16,13 +26,24 @@ const defaultState = {
     channel: null,
     server: null,
   },
-  serverChannels: {}
+  serverChannels: {},
+  replying: null,
 };
 
-export const [state, setState] = createStore(
-  JSON.parse(localStorage.getItem("state") || "null") ?? defaultState
+export const [unreads, setUnreads] = createStore({});
+
+const savedState = JSON.parse(
+  localStorage.getItem("state") || "{}"
 );
 
+export const [state, setState] = createStore({
+  ...defaultState,
+  ...savedState,
+  serverChannels: {
+    ...defaultState.serverChannels,
+    ...savedState.serverChannels
+  }
+});
 export var tempState = {};
 window.tempState = tempState
 
@@ -44,9 +65,18 @@ function App() {
       });
     }
   });
-
+  function getPersistedState() {
+    return {
+      servers: state.servers,
+      current: state.current,
+      serverChannels: state.serverChannels
+    };
+  }
   createEffect(() => {
-    localStorage.setItem("state", JSON.stringify(state));
+    localStorage.setItem(
+      "state",
+      JSON.stringify(getPersistedState())
+    );
   });
   createEffect(() => {
     const info = conn.serverInfo();
@@ -77,6 +107,26 @@ function App() {
     ) {
       setState("current", "channel", savedChannel);
     }
+  });
+
+  createEffect(() => {
+    if (conn.status() !== "ready") return;
+
+    conn.send({
+      cmd: "unreads_get"
+    });
+  });
+
+  createEffect(() => {
+    if (conn.status() !== "ready") return;
+
+    const channel = state.current.channel;
+    if (!channel) return;
+
+    conn.send({
+      cmd: "unreads_ack",
+      channel
+    });
   });
 
   function selectServer(server) {
@@ -205,84 +255,31 @@ function App() {
 
     return sections;
   });
-  const channelIcons = {
-    text: HiSolidHashtag,
-    voice: HiSolidSpeakerWave,
-    announcement: HiSolidMegaphone,
-    forum: HiSolidChatBubbleLeftRight,
-  };
+  // const channelIcons = {
+  //   text: HiSolidHashtag,
+  //   voice: HiSolidSpeakerWave,
+  //   announcement: HiSolidMegaphone,
+  //   forum: HiSolidChatBubbleLeftRight,
+  // };
   return (
     <div class="main x">
 
-      <div class="server_bar y">
-        <For each={state.servers}>
-          {(server) => (
-            <div
-              class={`server_single${state.current.server?.src === server.src ? " server_single--active" : ""}`}
-              onClick={() => selectServer(server)}
-              title={server.name}
-            >
-              <img
-                src={server.icon ?? "https://static.vecteezy.com/system/resources/thumbnails/045/763/121/small/speech-bubble-transparent-background-transparent-chat-talking-speech-bubble-free-png.png"}
-                alt={server.name}
-                class="server_icon"
-              />
-            </div>
-          )}
-        </For>
-      </div>
+      <ServerBar
+        servers={state.servers}
+        currentServer={state.current.server}
+        onSelect={selectServer}
+      />
 
       <div class="server_content x fill">
         <div class="first_bar bar">
           <Show when={conn.status() === "ready"}>
-            <div className="server_info">
-              <div className="header">
-                <Show when={conn.serverInfo().banner}>
-                  <img src={conn.serverInfo().banner} alt="Server Banner" className="banner" />
-                </Show>
-                <div className="dropdown x">
-                  <span>{conn.serverInfo().name}</span>
-                  <HiSolidChevronRight />
-                </div>
-              </div>
-            </div>
-            <div class="channel_list y">
-              <For each={conn.channels()}>
-                {(ch) =>
-                  ch.type === "separator" ? (
-                    <hr />
-                  ) : (
-                    (() => {
-                      const getChannelIcon = (type) =>
-                        channelIcons[type] || HiSolidHashtag;
-                      const Icon = getChannelIcon(ch.type);
-
-                      return (
-                        <div
-                          class={`x channel_item${state.current.channel === ch.name ? " channel_item--active" : ""}`}
-                          onClick={() => selectChannel(ch.name)}
-                        >
-                          <span class="channel_icon">
-                            <Icon />
-                          </span>
-                          {ch.display_name || ch.name}
-                        </div>
-                      );
-                    })()
-                  )
-                }
-              </For>
-            </div>
-          </Show>
-
-          <Show when={conn.status() !== "ready" && conn.status() !== "idle"}>
-            <div class="sidebar_status">
-              <Show when={conn.status() === "error"} fallback={
-                <span class="sidebar_status__spinner">⟳</span>
-              }>
-                <span class="sidebar_status__error">{conn.error()}</span>
-              </Show>
-            </div>
+            <ServerSidebar
+              serverInfo={conn.serverInfo()}
+              channels={conn.channels()}
+              currentChannel={state.current.channel}
+              unreads={unreads}
+              onSelectChannel={selectChannel}
+            />
           </Show>
         </div>
 
@@ -324,84 +321,29 @@ function App() {
                   />
                 }
 
-                <div class="text_box x">
-                  <textarea
-                    id="message_input"
-                    placeholder={`Message #${state.current.channel}`}
-                    class="fill"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        const content = e.currentTarget.value.trim();
-                        if (!content) return;
-                        conn.send({ cmd: "message_new", channel: state.current.channel, content });
-                        e.currentTarget.value = "";
-                      }
-                    }}
-                  />
-                  <div class="action_buttons">
-                    <button class="icon_button">
-                      <div class="icon">emoji</div>
-                    </button>
-                  </div>
-                </div>
+                <MessageComposer
+                  channel={state.current.channel}
+                  onSend={(content) =>
+                    conn.send({
+                      cmd: "message_new",
+                      channel: state.current.channel,
+                      content,
+                      ...(state.replying && {
+                        reply_to: state.replying.id
+                      })
+                    })
+                  }
+                />
               </Show>
             </div>
 
             <div class="third_bar bar">
-
-              <div class="members_list y">
-                <For each={memberSections()}>
-                  {(section) => (
-                    <>
-                      <div class="member_section_label">
-                        {section.label} — {section.users.length}
-                      </div>
-
-                      <For each={section.users}>
-                        {(user) => {
-                          const roleId = getHoistedRole(user) ?? user.roles?.[0];
-                          const role = conn.roles?.()?.[roleId];
-
-                          const online = onlineUsers().has(user.username);
-
-                          return (
-                            <div
-                              class="member_item x"
-                              style={{
-                                opacity: online ? 1 : 0.5
-                              }}
-                              onClick={(e) => openPopout(user, e.currentTarget)}
-                            >
-
-                              <div className="pfpWO">
-                                <img
-                                  src={`https://avatars.rotur.dev/${user.username}`}
-                                  alt=""
-                                  class="pfp"
-                                />
-                                <img
-                                  src={`https://avatars.rotur.dev/.overlay/${user.username}`}
-                                  alt=""
-                                  class="overlay"
-                                />
-                              </div>
-
-                              <span
-                                style={{
-                                  color: role?.color
-                                }}
-                              >
-                                {user.username}
-                              </span>
-                            </div>
-                          );
-                        }}
-                      </For>
-                    </>
-                  )}
-                </For>
-              </div>
+              <MemberList
+                sections={memberSections()}
+                onlineUsers={onlineUsers()}
+                roles={conn.roles?.()}
+                getHoistedRole={getHoistedRole}
+              />
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { For, createMemo } from "solid-js";
-import { tempState, state, setState } from "./App.jsx";
+import { tempState, state, setState } from "../App.jsx";
 
 function parseMarkdown(input) {
   const parts = [];
@@ -9,7 +9,7 @@ function parseMarkdown(input) {
     if (!text) return;
 
     const tokens = text.split(
-      /(https?:\/\/[^\s]+|originChats:<emoji>\/\/[^\s]+|originChats:\/\/\S+|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~)/
+      /(https?:\/\/[^\s]+|originChats:<emoji>\/\/[^\s]+|originChats:\/\/\S+|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|@\w+)/
     );
 
     for (const token of tokens) {
@@ -83,6 +83,20 @@ function parseMarkdown(input) {
             <EmbeddedLink url={token} />
           );
         }
+      } else if (token.match(/^@\w+$/)) {
+        const username = token.slice(1);
+
+        parts.push(
+          <a
+            href="#"
+            class="mention"
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+          >
+            @{username}
+          </a>
+        );
       } else {
         parts.push(token);
       }
@@ -130,6 +144,29 @@ function parseMarkdown(input) {
             {(item) => <li>{parseMarkdown(item)}</li>}
           </For>
         </ul>
+      );
+    } else if (line.startsWith("> ")) {
+      const quotes = [];
+
+      while (
+        i < lines.length &&
+        lines[i].startsWith("> ")
+      ) {
+        quotes.push(lines[i].slice(2));
+        i++;
+      }
+
+      i--;
+
+      parts.push(
+        <blockquote>
+          {quotes.map((q, idx) => (
+            <>
+              {parseMarkdown(q)}
+              {idx !== quotes.length - 1 && <br />}
+            </>
+          ))}
+        </blockquote>
       );
     } else {
       pushText(line);
@@ -233,11 +270,23 @@ export function Message(props) {
   const rendered = createMemo(() =>
     parseMarkdown(props.content)
   );
+  console.log(props.reactions)
   return (
     <div class={`message_single y ${props.grouped ? "grouped" : ""}`}>
       {props.reply && (
         <div class="reply_preview x">
-          <div class="text">{props.reply}</div>
+          <div class="reply_author">
+            <img
+              src={`https://avatars.rotur.dev/${props.reply.user}`}
+              alt=""
+              class="pfp"
+            />
+            {props.reply.user}
+          </div>
+
+          <div class="reply_text">
+            {props.reply.content}
+          </div>
         </div>
       )}
 
@@ -248,17 +297,17 @@ export function Message(props) {
           </div>
         ) : (
           <div className="pfpWO">
-              <img
-                src={`https://avatars.rotur.dev/${props.username}`}
-                alt=""
-                class="pfp"
-              />
-              <img
-                src={`https://avatars.rotur.dev/.overlay/${props.username}`}
-                alt=""
-                class="overlay"
-              />
-            </div>
+            <img
+              src={`https://avatars.rotur.dev/${props.username}`}
+              alt=""
+              class="pfp"
+            />
+            <img
+              src={`https://avatars.rotur.dev/.overlay/${props.username}`}
+              alt=""
+              class="overlay"
+            />
+          </div>
         )}
 
         <div class="message_content y flex">
@@ -324,6 +373,34 @@ export function Message(props) {
               </For>
             </div>
           )}
+          <Show when={props.reactions && Object.keys(props.reactions).length}>
+            <div class="messageReactions">
+              <For each={Object.entries(props.reactions)}>
+                {([emoji, users]) => {
+                  const isCustom = emoji.startsWith("originChats://");
+
+                  return (
+                    <div class="reaction_single">
+                      {isCustom ? (
+                        <img
+                          class="inline_emoji"
+                          src={emoji.replace(
+                            "originChats://",
+                            "https://"
+                          )}
+                          alt=""
+                        />
+                      ) : (
+                        <span>{emoji}</span>
+                      )}
+
+                      <span>{users.length}</span>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
         </div>
       </div>
     </div>
