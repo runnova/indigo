@@ -8,10 +8,14 @@ export default function MemberList(props) {
         {(section) => (
           <>
             <div class="member_section_label">
-              {section.label} — {section.users.length}
+              {section.label} ({section.users.length})
             </div>
 
-            <For each={section.users}>
+            <For
+              each={[...section.users].sort((a, b) =>
+                a.username.localeCompare(b.username)
+              )}
+            >
               {(user) => (
                 <MemberItem
                   user={user}

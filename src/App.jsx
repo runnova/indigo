@@ -295,7 +295,7 @@ function App() {
 
     if (onlineUsers.length) {
       sections.push({
-        label: "ONLINE",
+        label: "Online",
         users: onlineUsers,
       });
     }
@@ -306,7 +306,7 @@ function App() {
 
     if (offlineUsers.length) {
       sections.push({
-        label: "OFFLINE",
+        label: "Offline",
         users: offlineUsers,
       });
     }

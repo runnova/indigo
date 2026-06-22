@@ -156,7 +156,8 @@ img {
   }
 }
 
-.server_single--active, .browser_tabs button.active {
+.server_single--active,
+.browser_tabs button.active {
   box-shadow: 0 0 5px var(--hl-two) inset, 0 3px 3px #000000ab;
   position: relative;
 
@@ -303,6 +304,8 @@ img {
     padding: .2em .5em;
     aspect-ratio: 1/1;
     transition: box-shadow .2s;
+    display: inline-flex;
+    align-items: center;
 
     &:hover {
       background-color: var(--bg-four);
@@ -650,6 +653,7 @@ hr {
     background-color: var(--bg-one);
     border-radius: .5em;
     margin-top: .5em;
+    width: calc(100% - 1.35em);
   }
 }
 
@@ -776,7 +780,7 @@ svg {
   display: flex;
   align-items: center;
   justify-content: center;
-    cursor: pointer;
+  cursor: pointer;
 
   &.text {
     font-size: inherit;
@@ -938,10 +942,11 @@ img.channel_icon_image {
   }
 
   & button {
-    padding: .3em .5em;
+    padding: .5em;
     border-radius: .3em;
     height: fit-content;
     cursor: pointer;
+    display: flex;
 
     &:hover {
       background-color: var(--bg-three);
