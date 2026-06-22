@@ -3,6 +3,7 @@ import { createSignal } from "solid-js";
 export const [popout, setPopout] = createSignal(null);
 
 export function openPopout(user, element) {
+  console.log(user, element)
   const rect = element.getBoundingClientRect();
 
   setPopout({

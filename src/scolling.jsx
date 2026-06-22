@@ -10,12 +10,44 @@ import { Message } from "./components/message";
 import { MessageActions } from "./components/MessageActions.jsx";
 import { createChannelMessages } from "./useChannelMessages";
 import { tempState, state, setState} from "./App.jsx";
+import { SelfRoles } from "./components/SelfRoles";
 
 const SCROLL_NEAR_TOP = 100;
 const SCROLL_NEAR_BOTTOM = 80;
 
 export function VirtualMessageList(props) {
+  console.log("channel", props.channel);
+  if (props.channel === "indigo-self-roles") {
+    return (
+      <div class="vml-scroll">
+        <SelfRoles
+          channel={props.channel}
+          sendRequest={props.sendRequest}
+        />
+      </div>
+    );
+  }
   let scrollEl;
+
+  function scrollToMessage(messageId, behavior = "smooth") {
+    const el = scrollEl?.querySelector(
+      `[data-id="${messageId}"]`
+    );
+
+    if (!el) return false;
+
+    el.scrollIntoView({
+      block: "center",
+      behavior,
+    });
+
+    return true;
+  }
+
+  props.onReady?.({
+    scrollToMessage,
+    scrollToBottom,
+  });
 
   function isNearBottom() {
     if (!scrollEl) return true;
@@ -421,12 +453,13 @@ const replyMessage = msg()?.reply_to
             content={hoveredMessage().content}
             canEdit={hoveredMessage().user === tempState?.conn?.me()?.username}
             canDelete={hoveredMessage().user === tempState?.conn?.me()?.username}
-            onReply={() =>
+            onReply={() =>{
+              tempState.virtMsgList.scrollToMessage(hoveredMessage().id);
               setState("replying", {
                 id: hoveredMessage().id,
                 user: hoveredMessage().user,
                 content: hoveredMessage().content
-              })
+              })}
             }
             onEdit={() => console.log("edit", hoveredMessage())}
             onDelete={() => console.log("delete", hoveredMessage())}

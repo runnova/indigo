@@ -267,15 +267,15 @@ export function useServerConnection() {
 
     ws.onopen = () => setStatus("handshake");
 
-   ws.onmessage = (ev) => {
-  try {
-    const packet = JSON.parse(ev.data);
-    handlePacket(packet);
-  } catch (e) {
-    console.error("[ws] parse error:", e);
-    console.error("Raw packet:", ev.data?.slice?.(0, 1000));
-  }
-};
+    ws.onmessage = (ev) => {
+      try {
+        const packet = JSON.parse(ev.data);
+        handlePacket(packet);
+      } catch (e) {
+        console.error("[ws] parse error:", e);
+        console.error("Raw packet:", ev.data?.slice?.(0, 1000));
+      }
+    };
 
     ws.onerror = (ev) => {
       setError("WebSocket error");

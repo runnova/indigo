@@ -123,24 +123,73 @@ function renderICN(code, canvas) {
 
   ctx.restore();
 }
-
 export default function MemberPopout() {
   let popupRef;
 
+  const [position, setPosition] = createSignal({
+    left: 0,
+    top: 0
+  });
+
+  createEffect(() => {
+    const current = popout();
+
+    if (!current || !popupRef) return;
+
+    queueMicrotask(() => {
+      const width = popupRef.offsetWidth;
+      const height = popupRef.offsetHeight;
+
+      const padding = 12;
+      const minRightGap = 270;
+
+      let left = current.x + padding;
+
+      const maxLeft =
+        window.innerWidth -
+        width -
+        minRightGap;
+
+      left = Math.min(left, maxLeft);
+      left = Math.max(left, padding);
+
+      let top = current.y - 20;
+
+      top = Math.max(
+        padding,
+        Math.min(top, window.innerHeight - height - padding)
+      );
+
+      setPosition({
+        left,
+        top
+      });
+    });
+  });
+
   const [profile, setProfile] = createSignal(null);
+  const [loading, setLoading] = createSignal(false);
 
   createEffect(async () => {
     const current = popout();
 
-    if (!current?.user?.username) return;
+    if (!current?.user?.username) {
+      setProfile(null);
+      return;
+    }
 
-    const res = await fetch(
-      `https://api.rotur.dev/profile?name=${current.user.username}&include_posts=0`
-    );
+    setLoading(true);
 
-    const data = await res.json();
+    try {
+      const res = await fetch(
+        `https://api.rotur.dev/profile?name=${current.user.username}&include_posts=0`
+      );
 
-    setProfile(data);
+      const data = await res.json();
+      setProfile(data);
+    } finally {
+      setLoading(false);
+    }
   });
 
   const handlePointerDown = (e) => {
@@ -161,97 +210,137 @@ export default function MemberPopout() {
     document.removeEventListener("mousedown", handlePointerDown);
   });
 
+
   return (
     <Show when={popout()}>
-      {(data) => (
-        <div
-          ref={popupRef}
-          class="member_popout y"
-          style={{
-            position: "fixed",
-            right: "245px",
-            top: `${data().y}px`
-          }}
-        >
-          <img
-            src={`https://avatars.rotur.dev/.banners/${data().user.username}`}
-            alt=""
-            class="banner"
-          />
+      {(data) => {
+        const [expanded, setExpanded] = createSignal(false);
+        return (
+          <div
+            ref={popupRef}
+            class="member_popout y"
+            style={{
+              position: "fixed",
+              left: `${position().left}px`,
+              top: `${position().top}px`,
+              "--accent": profile()?.theme?.accent,
+              "--background": profile()?.theme?.background,
+              "--primary": profile()?.theme?.primary,
+              "--secondary": profile()?.theme?.secondary,
+              "--tertiary": profile()?.theme?.tertiary,
+              "--text": profile()?.theme?.text
+            }}
+          >
+            <Show when={loading()}>
+              <div class="popup_loader">
+                <div class="spinner" />
+              </div>
+            </Show>
 
-          <div class="popupMemberHeader x">
-            <div class="pfpWO">
+            <div classList={{ "popup_content": true, loading: loading() }}>
               <img
-                src={`https://avatars.rotur.dev/${data().user.username}`}
+                src={`https://avatars.rotur.dev/.banners/${data().user.username}`}
                 alt=""
-                class="pfp"
+                class="banner"
               />
 
-              <img
-                src={`https://avatars.rotur.dev/.overlay/${data().user.username}`}
-                alt=""
-                class="overlay"
-              />
-            </div>
-
-            <div class="data y" style={{ "margin-top": ".5em" }}>
-              <div style={{ "font-size": "1.5em" }}>
-                {profile()?.username}
-                <small style={{ "font-size": "14px", "margin": ".3em" }}>
-                  {profile()?.pronouns}
-                </small>
-              </div>
-
-
-              <div class="data_buttons x">
-                {profile()?.group_tag ? (<button>
-                  {profile()?.group_tag}
-                </button>) : ""}
-                <button>
-                  {profile()?.system}
-                </button>
-              </div>
-            </div>
-          </div>
-          <Show when={profile()?.badges?.length}>
-            <div class="badges">
-              {profile().badges.map((badge) => {
-                let canvas;
-
-                onMount(() => {
-                  if (canvas) renderICN(badge.icon, canvas);
-                });
-
-                return (
-                  <canvas
-                    ref={canvas}
-                    width="24"
-                    height="24"
-                    title={badge.description}
+              <div class="popupMemberHeader x">
+                <div class="pfpWO">
+                  <img
+                    src={`https://avatars.rotur.dev/${data().user.username}`}
+                    alt=""
+                    class="pfp"
                   />
-                );
-              })}
-            </div>
-          </Show>
-          <Show when={profile()}>
-            {(p) => (
-              <>
-                <div>
-                  {p().bio}
+
+                  <img
+                    src={`https://avatars.rotur.dev/.overlay/${data().user.username}`}
+                    alt=""
+                    class="overlay"
+                  />
                 </div>
 
-                <div className="boxes x">
-                  <div className="box">
-                    {p().currency}
-                    <small>Credits</small>
+                <div class="data y" style={{ "margin-top": ".5em" }}>
+                  <div style={{ "font-size": "1.5em" }}>
+                    {profile()?.username}
+                    <small style={{ "font-size": "14px", "margin": ".3em" }}>
+                      {profile()?.pronouns}
+                    </small>
                   </div>
 
-                  <div className="box">
-                    {p().index}th
-                    <small>User</small>
+                  <div class="data_buttons x">
+                    {profile()?.group_tag ? (<button onClick={() => { window.open(`https://rotur.dev/groups/${profile()?.group_tag}`) }}>
+                      <img
+                        src={`https://api.rotur.dev/groups/${profile()?.group_tag}/icon.jpg`}
+                        alt=""
+                        class="grptgic"
+                      />
+                      {profile()?.group_tag}
+                    </button>) : ""}
+                    <button>
+                      {profile()?.system}
+                    </button>
                   </div>
                 </div>
-                {/* <div class="theme_preview">
+              </div>
+              <div style={{ "margin": ".3em", "gap": ".3em" }} className="y">
+                <Show when={profile()?.badges?.length}>
+                  <div class="badges">
+                    {profile().badges.map((badge) => {
+                      let canvas;
+
+                      onMount(() => {
+                        if (canvas) renderICN(badge.icon, canvas);
+                      });
+
+                      return (
+                        <canvas
+                          ref={canvas}
+                          width="24"
+                          height="24"
+                          title={badge.description}
+                        />
+                      );
+                    })}
+                  </div>
+                </Show>
+                <Show when={profile()}>
+                  {(p) => (
+                    <>
+                      <div>
+                        <div
+                          style={{
+                            "white-space": "pre-wrap",
+                            "max-height": expanded() ? "200px" : "120px",
+                            "overflow-y": expanded() ? "scroll" : "hidden",
+                            overflow: "hidden"
+                          }}
+                        >
+                          {p().bio}
+                        </div>
+
+                        {p().bio?.length > 100 && (
+                          <small
+                            type="button"
+                            onClick={() => setExpanded(!expanded())}
+                            className="bio_addit_toggle"
+                          >
+                            {expanded() ? "Show less" : "Show more"}
+                          </small>
+                        )}
+                      </div>
+
+                      <div className="boxes x">
+                        <div className="box">
+                          {p().currency}
+                          <small>Credits</small>
+                        </div>
+
+                        <div className="box">
+                          #{p().index}
+                          <small>User</small>
+                        </div>
+                      </div>
+                      {/* <div class="theme_preview">
                   <div>{p().theme.accent}</div>
                   <div>{p().theme.background}</div>
                   <div>{p().theme.primary}</div>
@@ -259,12 +348,15 @@ export default function MemberPopout() {
                   <div>{p().theme.tertiary}</div>
                   <div>{p().theme.text}</div>
                 </div> */}
-              </>
-            )}
-          </Show>
-          <input type="text" placeholder="Send a DM..." className="dmInput" />
-        </div>
-      )}
+                    </>
+                  )}
+                </Show></div>
+              <input type="text" placeholder="Send a DM..." className="dmInput" />
+            </div>
+          </div>
+        );
+      }}
     </Show>
   );
+
 }

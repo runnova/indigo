@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { HiSolidChevronRight } from "solid-icons/hi";
+import { HiOutlineChevronRight } from "solid-icons/hi";
 
 export default function ServerHeader(props) {
   return (
@@ -15,7 +15,7 @@ export default function ServerHeader(props) {
 
         <div class="dropdown x">
           <span>{props.serverInfo?.name}</span>
-          <HiSolidChevronRight />
+          <HiOutlineChevronRight />
         </div>
       </div>
     </div>

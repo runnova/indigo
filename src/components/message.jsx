@@ -1,5 +1,6 @@
 import { For, createMemo } from "solid-js";
 import { tempState, state, setState } from "../App.jsx";
+import { openPopout } from "./popout";
 
 function parseMarkdown(input) {
   const parts = [];
@@ -270,12 +271,11 @@ export function Message(props) {
   const rendered = createMemo(() =>
     parseMarkdown(props.content)
   );
-  console.log(props.reactions)
   return (
     <div class={`message_single y ${props.grouped ? "grouped" : ""}`}>
       {props.reply && (
         <div class="reply_preview x">
-          <div class="reply_author">
+          <div class="reply_author x" onClick={(e) => openPopout(props.reply.user, e.currentTarget)}>
             <img
               src={`https://avatars.rotur.dev/${props.reply.user}`}
               alt=""
@@ -296,7 +296,7 @@ export function Message(props) {
             <div class="time">{props.time}</div>
           </div>
         ) : (
-          <div className="pfpWO">
+          <div className="pfpWO" onClick={(e) => openPopout(props.username, e.currentTarget)}>
             <img
               src={`https://avatars.rotur.dev/${props.username}`}
               alt=""
@@ -313,7 +313,7 @@ export function Message(props) {
         <div class="message_content y flex">
           {!props.grouped && (
             <div class="message_meta x">
-              <div class="username">{props.username}</div>
+              <div class="username" onClick={(e) => openPopout(props, e.currentTarget)}>{props.username}</div>
               <div class="time">{props.time}</div>
             </div>
           )}

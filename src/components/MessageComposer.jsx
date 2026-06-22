@@ -1,6 +1,7 @@
 import { Show, createSignal } from "solid-js";
 import EmojiPicker from "./EmojiPicker"
-import { state } from "../App"
+import { state, setState } from "../App"
+import {HiOutlineXMark} from "solid-icons/hi"
 
 export default function MessageComposer(props) {
   let textarea;
@@ -28,11 +29,31 @@ export default function MessageComposer(props) {
 
   return (
     <div class="text_box_wrapper y">
+       <Show when={state.replying}>
+        <div class="reply_bar x">
+          <span>Replying to @{state.replying.user}</span>
+          <button onClick={() => setState("replying", null)}>
+            <HiOutlineXMark/>
+          </button>
+        </div>
+      </Show>
       <div class="text_box x">
         <textarea
           ref={textarea}
           placeholder={`Message #${props.channel}`}
           class="fill"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+
+              const content = e.currentTarget.value.trim();
+
+              if (!content) return;
+
+              props.onSend(content);
+              e.currentTarget.value = "";
+            }
+          }}
         />
 
         <div class="action_buttons">

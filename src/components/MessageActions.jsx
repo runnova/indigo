@@ -1,17 +1,16 @@
 import { createSignal, Show } from "solid-js";
-import { HiSolidChatBubbleOvalLeft, HiSolidFaceSmile, HiSolidPencil, HiSolidDocumentDuplicate, HiSolidTrash } from "solid-icons/hi";
+import { HiOutlineChatBubbleOvalLeft, HiOutlineFaceSmile, HiOutlinePencil, HiOutlineDocumentDuplicate, HiOutlineTrash } from "solid-icons/hi";
 
 export function MessageActions(props) {
   return (
     <div
-      class="message_actions"
-      onMouseEnter={() => clearTimeout(hideTimer)}>
+      class="message_actions">
       <button onClick={() => props.onReply?.()}>
-        <HiSolidChatBubbleOvalLeft/>
+        <HiOutlineChatBubbleOvalLeft />
       </button>
 
       <button onClick={() => props.onReact?.()}>
-        <HiSolidFaceSmile/>
+        <HiOutlineFaceSmile />
       </button>
 
       <button
@@ -19,18 +18,18 @@ export function MessageActions(props) {
           navigator.clipboard.writeText(props.content);
         }}
       >
-        <HiSolidDocumentDuplicate/>
+        <HiOutlineDocumentDuplicate />
       </button>
 
       {props.canEdit && (
         <button onClick={() => props.onEdit?.()}>
-          <HiSolidPencil/>
+          <HiOutlinePencil />
         </button>
       )}
 
       {props.canDelete && (
         <button onClick={() => props.onDelete?.()}>
-          <HiSolidTrash/>
+          <HiOutlineTrash />
         </button>
       )}
     </div>

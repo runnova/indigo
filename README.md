@@ -1,28 +1,27 @@
+# Indigo Client
+The cooler [OriginChats](https://originchats.com) client. Currently under development.<br>
+Licensed under MPL 3.0. You can [contribute](https://github.com/runnova/indigo/pulls) too! (issues go [here](https://github.com/runnova/indigo/issues))
+
+<hr>
+
 ## Usage
 
 ```bash
 $ npm install # or pnpm install or yarn install
 ```
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
-
 ## Available Scripts
 
-In the project directory, you can run:
+To Run the app in the development mode, In the project directory, you can run:
 
-### `npm run dev`
-
-Runs the app in the development mode.<br>
+```sh
+npm run dev
+```
 Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
 
-### `npm run build`
-
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-## Deployment
-
-Learn more about deploying your application with the [documentations](https://vite.dev/guide/static-deploy.html)
+### Build it yourselves
+To build the app for production to the `dist` folder:
+```sh
+npm run build
+```
+It correctly bundles the project in production mode and optimizes the build for the best performance.

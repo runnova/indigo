@@ -7,6 +7,14 @@ import {
 
 import { createStore } from "solid-js/store";
 
+import {
+  HiOutlineHashtag,
+  HiOutlineUsers,
+  HiOutlineMapPin,
+  HiOutlineMagnifyingGlass,
+  HiOutlineInbox
+} from "solid-icons/hi";
+
 import { useServerConnection } from "./server_connection";
 import MemberPopout from "./components/MemberPopout.jsx";
 
@@ -16,6 +24,8 @@ import MemberList from "./components/MemberList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 
 import { VirtualMessageList } from "./scolling";
+
+import RightSidebar from "./components/RightSidebar.jsx";
 
 const defaultState = {
   servers: [
@@ -28,6 +38,8 @@ const defaultState = {
   },
   serverChannels: {},
   replying: null,
+  thirdBarContext: "",
+  searchQuery: ""
 };
 
 export const [unreads, setUnreads] = createStore({});
@@ -37,24 +49,44 @@ const savedState = JSON.parse(
 );
 
 export const [state, setState] = createStore({
-  ...defaultState,
-  ...savedState,
+  servers: savedState.servers ?? defaultState.servers,
+  current: {
+    ...defaultState.current,
+    ...(savedState.current ?? {})
+  },
   serverChannels: {
     ...defaultState.serverChannels,
-    ...savedState.serverChannels
-  }
+    ...(savedState.serverChannels ?? {})
+  },
+  replying: null,
+  thirdBarContext: "",
+  searchQuery: ""
 });
+
 export var tempState = {};
 window.tempState = tempState
 
 function App() {
   const conn = useServerConnection();
+  const currentChannel = createMemo(() =>
+    conn
+      .channels()
+      .find(channel => channel.name === state.current.channel)
+  );
   onMount(() => {
     tempState.conn = conn;
-    const server = state.current.server;
+
+    const server =
+      state.current.server ??
+      state.servers[0];
+
     if (!server) return;
 
-    const settings = JSON.parse(localStorage.getItem("settings") || "{}");
+    setState("current", "server", server);
+
+    const settings = JSON.parse(
+      localStorage.getItem("settings") || "{}"
+    );
 
     if (settings.type === "token" && settings.token) {
       conn.connect(server, settings.token);
@@ -92,6 +124,11 @@ function App() {
         name: info.name
       }
     );
+  });
+  createEffect(() => {
+    tempState.roles = conn.roles?.() ?? {};
+    tempState.members = conn.members();
+    tempState.membersOnline = conn.membersOnline();
   });
   createEffect(() => {
     if (conn.status() !== "ready") return;
@@ -255,12 +292,6 @@ function App() {
 
     return sections;
   });
-  // const channelIcons = {
-  //   text: HiSolidHashtag,
-  //   voice: HiSolidSpeakerWave,
-  //   announcement: HiSolidMegaphone,
-  //   forum: HiSolidChatBubbleLeftRight,
-  // };
   return (
     <div class="main x">
 
@@ -285,14 +316,45 @@ function App() {
 
         <div class="fill y">
           <div class="topbar">
-            <div class="channelbar">
+            <div class="channelbar x">
               <Show when={state.current.channel} fallback={currentServerName()}>
-                # {state.current.channel}
+                <HiOutlineHashtag style={{"transform": "translateY(-1px)"}}/> <span>{currentChannel()?.display_name}</span>
+                &bull;
+                <div className="channel_desc">
+                  {currentChannel()?.description}
+                </div>
               </Show>
+              <div class="inpgrp x">
+                <button onClick={() => setState("thirdBarContext", "inbox")}>
+                  <HiOutlineInbox />
+                </button>
+
+                <button onClick={() => setState("thirdBarContext", "pinned")}>
+                  <HiOutlineMapPin />
+                </button>
+
+                <div class="searchbox">
+                  <input
+                    type="text"
+                    class="message_search_input"
+                    placeholder="Search messages..."
+                    onFocus={() => setState("thirdBarContext", "search")}
+
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+
+                      setState("searchQuery", e.currentTarget.value);
+                      setState("thirdBarContext", "search");
+                    }}
+                  />
+                  <HiOutlineMagnifyingGlass />
+                </div>
+
+                <button onClick={() => setState("thirdBarContext", "members")}>
+                  <HiOutlineUsers />
+                </button>
+              </div>
             </div>
-            <Show when={statusLabel()}>
-              <div class="connection_status">{statusLabel()}</div>
-            </Show>
           </div>
           <div class="x fill server_content_box">
             <div class="interactive_section y fill">
@@ -318,6 +380,9 @@ function App() {
                     channel={state.current.channel}
                     sendRequest={conn.send}
                     wsMessages={conn.lastEvent}
+                    onReady={(api) => {
+                      tempState.virtMsgList = api;
+                    }}
                   />
                 }
 
@@ -337,14 +402,14 @@ function App() {
               </Show>
             </div>
 
-            <div class="third_bar bar">
-              <MemberList
-                sections={memberSections()}
-                onlineUsers={onlineUsers()}
-                roles={conn.roles?.()}
-                getHoistedRole={getHoistedRole}
-              />
-            </div>
+            <RightSidebar
+              sections={memberSections()}
+              onlineUsers={onlineUsers()}
+              roles={conn.roles?.()}
+              getHoistedRole={getHoistedRole}
+              state={state}
+              conn={conn}
+            />
           </div>
         </div>
       </div>

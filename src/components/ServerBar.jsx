@@ -12,7 +12,7 @@ export default function ServerBar(props) {
             onClick={() => props.onSelect(server)}
           >
             <img
-              src={server.icon ?? FALLBACK_ICON}
+              src={server.icon ?? "https://icons.veryicon.com/png/o/commerce-shopping/soft-designer-online-tools-icon/group-38.png"}
               alt={server.name}
               class="server_icon"
             />
