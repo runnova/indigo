@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import ServerDiscovery from "./ServerDiscovery";
+import { HiOutlineGlobeEuropeAfrica, HiOutlineLink, HiOutlineServerStack } from "solid-icons/hi"
 
 export default function ServerBrowser(props) {
   const [tab, setTab] = createSignal("explore");
@@ -8,23 +9,29 @@ export default function ServerBrowser(props) {
     <div class="server_browser">
       <div class="browser_tabs">
         <button
+          class="icon_button text"
           classList={{ active: tab() === "explore" }}
           onClick={() => setTab("explore")}
         >
+          <HiOutlineGlobeEuropeAfrica />
           Explore
         </button>
 
         <button
+          class="icon_button text"
           classList={{ active: tab() === "url" }}
           onClick={() => setTab("url")}
         >
+          <HiOutlineLink />
           By URL
         </button>
 
         <button
+          class="icon_button text"
           classList={{ active: tab() === "host" }}
           onClick={() => setTab("host")}
         >
+          <HiOutlineServerStack />
           Host your own
         </button>
       </div>
@@ -38,8 +45,8 @@ export default function ServerBrowser(props) {
           <div class="url_tab">
             <div className="member_section_label">Join by URL</div>
             <div className="searchbox">
-            <input placeholder="chats.mistium.com" />
-            <button>Join</button>
+              <input placeholder="chats.mistium.com" />
+              <button>Join</button>
 
             </div>
           </div>

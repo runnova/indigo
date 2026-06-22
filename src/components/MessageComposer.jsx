@@ -1,7 +1,7 @@
 import { Show, createSignal } from "solid-js";
 import EmojiPicker from "./EmojiPicker"
 import { state, setState } from "../App"
-import {HiOutlineXMark} from "solid-icons/hi"
+import {HiOutlineXMark, HiOutlinePlus, HiOutlineArrowUpOnSquare, HiOutlineGift} from "solid-icons/hi"
 
 export default function MessageComposer(props) {
   let textarea;
@@ -38,8 +38,24 @@ export default function MessageComposer(props) {
         </div>
       </Show>
       <div class="text_box x">
+        <div className="dropdown_container">
+          <div className="action_buttons">
+            <button className="icon_button"><HiOutlinePlus></HiOutlinePlus></button>
+          </div>
+          <div className="dropdown_content">
+            <button className="icon_button text">
+              <HiOutlineArrowUpOnSquare/>
+              <span>Upload file</span>
+            </button>
+            <button className="icon_button text">
+              <HiOutlineGift/>
+              <span>Send gift</span>
+            </button>
+          </div>
+        </div>
         <textarea
           ref={textarea}
+          rows={1}
           placeholder={`Message #${props.channel}`}
           class="fill"
           onKeyDown={(e) => {

@@ -16,7 +16,7 @@ import {
   HiOutlineUserCircle
 } from "solid-icons/hi";
 
-import { useServerConnection } from "./server_connection";
+import { useServerConnection, idleConnections, connectIdle } from "./server_connection";
 import MemberPopout from "./components/MemberPopout.jsx";
 
 import ServerBar from "./components/ServerBar.jsx";
@@ -27,6 +27,7 @@ import MessageComposer from "./components/MessageComposer.jsx";
 import { VirtualMessageList } from "./scolling";
 
 import RightSidebar from "./components/RightSidebar.jsx";
+
 
 const defaultState = {
   servers: [
@@ -167,12 +168,31 @@ function App() {
     });
   });
 
+  createEffect(() => {
+  if (conn.status() !== "ready") return;
+
+  const settings = JSON.parse(
+    localStorage.getItem("settings") || "{}"
+  );
+
+  for (const server of state.servers) {
+    if (server.src === state.current.server?.src) continue;
+
+    if (idleConnections.has(server.src)) continue;
+
+    idleConnections.set(
+      server.src,
+      connectIdle(server, settings.token)
+    );
+  }
+});
+
   function selectServer(server) {
+    if (!server.src && server.url) server.src = server.url;
     if (
       state.current.server?.src === server.src &&
       conn.status() === "ready"
     ) return;
-
     setState("current", {
       server,
       channel: state.serverChannels[server.src] ?? null
@@ -319,7 +339,7 @@ function App() {
           <div class="topbar">
             <div class="channelbar x">
               <Show when={state.current.channel} fallback={currentServerName()}>
-                <HiOutlineHashtag style={{"transform": "translateY(-1px)"}}/> <span>{currentChannel()?.display_name}</span>
+                <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} /> <span>{currentChannel()?.display_name || currentChannel()?.name}</span>
                 &bull;
                 <div className="channel_desc">
                   {currentChannel()?.description}

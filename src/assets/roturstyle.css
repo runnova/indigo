@@ -1,0 +1,144 @@
+:root {
+    --primary: #9B302F !important;
+    --primary-hover: #c27742;
+    --accent: #9B302F;
+    --accent-dim: #814e3a;
+    --accent-glow: #cf9f9926;
+}
+
+body, #app {
+    background-color: transparent !important;
+}
+
+.modal {
+    position: relative;
+}
+
+.security-notice {
+    display: none;
+}
+
+.main-content {
+    align-items: stretch;
+
+    &>* {
+        align-items: center;
+
+        &>* {
+            max-width: none !important;
+        }
+    }
+}
+
+._field_1rrgd_1 {
+    display: none;
+}
+
+._welcomeArea_aya3w_154 {
+    position: relative;
+}
+
+.form-group {
+    max-width: none;
+}
+
+.btn-primary {
+    position: absolute;
+    bottom: 2em;
+    right: 2em;
+    width: fit-content;
+}
+
+.sidebar-header>p {
+    position: relative;
+    color: transparent;
+    opacity: .5;
+
+    &:after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        content: "Orion is a Rotur client.";
+        color: var(--text);
+    }
+}
+
+.logo-container {
+    width: fit-content;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 1em;
+    margin-bottom: 1.5em;
+}
+
+._sidebarSubtitle_1ql4d_157::after {
+    content: " to continue to Orion.";
+}
+
+._tosLinks_1ql4d_443 {
+    position: absolute;
+    bottom: 2em;
+    width: fit-content;
+    text-align: justify;
+    background: var(--btn-primary-color);
+}
+
+._formGroup_aya3w_292 {
+    margin-bottom: 4em;
+    text-align: center;
+}
+
+._welcomeContent_aya3w_174 h1 {
+    height: 2em;
+    color: transparent;
+    position: relative;
+    white-space: nowrap;
+
+    &::after {
+        content: "Welcome to Orion!";
+        font-size: 39px;
+        color: var(--text);
+        top: 0;
+        left: 0;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+    }
+}
+
+._welcomeContent_aya3w_174 p {
+    color: transparent;
+    position: relative;
+
+    &::after {
+        content: "Sign in to your Rotur account or create a new one.";
+        color: var(--text);
+        top: 0;
+        left: 0;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+    }
+}
+
+._logo_1ql4d_239 img , ._welcomeLogo_aya3w_166 img {
+    content: url(https://runnova.github.io/orion/oclogo.png);
+    border: 0;
+    box-shadow: none;
+}
+
+._btnWelcomePrimary_aya3w_204, ._btnPrimary_1ql4d_314 {
+    color: var(--text);
+}
+
+._permFullAccessToggleDanger_aya3w_912._permFullAccessToggleActive_aya3w_903, ._permDangerWarning_aya3w_990 {
+    background-color: #91f8710f;
+    border-color: #7ff8714d;
+    &:hover {
+        background-color: #91f8710f;
+    }
+}
+
+._notice_1ql4d_376 ._noticeInfo_1ql4d_392, ._permGroupGrid_aya3w_393, ._permCustomizeToggle_aya3w_500, ._noticeInfo_1ql4d_392 {
+    display: none;
+}

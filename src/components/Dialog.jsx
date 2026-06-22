@@ -1,4 +1,5 @@
 import { Show, onMount, onCleanup } from "solid-js";
+import { HiOutlineXMark } from "solid-icons/hi";
 
 export default function Dialog(props) {
   const handleKeyDown = (e) => {
@@ -25,6 +26,15 @@ export default function Dialog(props) {
           class="dialog"
           onClick={(e) => e.stopPropagation()}
         >
+          <button
+            class="dialog_close"
+            type="button"
+            aria-label="Close dialog"
+            onClick={() => props.onClose?.()}
+          >
+            <HiOutlineXMark size={24} />
+          </button>
+
           {props.children}
         </div>
       </div>

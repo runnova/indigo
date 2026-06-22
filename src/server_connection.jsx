@@ -21,6 +21,48 @@
  */
 
 import { createSignal } from "solid-js";
+import { state, setState } from "./App"
+
+export const idleConnections = new Map();
+
+function saveToken(token) {
+  const settings = JSON.parse(
+    localStorage.getItem("settings") || "{}"
+  );
+
+  settings.type = "token";
+  settings.token = token;
+
+  localStorage.setItem(
+    "settings",
+    JSON.stringify(settings)
+  );
+}
+
+export function connectIdle(server, token) {
+  const ws = new WebSocket(`wss://${server.src}`);
+
+  ws.onmessage = async (ev) => {
+    const packet = JSON.parse(ev.data);
+
+    if (packet.cmd === "handshake") {
+      try {
+        const authPacket = await authenticate({
+          handshake: packet.val,
+          roturToken: token,
+          crackedUser: null,
+        });
+
+        ws.send(JSON.stringify(authPacket));
+      } catch (err) {
+        ws.close();
+      }
+    }
+  };
+
+  return ws;
+}
+
 async function fetchRoturValidator(validatorKey, roturToken) {
   const url = `https://api.rotur.dev/generate_validator?auth=${encodeURIComponent(roturToken)}&key=${encodeURIComponent(validatorKey)}`;
   const res = await fetch(url);
@@ -28,6 +70,88 @@ async function fetchRoturValidator(validatorKey, roturToken) {
   const data = await res.json();
   if (!data.validator) throw new Error("Rotur response missing validator field");
   return data.validator;
+}
+
+async function requestRoturToken() {
+  const styleUrl = "assets/roturstyle.css";
+
+  const css = await fetch(styleUrl).then(r => r.text());
+  const dataUri = `data:text/css;charset=utf-8,${encodeURIComponent(css)}`;
+
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement("iframe");
+
+    iframe.id = "rotur-auth";
+    iframe.src =
+      `https://rotur.dev/auth?system=orion&styles=${encodeURIComponent(dataUri)}`;
+
+    document.body.appendChild(iframe);
+
+    const handler = (event) => {
+      if (
+        event.origin === "https://rotur.dev" &&
+        event.data?.type === "rotur-auth-token"
+      ) {
+        window.removeEventListener("message", handler);
+        iframe.remove();
+        resolve(event.data.token);
+      }
+    };
+
+    window.addEventListener("message", handler);
+
+    iframe.addEventListener("error", () => {
+      window.removeEventListener("message", handler);
+      iframe.remove();
+      reject(new Error("Rotur auth failed"));
+    });
+  });
+}
+
+export async function authenticate({
+  handshake,
+  roturToken,
+  crackedUser,
+  onToken,
+}) {
+  const authMode = handshake.auth_mode ?? "rotur";
+
+  if (
+    authMode === "cracked-only" ||
+    (authMode === "cracked" && crackedUser)
+  ) {
+    if (!crackedUser) {
+      throw new Error(
+        "Server requires cracked auth but no credentials provided"
+      );
+    }
+
+    return {
+      cmd: "login",
+      username: crackedUser.username,
+      password: crackedUser.password,
+    };
+  }
+
+  let token = roturToken;
+
+  if (!token) {
+    token = await requestRoturToken();
+
+    if (onToken) {
+      onToken(token);
+    }
+  }
+
+  const validator = await fetchRoturValidator(
+    handshake.validator_key,
+    token
+  );
+
+  return {
+    cmd: "auth",
+    validator,
+  };
 }
 
 export function useServerConnection() {
@@ -48,6 +172,15 @@ export function useServerConnection() {
   let _crackedUser = null;
   let _currentSrc = null;
 
+  function loadServerData() {
+    send({ cmd: "channels_get" });
+    send({ cmd: "users_list" });
+    send({ cmd: "users_online" });
+    send({ cmd: "roles_list" });
+    send({ cmd: "emoji_list" });
+  }
+
+
   function emit(packet) {
     setLastEvent({ ...packet, _ts: Date.now() });
   }
@@ -58,17 +191,44 @@ export function useServerConnection() {
     switch (packet.cmd) {
       case "handshake": {
         const val = packet.val ?? {};
-        setServerInfo({
+
+        const info = {
+          src: _currentSrc,
           name: val.server?.name ?? _currentSrc,
           icon: val.server?.icon ?? null,
           banner: val.server?.banner ?? null,
+        };
+
+        if (!state.servers.some(s => s.src === info.src)) {
+          setState("servers", servers => [...servers, info]);
+        }
+
+        setServerInfo({
+          ...info,
           limits: val.limits ?? {},
           auth_mode: val.auth_mode ?? "rotur",
           validator_key: val.validator_key ?? null,
           capabilities: val.capabilities ?? [],
         });
+
         setStatus("authenticating");
-        _doAuth(val, socket);
+
+        authenticate({
+          handshake: val,
+          roturToken: _roturToken,
+          crackedUser: _crackedUser,
+          onToken(token) {
+            _roturToken = token;
+            saveToken(token);
+          },
+        })
+          .then(send)
+          .catch(err => {
+            setError(err.message);
+            setStatus("error");
+            ws?.close();
+          });
+
         break;
       }
 
@@ -81,16 +241,11 @@ export function useServerConnection() {
         ws?.close();
         break;
 
-      case "ready": {
+      case "ready":
         setMe(packet.user ?? null);
         setStatus("ready");
-        send({ cmd: "channels_get" });
-        send({ cmd: "users_list" });
-        send({ cmd: "users_online" });
-        send({ cmd: "roles_list" });
-        send({ cmd: "emoji_list" });
+        loadServerData();
         break;
-      }
 
       case "channels_get":
         setChannels(packet.val ?? []);
@@ -122,96 +277,6 @@ export function useServerConnection() {
 
       default:
         break;
-    }
-  }
-
-  async function _doAuth(handshakeVal, socket) {
-    const authMode = handshakeVal.auth_mode ?? "rotur";
-
-    if (
-      authMode === "cracked-only" ||
-      (authMode === "cracked" && _crackedUser)
-    ) {
-      if (!_crackedUser) {
-        setError("Server requires cracked auth but no credentials provided");
-        setStatus("error");
-        return;
-      }
-
-      send({
-        cmd: "login",
-        username: _crackedUser.username,
-        password: _crackedUser.password,
-      });
-
-      return;
-    }
-
-    try {
-      if (_roturToken) {
-        const validator = await fetchRoturValidator(
-          handshakeVal.validator_key,
-          _roturToken
-        );
-
-        send({
-          cmd: "auth",
-          validator,
-        });
-
-        return;
-      }
-
-      const style_url = "assets/roturstyle.css";
-
-      const css = await fetch(style_url).then(r => r.text());
-      const dataUri = `data:text/css;charset=utf-8,${encodeURIComponent(css)}`;
-
-      const e = document.createElement("iframe");
-      e.id = "rotur-auth";
-      e.src = `https://rotur.dev/auth?system=orion&styles=${encodeURIComponent(dataUri)}`;
-
-      document.body.appendChild(e);
-
-      const _roturAuthHandler = async (a) => {
-        if (
-          a.origin === "https://rotur.dev" &&
-          a.data?.type === "rotur-auth-token"
-        ) {
-          e.remove();
-          window.removeEventListener("message", _roturAuthHandler);
-
-          _roturToken = a.data.token;
-
-          const settings = JSON.parse(
-            localStorage.getItem("settings") || "{}"
-          );
-
-          settings.type = "token";
-          settings.token = _roturToken;
-
-          localStorage.setItem(
-            "settings",
-            JSON.stringify(settings)
-          );
-
-          const validator = await fetchRoturValidator(
-            handshakeVal.validator_key,
-            _roturToken
-          );
-
-          send({
-            cmd: "auth",
-            validator,
-          });
-        }
-      };
-
-      window.addEventListener("message", _roturAuthHandler);
-    } catch (err) {
-      setError(err.message);
-      setStatus("error");
-      ws?.close();
     }
   }
 
