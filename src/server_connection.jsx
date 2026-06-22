@@ -52,7 +52,7 @@ export function useServerConnection() {
     setLastEvent({ ...packet, _ts: Date.now() });
   }
 
-  function handlePacket(packet) {
+  function handlePacket(packet, socket) {
     emit(packet);
 
     switch (packet.cmd) {
@@ -68,7 +68,7 @@ export function useServerConnection() {
           capabilities: val.capabilities ?? [],
         });
         setStatus("authenticating");
-        _doAuth(val);
+        _doAuth(val, socket);
         break;
       }
 
@@ -125,7 +125,7 @@ export function useServerConnection() {
     }
   }
 
-  async function _doAuth(handshakeVal) {
+  async function _doAuth(handshakeVal, socket) {
     const authMode = handshakeVal.auth_mode ?? "rotur";
 
     if (
@@ -263,29 +263,39 @@ export function useServerConnection() {
     setMembersOnline([]);
 
     const url = `wss://${src}`;
-    ws = new WebSocket(url);
+    const socket = new WebSocket(url);
 
-    ws.onopen = () => setStatus("handshake");
+    ws = socket;
 
-    ws.onmessage = (ev) => {
+    socket.onopen = () => setStatus("handshake");
+
+    socket.onmessage = (ev) => {
       try {
         const packet = JSON.parse(ev.data);
-        handlePacket(packet);
+        handlePacket(packet, socket);
       } catch (e) {
         console.error("[ws] parse error:", e);
-        console.error("Raw packet:", ev.data?.slice?.(0, 1000));
       }
     };
 
-    ws.onerror = (ev) => {
+    socket.onerror = () => {
+      if (ws !== socket) return;
+
       setError("WebSocket error");
       setStatus("error");
     };
 
-    ws.onclose = (ev) => {
-      if (status() === "ready" || status() === "handshake" || status() === "authenticating") {
+    socket.onclose = () => {
+      if (ws !== socket) return;
+
+      if (
+        status() === "ready" ||
+        status() === "handshake" ||
+        status() === "authenticating"
+      ) {
         setStatus("closed");
       }
+
       ws = null;
     };
   }
@@ -308,6 +318,7 @@ export function useServerConnection() {
     status,
     serverInfo,
     me,
+    setMe,
     channels,
     roles,
     emojis,

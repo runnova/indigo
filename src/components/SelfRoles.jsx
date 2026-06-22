@@ -1,59 +1,46 @@
-import { createSignal, createEffect, onMount, For, Show } from "solid-js";
+import { For } from "solid-js";
 
-export function SelfRoles(props) {
-  const [roles, setRoles] = createSignal([]);
-  const [loading, setLoading] = createSignal(true);
+export default function SelfRoles(props) {
+  const roles = () =>
+    Object.entries(props.conn.roles() ?? {});
 
-  onMount(() => {
-    props.sendRequest({
-      cmd: "self_roles_list",
-    });
-  });
+  const assigned = (name) =>
+    props.conn.me()?.roles?.includes(name);
 
-  createEffect(() => {
-    const event = props.lastEvent?.();
-
-    if (!event) return;
-
-    if (event.cmd === "self_roles_list") {
-      setRoles(event.roles ?? []);
-      setLoading(false);
-    }
-  });
-
-  async function toggleRole(role) {
-    await props.sendRequest({
-      cmd: role.assigned
+  async function toggleRole(name) {
+    await props.conn.send({
+      cmd: assigned(name)
         ? "self_role_remove"
         : "self_role_add",
-      role: role.name,
+      role: name,
     });
 
-    setLoading(true);
-
-    props.sendRequest({
-      cmd: "self_roles_list",
-    });
+    props.conn.setMe((me) => ({
+      ...me,
+      roles: assigned(name)
+        ? me.roles.filter((r) => r !== name)
+        : [...me.roles, name],
+    }));
   }
 
   return (
     <div class="self-roles">
-      <h2>Self Assignable Roles</h2>
+      <div className="member_section_label">Available roles</div>
 
-      <Show when={!loading()} fallback={<p>Loading...</p>}>
-        <For each={roles()}>
-          {(role) => (
+      <For each={roles()}>
+        {([name, role]) =>
+          role.self_assignable && (
             <button
               classList={{
-                assigned: role.assigned,
+                assigned: assigned(name),
               }}
-              onClick={() => toggleRole(role)}
+              onClick={() => toggleRole(name)}
             >
-              {role.name}
+              {name}
             </button>
-          )}
-        </For>
-      </Show>
+          )
+        }
+      </For>
     </div>
   );
 }

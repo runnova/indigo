@@ -10,23 +10,11 @@ import { Message } from "./components/message";
 import { MessageActions } from "./components/MessageActions.jsx";
 import { createChannelMessages } from "./useChannelMessages";
 import { tempState, state, setState} from "./App.jsx";
-import { SelfRoles } from "./components/SelfRoles";
 
 const SCROLL_NEAR_TOP = 100;
 const SCROLL_NEAR_BOTTOM = 80;
 
 export function VirtualMessageList(props) {
-  console.log("channel", props.channel);
-  if (props.channel === "indigo-self-roles") {
-    return (
-      <div class="vml-scroll">
-        <SelfRoles
-          channel={props.channel}
-          sendRequest={props.sendRequest}
-        />
-      </div>
-    );
-  }
   let scrollEl;
 
   function scrollToMessage(messageId, behavior = "smooth") {
@@ -352,6 +340,7 @@ function scrollToBottom(instant = false) {
     ? section.messages[index() - 1]
     : null;
 
+const interaction = msg()?.interaction;
 const grouped =
   previous &&
   previous.user === message.user;
@@ -411,7 +400,9 @@ const replyMessage = msg()?.reply_to
                 attachments={
                   msg()?.attachments
                 }
-  grouped={grouped && !replyMessage}
+                embeds={msg().embeds}
+  grouped={grouped && !replyMessage && !interaction}
+  interaction={interaction}
   reply={replyMessage}
               />
             </div>

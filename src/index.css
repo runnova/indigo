@@ -131,10 +131,18 @@ img {
   padding: .3em;
   border-radius: .5em;
 
+  &:has(.add_server) {
+    background-color: var(--bg-three);
+  }
+
   &>img {
     width: 100%;
     height: 100%;
     border-radius: .3em;
+
+    &.add_server {
+      transform: scale(.5);
+    }
   }
 
   &:hover {
@@ -186,7 +194,6 @@ img {
 }
 
 .message_single {
-  gap: .5em;
   position: relative;
   padding: .5em;
   border-radius: .5em;
@@ -499,15 +506,15 @@ iframe#rotur-auth {
   opacity: .5;
 }
 
+.member_section_label {
+  opacity: .5;
+  font-size: small;
+  padding-left: .5em;
+  text-transform: capitalize;
+}
+
 .members_list {
   gap: .2em;
-
-  & .member_section_label {
-    opacity: .5;
-    font-size: small;
-    padding-left: .5em;
-    text-transform: capitalize;
-  }
 
   & .member_item {
     gap: .5em;
@@ -835,10 +842,10 @@ svg {
 }
 
 img.channel_icon_image {
-    width: 1em;
-    transform: scale(1.5);
-    border-radius: .2em;
-    margin-right: .3em;
+  width: 1em;
+  transform: scale(1.5);
+  border-radius: .2em;
+  margin-right: .3em;
 }
 
 .popup_loader {
@@ -881,6 +888,9 @@ img.channel_icon_image {
     font-size: small;
     flex: 1;
     width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &>.inpgrp {
@@ -903,6 +913,7 @@ img.channel_icon_image {
   background-color: var(--bg-one);
   border-radius: .3em;
   padding: .3em .5em;
+  display: flex;
 
   &>input {
     min-width: 0;
@@ -915,4 +926,266 @@ img.channel_icon_image {
   width: fit-content;
   max-width: 500px;
   overflow: auto;
+}
+
+.message_embeds {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.embed_card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-left: 4px solid var(--hl-two);
+  background: var(--bg-two);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  max-width: 520px;
+
+  &>* {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+}
+
+.embed_author {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.embed_title {
+  font-weight: 600;
+}
+
+.embed_description {
+  white-space: pre-wrap;
+}
+
+.embed_timestamp {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.self-roles {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+
+  & button {
+    border-radius: .5em;
+    padding: .5em .7em;
+    width: 100%;
+    background-color: var(--bg-two);
+    padding-left: 2em;
+    margin-top: .2em;
+    text-align: left;
+    position: relative;
+
+    &::before {
+      position: absolute;
+      content: "0";
+      height: 1em;
+      width: 1em;
+      left: .5em;
+      font-size: small;
+      top: .62em;
+      padding: .2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--hl-three);
+      border-radius: .2em;
+      background-color: var(--hl-four);
+    }
+
+    &.assigned {
+      &::before {
+        position: absolute;
+        content: "1";
+        height: 1em;
+        width: 1em;
+        left: .5em;
+        top: .62em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--hl-three);
+        border-radius: .2em;
+        background-color: var(--hl-two);
+      }
+    }
+  }
+}
+
+kdb {
+  padding: 0 5px;
+  background: var(--bg-two);
+  border-radius: .5em;
+  display: inline-block;
+}
+
+.dialog_overlay {
+  overflow: auto;
+  position: absolute;
+  z-index: 200;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: min(1200px, 95vw);
+  height: min(800px, 90vh);
+  overflow: hidden;
+  background-color: var(--bg-one);
+  box-shadow: var(--border), 0 0 1em #000000e8;
+  border-radius: 1em;
+
+  & .searchbox {
+    background-color: var(--bg-two);
+    margin-bottom: 1em;
+
+    &>input {
+      flex: 1;
+    }
+  }
+
+  & .member_section_label {
+    margin-bottom: .3em;
+  }
+}
+
+.discovery {
+  overflow-y: auto;
+}
+
+.discovery_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1rem;
+}
+
+.discovery_card {
+  background: var(--bg-two);
+  border-radius: .5em;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+}
+
+.discovery_card_icon {
+  height: 7em;
+  width: fit-content;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: .3em;
+  object-fit: scale-down;
+  margin: 1em;
+  margin-right: 0;
+}
+
+.discovery_card_content {
+  margin: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+  position: relative;
+  flex: 1;
+  width: 0;
+
+  & small {
+    max-width: calc(100% - 5em);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.discovery_card_content h3 {
+  margin: 0;
+  max-width: calc(100% - 4em);
+}
+
+.discovery_owner {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.discovery_tags {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  overflow: hidden;
+  width: calc(100% - 3.5em);
+  overflow-x: auto;
+  padding-bottom: 5px;
+  border-radius: .5em;
+  position: relative;
+
+  &::after {
+    position: absolute;
+    content: "";
+    width: 10px;
+    height: 100%;
+    top: 0;
+    right: 0;
+    background: linear-gradient(270deg, var(--bg-two), transparent);
+  }
+}
+
+.discovery_tag {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--bg-three);
+  font-size: 0.8rem;
+}
+
+.discovery_join {
+  margin-left: auto;
+  width: fit-content;
+  padding: .4em .7em;
+  position: absolute;
+  bottom: 0em;
+  right: 0em;
+  background-color: var(--hl-four);
+  border-radius: .5em;
+}
+
+.server_browser {
+  width: 100%;
+}
+
+.browser_tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: #171717;
+  border-bottom: 1px solid #333;
+}
+
+.browser_tabs button {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  border-radius: .5em;
+  cursor: pointer;
+}
+
+.browser_tabs button.active {
+  background: var(--hl-four);
+  color: var(--hl-two);
+}
+
+.browser_content {
+  margin: 2em;
 }

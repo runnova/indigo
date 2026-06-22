@@ -12,7 +12,8 @@ import {
   HiOutlineUsers,
   HiOutlineMapPin,
   HiOutlineMagnifyingGlass,
-  HiOutlineInbox
+  HiOutlineInbox,
+  HiOutlineUserCircle
 } from "solid-icons/hi";
 
 import { useServerConnection } from "./server_connection";
@@ -325,6 +326,9 @@ function App() {
                 </div>
               </Show>
               <div class="inpgrp x">
+                <button onClick={() => setState("thirdBarContext", "selfroles")}>
+                  <HiOutlineUserCircle />
+                </button>
                 <button onClick={() => setState("thirdBarContext", "inbox")}>
                   <HiOutlineInbox />
                 </button>

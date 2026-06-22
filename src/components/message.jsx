@@ -10,7 +10,7 @@ function parseMarkdown(input) {
     if (!text) return;
 
     const tokens = text.split(
-      /(https?:\/\/[^\s]+|originChats:<emoji>\/\/[^\s]+|originChats:\/\/\S+|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|@\w+)/
+      /(\[[^\]]+\]\(https?:\/\/[^)\s]+\)|https?:\/\/[^\s]+|originChats:<emoji>\/\/[^\s]+|originChats:\/\/\S+|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|@\w+)/
     );
 
     for (const token of tokens) {
@@ -24,6 +24,24 @@ function parseMarkdown(input) {
         parts.push(<s>{token.slice(2, -2)}</s>);
       } else if (token.startsWith("`") && token.endsWith("`")) {
         parts.push(<kbd>{token.slice(1, -1)}</kbd>);
+      } else if (token.match(/^\[[^\]]+\]\(https?:\/\/[^)\s]+\)$/)) {
+        const match = token.match(
+          /^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/
+        );
+
+        if (match) {
+          const [, label, url] = match;
+
+          parts.push(
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {parseMarkdown(label)}
+            </a>
+          );
+        }
       } else if (token.startsWith("originChats:<emoji>//")) {
         const url = token.slice("originChats:<emoji>//".length);
         const match = url.match(/^(.+)\/(\d+)$/);
@@ -193,6 +211,54 @@ function getParsedMarkdown(id, content) {
   return parsed;
 }
 
+function Embed(props) {
+  const embed = props.embed;
+
+  return (
+    <a
+      href={embed.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="embed_card"
+    >
+      {embed.author && (
+        <div class="embed_author">
+          {embed.author.url ? (
+            <a
+              href={embed.author.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {embed.author.name}
+            </a>
+          ) : (
+            embed.author.name
+          )}
+        </div>
+      )}
+
+      {embed.title && (
+        <div class="embed_title">
+          {embed.title}
+        </div>
+      )}
+
+      {embed.description && (
+        <div class="embed_description">
+          {parseMarkdown(embed.description)}
+        </div>
+      )}
+
+      {embed.timestamp && (
+        <div class="embed_timestamp">
+          {new Date(embed.timestamp).toLocaleString()}
+        </div>
+      )}
+    </a>
+  );
+}
+
 import { createResource, Show } from "solid-js";
 
 function EmbeddedLink(props) {
@@ -273,20 +339,37 @@ export function Message(props) {
   );
   return (
     <div class={`message_single y ${props.grouped ? "grouped" : ""}`}>
-      {props.reply && (
+      {(props.reply || props.interaction) && (
         <div class="reply_preview x">
-          <div class="reply_author x" onClick={(e) => openPopout(props.reply.user, e.currentTarget)}>
-            <img
-              src={`https://avatars.rotur.dev/${props.reply.user}`}
-              alt=""
-              class="pfp"
-            />
-            {props.reply.user}
-          </div>
+          {props.reply ? (
+            <>
+              <div
+                class="reply_author x"
+                onClick={(e) => openPopout(props.reply.user, e.currentTarget)}
+              >
+                <img
+                  src={`https://avatars.rotur.dev/${props.reply.user}`}
+                  alt=""
+                  class="pfp"
+                />
+                {props.reply.user}
+              </div>
 
-          <div class="reply_text">
-            {props.reply.content}
-          </div>
+              <div class="reply_text">
+                {props.reply.content}
+              </div>
+            </>
+          ) : (
+            <>
+              <div class="reply_author x">
+                {props.interaction.username}
+              </div>
+
+              <div class="reply_text">
+                <kdb>/{props.interaction.command}</kdb>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -398,6 +481,13 @@ export function Message(props) {
                     </div>
                   );
                 }}
+              </For>
+            </div>
+          </Show>
+          <Show when={props.embeds?.length}>
+            <div class="message_embeds">
+              <For each={props.embeds}>
+                {(embed) => <Embed embed={embed} />}
               </For>
             </div>
           </Show>
