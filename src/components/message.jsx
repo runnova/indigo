@@ -337,6 +337,9 @@ export function Message(props) {
   const rendered = createMemo(() =>
     parseMarkdown(props.content)
   );
+  if (props.reply) {
+    props.reply.username = props.reply.user;
+  }
   return (
     <div class={`message_single y ${props.grouped ? "grouped" : ""}`}>
       {(props.reply || props.interaction) && (
@@ -345,7 +348,7 @@ export function Message(props) {
             <>
               <div
                 class="reply_author x"
-                onClick={(e) => openPopout(props.reply.user, e.currentTarget)}
+                onClick={(e) => openPopout(props.reply, e.currentTarget)}
               >
                 <img
                   src={`https://avatars.rotur.dev/${props.reply.user}`}
@@ -362,6 +365,11 @@ export function Message(props) {
           ) : (
             <>
               <div class="reply_author x">
+                <img
+                  src={`https://avatars.rotur.dev/${props.interaction.username}`}
+                  alt=""
+                  class="pfp"
+                />
                 {props.interaction.username}
               </div>
 
@@ -379,7 +387,7 @@ export function Message(props) {
             <div class="time">{props.time}</div>
           </div>
         ) : (
-          <div className="pfpWO" onClick={(e) => openPopout(props.username, e.currentTarget)}>
+          <div className="pfpWO" onClick={(e) => openPopout(props, e.currentTarget)}>
             <img
               src={`https://avatars.rotur.dev/${props.username}`}
               alt=""

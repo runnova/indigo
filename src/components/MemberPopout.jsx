@@ -141,7 +141,7 @@ export default function MemberPopout() {
       const height = popupRef.offsetHeight;
 
       const padding = 12;
-      const minRightGap = 270;
+      const minRightGap = 250;
 
       let left = current.x + padding;
 
@@ -260,9 +260,13 @@ export default function MemberPopout() {
                 </div>
 
                 <div class="data y" style={{ "margin-top": ".5em" }}>
-                  <div style={{ "font-size": "1.5em" }}>
-                    {profile()?.username}
-                    <small style={{ "font-size": "14px", "margin": ".3em" }}>
+                  <div class="x" style={{
+                    "font-size": "1.5em",
+                    "flex-wrap": "wrap",
+                    "align-items": "center"
+                  }}>
+                    <span style={{ "margin-right": ".3em" }}>{profile()?.username}</span>
+                    <small style={{ "font-size": "14px" }}>
                       {profile()?.pronouns}
                     </small>
                   </div>
@@ -340,14 +344,6 @@ export default function MemberPopout() {
                           <small>User</small>
                         </div>
                       </div>
-                      {/* <div class="theme_preview">
-                  <div>{p().theme.accent}</div>
-                  <div>{p().theme.background}</div>
-                  <div>{p().theme.primary}</div>
-                  <div>{p().theme.secondary}</div>
-                  <div>{p().theme.tertiary}</div>
-                  <div>{p().theme.text}</div>
-                </div> */}
                     </>
                   )}
                 </Show></div>

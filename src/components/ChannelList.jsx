@@ -20,7 +20,8 @@ import {
   HiOutlineBeaker,
   HiOutlineCalculator,
   HiOutlineHome,
-  HiOutlineCodeBracketSquare
+  HiOutlineCodeBracketSquare,
+  HiOutlineCog6Tooth
 } from "solid-icons/hi";
 const channelIcons = {
   text: HiOutlineHashtag,
@@ -91,7 +92,7 @@ function isImageSrc(src) {
 
 export default function ChannelList(props) {
   return (
-    <div class="channel_list y">
+    <div class="channel_list fill y">
       <For each={props.channels}>
         {(ch) => {
           if (ch.type === "separator") {

@@ -20,11 +20,13 @@ export default function MemberItem(props) {
           src={`https://avatars.rotur.dev/${props.user.username}`}
           alt=""
           class="pfp"
+          loading="lazy"
         />
         <img
           src={`https://avatars.rotur.dev/.overlay/${props.user.username}`}
           alt=""
           class="overlay"
+          loading="lazy"
         />
       </div>
 

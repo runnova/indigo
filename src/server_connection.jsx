@@ -21,9 +21,9 @@
  */
 
 import { createSignal } from "solid-js";
-import { state, setState } from "./App"
+import { state, setState, unreads, setUnreads } from "./App"
 
-export const idleConnections = new Map();
+export const connections = new Map();
 
 function saveToken(token) {
   const settings = JSON.parse(
@@ -39,31 +39,7 @@ function saveToken(token) {
   );
 }
 
-export function connectIdle(server, token) {
-  const ws = new WebSocket(`wss://${server.src}`);
-
-  ws.onmessage = async (ev) => {
-    const packet = JSON.parse(ev.data);
-
-    if (packet.cmd === "handshake") {
-      try {
-        const authPacket = await authenticate({
-          handshake: packet.val,
-          roturToken: token,
-          crackedUser: null,
-        });
-
-        ws.send(JSON.stringify(authPacket));
-      } catch (err) {
-        ws.close();
-      }
-    }
-  };
-
-  return ws;
-}
-
-async function fetchRoturValidator(validatorKey, roturToken) {
+export async function fetchRoturValidator(validatorKey, roturToken) {
   const url = `https://api.rotur.dev/generate_validator?auth=${encodeURIComponent(roturToken)}&key=${encodeURIComponent(validatorKey)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Rotur validator request failed: ${res.status}`);
@@ -153,7 +129,275 @@ export async function authenticate({
     validator,
   };
 }
+export function ensureConnected(
+  server,
+  {
+    roturToken = null,
+    crackedUser = null
+  } = {}
+) {
+  if (connections.has(server.src)) {
+    return connections.get(server.src);
+  }
 
+  return createConnection(
+    server,
+    roturToken,
+    crackedUser
+  );
+}
+function createConnection(server, roturToken, crackedUser) {
+  const connection = {
+    src: server.src,
+    roturToken,
+    crackedUser,
+    ws: null,
+    mode: "idle",
+    pending: [],
+    state: {
+      status: "connecting",
+      error: null,
+      serverInfo: null,
+      me: null,
+      channels: [],
+      roles: [],
+      emojis: [],
+      members: [],
+      membersOnline: [],
+      loaded: false
+    }
+  };
+
+  if (!unreads.servers?.[server.src]) {
+    setUnreads(
+      "servers",
+      server.src,
+      {}
+    );
+  }
+
+  setUnreads(
+    "servers",
+    server.src,
+    "online",
+    false
+  );
+
+  const ws = new WebSocket(`wss://${server.src}`);
+
+  connection.ws = ws;
+
+  ws.onopen = () => {
+    connection.state.status = "handshake";
+  };
+
+  ws.onmessage = ev => {
+    const packet = JSON.parse(ev.data);
+
+    handlePacket(
+      connection,
+      packet,
+      roturToken,
+      crackedUser
+    );
+  };
+
+  ws.onclose = () => {
+    connection.state.status = "closed";
+
+    setUnreads(
+      "servers",
+      connection.src,
+      "online",
+      false
+    );
+  };
+
+  ws.onerror = () => {
+    connection.state.status = "error";
+
+    setUnreads(
+      "servers",
+      connection.src,
+      "online",
+      false
+    );
+  };
+
+  connections.set(server.src, connection);
+
+  return connection;
+}
+function syncActive(connection) {
+  if (connection.mode !== "active") return;
+
+  const ui = connection.ui;
+
+  if (!ui) return;
+
+  ui.setStatus(connection.state.status);
+  ui.setServerInfo(connection.state.serverInfo);
+  ui.setMe(connection.state.me);
+  ui.setChannels(connection.state.channels);
+  ui.setRoles(connection.state.roles);
+  ui.setEmojis(connection.state.emojis);
+  ui.setMembers(connection.state.members);
+  ui.setMembersOnline(connection.state.membersOnline);
+  ui.setError(connection.state.error ?? null);
+}
+
+function handlePacket(connection, packet) {
+  if (connection.mode === "active") {
+    connection.ui?.emit(packet);
+  }
+
+  switch (packet.cmd) {
+    case "handshake": {
+      const val = packet.val ?? {};
+
+      const info = {
+        src: connection.src,
+        name: val.server?.name ?? connection.src,
+        icon: val.server?.icon ?? null,
+        banner: val.server?.banner ?? null,
+      };
+
+      connection.state.serverInfo = {
+        ...info,
+        limits: val.limits ?? {},
+        auth_mode: val.auth_mode ?? "rotur",
+        validator_key: val.validator_key ?? null,
+        capabilities: val.capabilities ?? [],
+      };
+
+      connection.state.status = "authenticating";
+
+      syncActive(connection);
+
+      authenticate({
+        handshake: val,
+        roturToken: connection.roturToken,
+        crackedUser: connection.crackedUser,
+        onToken(token) {
+          connection.roturToken = token;
+          saveToken(token);
+        },
+      })
+        .then(packet => {
+          connection.ws.send(JSON.stringify(packet));
+        })
+        .catch(err => {
+          connection.state.error = err.message;
+          connection.state.status = "error";
+
+          syncActive(connection);
+
+          connection.ws?.close();
+        });
+
+      break;
+    }
+
+    case "auth_success":
+      break;
+
+    case "auth_error":
+      connection.state.error =
+        packet.val ?? "Authentication failed";
+
+      connection.state.status = "error";
+
+      syncActive(connection);
+
+      connection.ws?.close();
+
+      break;
+
+    case "ready":
+      setUnreads(
+        "servers",
+        connection.src,
+        "online",
+        true
+      );
+      connection.state.status = "ready";
+      connection.state.me = packet.user ?? null;
+
+      while (connection.pending.length) {
+        connection.ws.send(
+          JSON.stringify(connection.pending.shift())
+        );
+      }
+
+      syncActive(connection);
+
+      if (!connection.state.loaded) {
+        connection.state.loaded = true;
+
+        connection.ws.send(JSON.stringify({ cmd: "channels_get" }));
+        connection.ws.send(JSON.stringify({ cmd: "users_list" }));
+        connection.ws.send(JSON.stringify({ cmd: "users_online" }));
+        connection.ws.send(JSON.stringify({ cmd: "roles_list" }));
+        connection.ws.send(JSON.stringify({ cmd: "emoji_list" }));
+      }
+
+      break;
+    case "channels_get":
+      connection.state.channels = packet.val ?? [];
+      syncActive(connection);
+      break;
+
+    case "roles_list":
+      connection.state.roles = packet.val ?? [];
+      syncActive(connection);
+      break;
+
+    case "emoji_list":
+      connection.state.emojis = packet.emojis ?? [];
+      syncActive(connection);
+      break;
+
+    case "users_list":
+      connection.state.members =
+        packet.users ?? [];
+
+      syncActive(connection);
+      break;
+
+    case "users_online":
+      connection.state.membersOnline = packet.users ?? [];
+      syncActive(connection);
+      break;
+
+    case "error":
+      console.warn("[ws] server error:", packet.val, packet.src ?? "");
+      break;
+
+    case "rate_limit":
+      console.warn("[ws] rate limited for", packet.length, "ms");
+      break;
+    case "unreads_get": {
+      const channels = {};
+
+      for (const [name, info] of Object.entries(packet.unreads ?? {})) {
+        channels[name] = info.unread_count ?? 0;
+      }
+
+      setUnreads(
+        "servers",
+        connection.src,
+        prev => ({
+          ...prev,
+          ...channels
+        })
+      );
+
+      break;
+    }
+    default:
+      break;
+  }
+}
 export function useServerConnection() {
   let ws = null;
 
@@ -172,210 +416,140 @@ export function useServerConnection() {
   let _crackedUser = null;
   let _currentSrc = null;
 
-  function loadServerData() {
-    send({ cmd: "channels_get" });
-    send({ cmd: "users_list" });
-    send({ cmd: "users_online" });
-    send({ cmd: "roles_list" });
-    send({ cmd: "emoji_list" });
+
+  function attachConnection(connection) {
+    connection.ui = {
+      setStatus,
+      setServerInfo,
+      setMe,
+      setChannels,
+      setRoles,
+      setEmojis,
+      setMembers,
+      setMembersOnline,
+      setError,
+      emit: packet =>
+        setLastEvent({
+          ...packet,
+          _ts: Date.now()
+        })
+    };
+    setStatus(connection.state.status);
+    setError(connection.state.error ?? null);
+
+    setServerInfo(
+      connection.state.serverInfo
+    );
+
+    setMe(
+      connection.state.me
+    );
+
+    setChannels(
+      connection.state.channels
+    );
+
+    setRoles(
+      connection.state.roles
+    );
+
+    setEmojis(
+      connection.state.emojis
+    );
+
+    setMembers(
+      connection.state.members
+    );
+
+    setMembersOnline(
+      connection.state.membersOnline
+    );
   }
-
-
   function emit(packet) {
     setLastEvent({ ...packet, _ts: Date.now() });
   }
 
-  function handlePacket(packet, socket) {
-    emit(packet);
 
-    switch (packet.cmd) {
-      case "handshake": {
-        const val = packet.val ?? {};
 
-        const info = {
-          src: _currentSrc,
-          name: val.server?.name ?? _currentSrc,
-          icon: val.server?.icon ?? null,
-          banner: val.server?.banner ?? null,
-        };
-
-        if (!state.servers.some(s => s.src === info.src)) {
-          setState("servers", servers => [...servers, info]);
-        }
-
-        setServerInfo({
-          ...info,
-          limits: val.limits ?? {},
-          auth_mode: val.auth_mode ?? "rotur",
-          validator_key: val.validator_key ?? null,
-          capabilities: val.capabilities ?? [],
-        });
-
-        setStatus("authenticating");
-
-        authenticate({
-          handshake: val,
-          roturToken: _roturToken,
-          crackedUser: _crackedUser,
-          onToken(token) {
-            _roturToken = token;
-            saveToken(token);
-          },
-        })
-          .then(send)
-          .catch(err => {
-            setError(err.message);
-            setStatus("error");
-            ws?.close();
-          });
-
-        break;
-      }
-
-      case "auth_success":
-        break;
-
-      case "auth_error":
-        setError(packet.val ?? "Authentication failed");
-        setStatus("error");
-        ws?.close();
-        break;
-
-      case "ready":
-        setMe(packet.user ?? null);
-        setStatus("ready");
-        loadServerData();
-        break;
-
-      case "channels_get":
-        setChannels(packet.val ?? []);
-        break;
-
-      case "roles_list":
-        setRoles(packet.val ?? []);
-        break;
-
-      case "emoji_list":
-        setEmojis(packet.emojis ?? []);
-        break;
-
-      case "users_list":
-        setMembers(packet.users ?? []);
-        break;
-
-      case "users_online":
-        setMembersOnline(packet.users ?? []);
-        break;
-
-      case "error":
-        console.warn("[ws] server error:", packet.val, packet.src ?? "");
-        break;
-
-      case "rate_limit":
-        console.warn("[ws] rate limited for", packet.length, "ms");
-        break;
-
-      default:
-        break;
-    }
-  }
 
   function connect(server, roturToken) {
     disconnect();
 
-    _currentSrc = server.src;
+    let connection =
+      connections.get(server.src);
 
-    const saved = localStorage.getItem("settings");
-
-    try {
-      const parsed = saved ? JSON.parse(saved) : null;
-
-      _roturToken =
-        roturToken ??
-        (parsed?.type === "token" ? parsed.token : null);
-    } catch {
-      _roturToken = roturToken ?? null;
+    if (!connection) {
+      connection = createConnection(
+        server,
+        roturToken,
+        null
+      );
     }
 
-    _crackedUser = null;
+    connection.mode = "active";
+    setLastEvent(null);
+    attachConnection(connection);
 
-    _open(server.src);
+    ws = connection.ws;
   }
   function connectCracked(server, credentials) {
     disconnect();
 
-    _currentSrc = server.src;
-    _roturToken = null;
-    _crackedUser = credentials;
+    let connection = connections.get(server.src);
 
-    _open(server.src);
+    if (!connection) {
+      connection = createConnection(
+        server,
+        null,
+        credentials
+      );
+    }
+
+    connection.mode = "active";
+
+    ws = connection.ws;
+    attachConnection(connection);
+
   }
 
   function register(username, password) {
-    _crackedUser = { username, password };
-    send({ cmd: "register", username, password });
+    send({
+      cmd: "register",
+      username,
+      password
+    });
+  }
+  
+ function send(payload) {
+  const connection =
+    [...connections.values()]
+      .find(c => c.ws === ws);
+
+  if (
+    !ws ||
+    ws.readyState !== WebSocket.OPEN ||
+    status() !== "ready"
+  ) {
+    connection?.pending.push(payload);
+    return;
   }
 
-  function _open(src) {
-    setStatus("connecting");
-    setError(null);
-    setServerInfo(null);
-    setMe(null);
-    setChannels([]);
-    setRoles([]);
-    setEmojis([]);
-    setMembers([]);
-    setMembersOnline([]);
-
-    const url = `wss://${src}`;
-    const socket = new WebSocket(url);
-
-    ws = socket;
-
-    socket.onopen = () => setStatus("handshake");
-
-    socket.onmessage = (ev) => {
-      try {
-        const packet = JSON.parse(ev.data);
-        handlePacket(packet, socket);
-      } catch (e) {
-        console.error("[ws] parse error:", e);
-      }
-    };
-
-    socket.onerror = () => {
-      if (ws !== socket) return;
-
-      setError("WebSocket error");
-      setStatus("error");
-    };
-
-    socket.onclose = () => {
-      if (ws !== socket) return;
-
-      if (
-        status() === "ready" ||
-        status() === "handshake" ||
-        status() === "authenticating"
-      ) {
-        setStatus("closed");
-      }
-
-      ws = null;
-    };
-  }
-
-  function send(payload) {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      console.warn("[ws] send attempted while not open", payload);
-      return;
-    }
-    ws.send(JSON.stringify(payload));
-  }
+  ws.send(JSON.stringify(payload));
+}
 
   function disconnect() {
-    ws?.close();
+    if (!ws) return;
+
+    const connection =
+      [...connections.values()]
+        .find(c => c.ws === ws);
+
+    if (connection) {
+      connection.mode = "idle";
+    }
+
     ws = null;
+
     setStatus("idle");
   }
 
@@ -394,6 +568,7 @@ export function useServerConnection() {
 
     connect,
     connectCracked,
+    ensureConnected,
     register,
     send,
     disconnect,

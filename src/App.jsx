@@ -16,18 +16,21 @@ import {
   HiOutlineUserCircle
 } from "solid-icons/hi";
 
-import { useServerConnection, idleConnections, connectIdle } from "./server_connection";
 import MemberPopout from "./components/MemberPopout.jsx";
 
 import ServerBar from "./components/ServerBar.jsx";
 import ServerSidebar from "./components/ServerSidebar.jsx";
-import MemberList from "./components/MemberList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 
 import { VirtualMessageList } from "./scolling";
 
 import RightSidebar from "./components/RightSidebar.jsx";
 
+import {
+  useServerConnection,
+  ensureConnected,
+  connections
+} from "./server_connection";
 
 const defaultState = {
   servers: [
@@ -43,8 +46,19 @@ const defaultState = {
   thirdBarContext: "",
   searchQuery: ""
 };
+export const [unreads, setUnreads] = createStore({
+  servers: {}
+});
+function getServerUnreadTotal(src) {
+  const server =
+    unreads.servers?.[src];
 
-export const [unreads, setUnreads] = createStore({});
+  if (!server) return 0;
+
+  return Object.entries(server)
+    .filter(([key]) => key !== "online")
+    .reduce((sum, [, count]) => sum + count, 0);
+}
 
 const savedState = JSON.parse(
   localStorage.getItem("state") || "{}"
@@ -128,9 +142,9 @@ function App() {
     );
   });
   createEffect(() => {
-    tempState.roles = conn.roles?.() ?? {};
-    tempState.members = conn.members();
-    tempState.membersOnline = conn.membersOnline();
+    tempState.roles = conn.roles;
+    tempState.members = conn.members;
+    tempState.membersOnline = conn.membersOnline;
   });
   createEffect(() => {
     if (conn.status() !== "ready") return;
@@ -138,54 +152,87 @@ function App() {
     const serverSrc = state.current.server?.src;
     if (!serverSrc) return;
 
-    const savedChannel = state.serverChannels[serverSrc];
+    const savedChannel =
+      state.serverChannels[serverSrc];
+
     if (!savedChannel) return;
 
     if (
-      conn.channels().some(c => c.name === savedChannel)
+      conn.channels().some(
+        c => c.name === savedChannel
+      )
     ) {
-      setState("current", "channel", savedChannel);
+      setState(
+        "current",
+        "channel",
+        savedChannel
+      );
     }
   });
 
-  createEffect(() => {
-    if (conn.status() !== "ready") return;
+  createEffect((prev) => {
+    const ready =
+      conn.status() === "ready";
 
-    conn.send({
-      cmd: "unreads_get"
-    });
-  });
+    if (ready && !prev) {
+      conn.send({
+        cmd: "unreads_get"
+      });
+    }
+
+    return ready;
+  }, false);
 
   createEffect(() => {
     if (conn.status() !== "ready") return;
 
     const channel = state.current.channel;
-    if (!channel) return;
+    const serverSrc = state.current.server?.src;
+
+    if (!channel || !serverSrc) return;
+
+    if (!unreads.servers[serverSrc]) {
+      setUnreads("servers", serverSrc, {});
+    }
 
     conn.send({
       cmd: "unreads_ack",
       channel
     });
+
+    setUnreads(
+      "servers",
+      serverSrc,
+      channel,
+      0
+    );
   });
 
   createEffect(() => {
-  if (conn.status() !== "ready") return;
-
-  const settings = JSON.parse(
-    localStorage.getItem("settings") || "{}"
-  );
-
-  for (const server of state.servers) {
-    if (server.src === state.current.server?.src) continue;
-
-    if (idleConnections.has(server.src)) continue;
-
-    idleConnections.set(
-      server.src,
-      connectIdle(server, settings.token)
+    const settings = JSON.parse(
+      localStorage.getItem("settings") || "{}"
     );
-  }
-});
+
+    for (const server of state.servers) {
+      if (server.src === state.current.server?.src) {
+        continue;
+      }
+
+      ensureConnected(
+        server,
+        settings.type === "token"
+          ? {
+            roturToken: settings.token
+          }
+          : {
+            crackedUser: {
+              username: "guest",
+              password: "guest"
+            }
+          }
+      );
+    }
+  });
 
   function selectServer(server) {
     if (!server.src && server.url) server.src = server.url;
@@ -195,7 +242,7 @@ function App() {
     ) return;
     setState("current", {
       server,
-      channel: state.serverChannels[server.src] ?? null
+      channel: null
     });
 
     const settings = JSON.parse(localStorage.getItem("settings") || "{}");
@@ -319,11 +366,13 @@ function App() {
       <ServerBar
         servers={state.servers}
         currentServer={state.current.server}
+        unreadTotal={getServerUnreadTotal}
+        unreads={unreads}
         onSelect={selectServer}
       />
 
       <div class="server_content x fill">
-        <div class="first_bar bar">
+        <div class="first_bar bar y">
           <Show when={conn.status() === "ready"}>
             <ServerSidebar
               serverInfo={conn.serverInfo()}
@@ -333,6 +382,24 @@ function App() {
               onSelectChannel={selectChannel}
             />
           </Show>
+          <div className="user_display x">
+            <div class="pfpWO">
+              <img
+                src={`https://avatars.rotur.dev/${conn?.me()?.username}`}
+                alt=""
+                class="pfp"
+                loading="lazy"
+              />
+              <img
+                src={`https://avatars.rotur.dev/.overlay/${conn?.me()?.username}`}
+                alt=""
+                class="overlay"
+                loading="lazy"
+              />
+            </div>
+
+            <span>{conn?.me()?.username}</span>
+          </div>
         </div>
 
         <div class="fill y">
@@ -412,11 +479,12 @@ function App() {
 
                 <MessageComposer
                   channel={state.current.channel}
-                  onSend={(content) =>
+                  onSend={(content, attachments) =>
                     conn.send({
                       cmd: "message_new",
                       channel: state.current.channel,
                       content,
+                      attachments,
                       ...(state.replying && {
                         reply_to: state.replying.id
                       })

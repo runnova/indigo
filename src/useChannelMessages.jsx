@@ -83,6 +83,7 @@ export function createChannelMessages({
 
   function loadOlder() {
     const now = Date.now();
+
     if (now - lastLoadTime < LOAD_OLDER_COOLDOWN_MS) return;
     if (loadingOlderLock || loadingOlder() || !hasOlderMessages()) return;
 
@@ -98,8 +99,29 @@ export function createChannelMessages({
     request({
       cmd: "messages_around",
       around: anchor,
-      direction: "older",
-      limit: PAGE_SIZE,
+      bounds: {
+        above: 0,
+        below: PAGE_SIZE,
+      },
+    });
+  }
+
+  function newestId() {
+    const msgs = messages();
+    return msgs.length ? msgs[msgs.length - 1].id : null;
+  }
+
+  function loadNewer() {
+    const anchor = newestId();
+    if (!anchor) return;
+
+    request({
+      cmd: "messages_around",
+      around: anchor,
+      bounds: {
+        above: PAGE_SIZE,
+        below: 0,
+      },
     });
   }
 
@@ -181,45 +203,38 @@ export function createChannelMessages({
 
     if (!incomingMessage || incomingMessage.id == null) return;
 
-    batch(() => {
-      setMessages((prev) => {
-        const existingIndex = prev.findIndex(
-          (m) => m.id === incomingMessage.id
-        );
+    let updateType = "append";
 
-        if (existingIndex !== -1) {
-          const next = prev.slice();
-          next[existingIndex] = incomingMessage;
-          return next;
-        }
+    setMessages((prev) => {
+      const existingIndex = prev.findIndex(
+        (m) => m.id === incomingMessage.id
+      );
 
-        const next = [...prev, incomingMessage];
-
-        let trimmed = false;
-
-        setMessages((prev) => {
-          const next = [...prev, incomingMessage];
-
-          if (next.length > MAX_MESSAGES && isNearBottom?.()) {
-            trimmed = true;
-            return next.slice(-TRIM_TO);
-          }
-
-          return next;
-        });
-
-        if (trimmed) {
-          setLastUpdate({ type: "reset" });
-        }
-
+      if (existingIndex !== -1) {
+        const next = prev.slice();
+        next[existingIndex] = incomingMessage;
+        updateType = "update";
         return next;
-      });
+      }
+
+      let next = [...prev, incomingMessage];
+
+      if (next.length > MAX_MESSAGES && isNearBottom?.()) {
+        next = next.slice(-TRIM_TO);
+        updateType = "reset";
+      }
+
+      return next;
     });
 
-    setLastUpdate({
-      type: "append",
-      message: incomingMessage,
-    });
+    if (updateType === "reset") {
+      setLastUpdate({ type: "reset" });
+    } else {
+      setLastUpdate({
+        type: "append",
+        message: incomingMessage,
+      });
+    }
   }
 
   function handleEvent(event) {

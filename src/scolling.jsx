@@ -232,17 +232,23 @@ function scrollToBottom(instant = false) {
     behavior: instant ? "auto" : "smooth",
   });
 }
-  function onScroll() {
-    if (!scrollEl) return;
+let wasNearBottom = true;
 
-    if (scrollEl.scrollTop < SCROLL_NEAR_TOP) {
-      loadOlder();
-    }
-    if (showNewIndicator() && isNearBottom()) {
-      setShowNewIndicator(false);
-    }
-    updateVirtualWindow();
+function onScroll() {
+  if (!scrollEl) return;
+
+  wasNearBottom = isNearBottom();
+
+  if (scrollEl.scrollTop < SCROLL_NEAR_TOP) {
+    loadOlder();
   }
+
+  if (showNewIndicator() && wasNearBottom) {
+    setShowNewIndicator(false);
+  }
+
+  updateVirtualWindow();
+}
   createEffect(
     on(
       sections,
@@ -271,16 +277,15 @@ function scrollToBottom(instant = false) {
         });
         return;
       }
-
-      const wasNearBottom = isNearBottom();
-
-      if (update.type === "append") {
-        if (wasNearBottom) {
-          requestAnimationFrame(() => scrollToBottom());
-        } else {
-          setShowNewIndicator(true);
-        }
-      }
+if (update.type === "append") {
+  if (wasNearBottom) {
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+  } else {
+    setShowNewIndicator(true);
+  }
+}
 
       if (update.type === "jump") {
         requestAnimationFrame(() => {
@@ -433,9 +438,9 @@ const replyMessage = msg()?.reply_to
             }, 200);
           }}
           style={{
-            position: "fixed",
-            top: `${hoverRect().top}px`,
-            right: `280px`,
+            position: "absolute",
+            top: `${hoverRect().top - 60}px`,
+            right: `25px`,
             "z-index": 100,
           }}
         >
