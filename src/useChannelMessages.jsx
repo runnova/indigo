@@ -1,6 +1,6 @@
 import { createSignal, createEffect, on, batch } from "solid-js";
 import { produce } from "solid-js/store";
-import { unreads, setUnreads } from "./App";
+import { unreads, setUnreads , setLoaded} from "./App";
 
 const PAGE_SIZE = 20;
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -51,6 +51,71 @@ function handleUnreadEvent(event) {
   }
 }
 
+export function createForumThreads({
+  channel,
+  wsEvent,
+  sendRequest,
+}) {
+  const [threads, setThreads] = createSignal([]);
+  const [loading, setLoading] = createSignal(false);
+  const [hasMore, setHasMore] = createSignal(true);
+
+  function request(payload) {
+    sendRequest({ ...payload, channel: channel() });
+  }
+
+  function fetchInitial() {
+    setLoading(true);
+    request({
+      cmd: "threads_get",
+      limit: 20,
+    });
+  }
+
+  function handleThreadsGet(event) {
+    setThreads(event.threads ?? []);
+    setHasMore((event.threads?.length ?? 0) >= 20);
+    setLoading(false);
+  }
+
+  function handleThreadNew(event) {
+    if (!event.thread) return;
+
+    setThreads(prev => [event.thread, ...prev]);
+  }
+
+  function handleEvent(event) {
+    if (!event) return;
+    if (event.channel !== channel()) return;
+
+    if (event.cmd === "threads_get") {
+      handleThreadsGet(event);
+    }
+
+    if (event.cmd === "thread_new") {
+      handleThreadNew(event);
+    }
+  }
+
+  createEffect(
+    on(channel, () => {
+      setThreads([]);
+      setHasMore(true);
+      fetchInitial();
+    })
+  );
+
+  createEffect(() => {
+    handleEvent(wsEvent());
+  });
+
+  return {
+    threads,
+    loading,
+    hasMore,
+  };
+}
+
 export function createChannelMessages({
   channel,
   wsEvent,
@@ -78,6 +143,7 @@ export function createChannelMessages({
   }
 
   function fetchInitial() {
+    setLoaded({ done: true })
     request({ cmd: "messages_get", limit: PAGE_SIZE });
   }
 

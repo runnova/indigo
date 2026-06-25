@@ -1,10 +1,12 @@
 import { createSignal } from "solid-js";
+import { setState } from "../App"
 import ServerDiscovery from "./ServerDiscovery";
 import { HiOutlineGlobeEuropeAfrica, HiOutlineLink, HiOutlineServerStack } from "solid-icons/hi"
 
 export default function ServerBrowser(props) {
   const [tab, setTab] = createSignal("explore");
 
+  let serverInput;
   return (
     <div class="server_browser">
       <div class="browser_tabs">
@@ -45,9 +47,22 @@ export default function ServerBrowser(props) {
           <div class="url_tab">
             <div className="member_section_label">Join by URL</div>
             <div className="searchbox">
-              <input placeholder="chats.mistium.com" />
-              <button>Join</button>
 
+              <input
+                ref={serverInput}
+                placeholder="chats.mistium.com"
+              />
+
+              <button
+                onClick={() => {
+                  setState("current", {
+                    server: serverInput.value,
+                    channel: null
+                  });
+                }}
+              >
+                Join
+              </button>
             </div>
           </div>
         )}

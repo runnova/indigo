@@ -57,7 +57,7 @@ export function VirtualMessageList(props) {
   const WINDOW_RADIUS = 2;
 
   const [visibleStart, setVisibleStart] = createSignal(0);
-  const [visibleEnd, setVisibleEnd] = createSignal(4);
+  const [visibleEnd, setVisibleEnd] = createSignal(0);
 
   const sectionHeights = new Map();
 

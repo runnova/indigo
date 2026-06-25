@@ -14,35 +14,22 @@ function GeneralSettings() {
     <>
       <h2 class="settings_title">General</h2>
       <div className="settings_item x">
-        <div className="member_section_label">DMs server</div>
+        <div className="settings_section_label">DMs server</div>
         <input class="settings_input" type="text" placeholder="dms.mistium.com" />
       </div>
       <div className="settings_item x">
-        <div className="member_section_label">Send typing status</div>
+        <div className="settings_section_label">Profile Overlays</div>
         <input class="settings_input" type="checkbox" />
       </div>
+      <h2 class="settings_title">Privacy</h2>
       <div className="settings_item x">
-        <div className="member_section_label">Profile Overlays</div>
+        <div className="settings_section_label">Send typing status</div>
         <input class="settings_input" type="checkbox" />
       </div>
+
+      <h2 class="settings_title">Performance</h2>
       <div className="settings_item x">
-        <div className="member_section_label">Show Nicknames</div>
-        <select name="" id="">
-          <option value="Nickname" selected>Nickname</option>
-          <option value="Nickname (Username)">Nickname (Username)</option>
-          <option value="Username">Username</option>
-        </select>
-      </div>
-      <div className="settings_item x">
-        <div className="member_section_label">Messages from blocked users</div>
-        <select name="" id="">
-          <option value="Nickname" selected>Show collapsed</option>
-          <option value="Nickname (Username)">Always Show</option>
-          <option value="Username">Always Hide</option>
-        </select>
-      </div>
-      <div className="settings_item x">
-        <div className="member_section_label">Idle connections</div>
+        <div className="settings_section_label">Idle connections</div>
         <select name="" id="">
           <option value="Nickname" selected>Keep connected</option>
           <option value="Nickname (Username)">No idle connections</option>
@@ -50,25 +37,43 @@ function GeneralSettings() {
         </select>
       </div>
       <div className="settings_item x">
-        <div className="member_section_label">Load attachments</div>
+        <div className="settings_section_label">Load attachments</div>
         <select name="" id="">
           <option value="Nickname" selected>Load everything</option>
           <option value="Nickname (Username)">Load on demand</option>
           <option value="Username">Server whitelist</option>
         </select>
       </div>
+      <h2 class="settings_title">Identity</h2>
       <div className="settings_item x">
-        <div className="member_section_label">Theme Stylesheets</div>
+        <div className="settings_section_label">Show Nicknames</div>
+        <select name="" id="">
+          <option value="Nickname" selected>Nickname</option>
+          <option value="Nickname (Username)">Nickname (Username)</option>
+          <option value="Username">Username</option>
+        </select>
+      </div>
+      <div className="settings_item x">
+        <div className="settings_section_label">Messages from blocked users</div>
+        <select name="" id="">
+          <option value="Nickname" selected>Show collapsed</option>
+          <option value="Nickname (Username)">Always Show</option>
+          <option value="Username">Always Hide</option>
+        </select>
+      </div>
+      <div className="settings_item x">
+        <div className="settings_section_label">Owner crown</div>
         <input class="settings_input" type="checkbox" />
       </div>
 
+      <h2 class="settings_title">Looks</h2>
       <div className="settings_item x">
-        <div className="member_section_label">Owner crown</div>
+        <div className="settings_section_label">Theme Stylesheets</div>
         <input class="settings_input" type="checkbox" />
       </div>
-
+      <hr />
       <div className="settings_item x">
-        <div className="member_section_label">Indigo &bull; By dark dot
+        <div className="settings_section_label">Indigo &bull; By dark dot
         </div>
         <div class="x" style={{"gap": ".2em"}}>
           <input class="settings_input" type="button" value={"Feedback"} />

@@ -2,7 +2,7 @@ import {
   Show,
   createEffect,
   onMount,
-  createMemo
+  createMemo, createSignal
 } from "solid-js";
 
 import { createStore } from "solid-js/store";
@@ -15,6 +15,7 @@ import {
   HiOutlineInbox,
   HiOutlineUserCircle
 } from "solid-icons/hi";
+import appIcon from "/public/icon.svg";
 
 import MemberPopout from "./components/MemberPopout.jsx";
 
@@ -49,6 +50,9 @@ const defaultState = {
 export const [unreads, setUnreads] = createStore({
   servers: {}
 });
+
+export const [loaded, setLoaded] = createStore({ done: false });
+const [showLoader, setShowLoader] = createSignal(true);
 function getServerUnreadTotal(src) {
   const server =
     unreads.servers?.[src];
@@ -360,9 +364,19 @@ function App() {
 
     return sections;
   });
+
+  const [fadeOut, setFadeOut] = createSignal(false);
+  createEffect(() => {
+    if (loaded.done) {
+      setFadeOut(true);
+
+      setTimeout(() => {
+        setShowLoader(false);
+      }, 300);
+    }
+  });
   return (
     <div class="main x">
-
       <ServerBar
         servers={state.servers}
         currentServer={state.current.server}
@@ -372,6 +386,13 @@ function App() {
       />
 
       <div class="server_content x fill">
+        <Show when={showLoader()}>
+          <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>
+            <div className="logoLoader">
+              <img src={appIcon} alt="Indigo" className="logo" />
+            </div>
+          </div>
+        </Show>
         <div class="first_bar bar y">
           <Show when={conn.status() === "ready"}>
             <ServerSidebar
