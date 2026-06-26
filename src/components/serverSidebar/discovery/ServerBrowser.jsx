@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { setState } from "../App"
+import { setState } from "../../../App"
 import ServerDiscovery from "./ServerDiscovery";
 import { HiOutlineGlobeEuropeAfrica, HiOutlineLink, HiOutlineServerStack } from "solid-icons/hi"
 

@@ -1,6 +1,6 @@
 import { For, createSignal, createEffect } from "solid-js";
-import Dialog from "./Dialog";
-import ServerBrowser from "./ServerBrowser.jsx";
+import Dialog from "../Dialog.jsx";
+import ServerBrowser from "./discovery/ServerBrowser.jsx";
 import Settings from "./Settings"
 
 export default function ServerBar(props) {

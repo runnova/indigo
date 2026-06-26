@@ -17,15 +17,15 @@ import {
 } from "solid-icons/hi";
 import appIcon from "/public/icon.svg";
 
-import MemberPopout from "./components/MemberPopout.jsx";
+import MemberPopout from "./components/rightSidebar/memberList/MemberPopout.jsx";
 
-import ServerBar from "./components/ServerBar.jsx";
-import ServerSidebar from "./components/ServerSidebar.jsx";
-import MessageComposer from "./components/MessageComposer.jsx";
+import ServerBar from "./components/serverSidebar/ServerBar.jsx";
+import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
+import MessageComposer from "./components/compose/MessageComposer.jsx";
 
 import { VirtualMessageList } from "./scolling";
 
-import RightSidebar from "./components/RightSidebar.jsx";
+import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
 
 import {
   useServerConnection,

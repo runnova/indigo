@@ -1,19 +1,15 @@
-import { createSignal, createEffect, onMount, For } from "solid-js";
-import { Message } from "./message";
+import { createSignal, createEffect, For } from "solid-js";
+import { Message } from "../messages/message";
 
-export default function PinnedList(props) {
+export default function Inbox(props) {
   const [messages, setMessages] = createSignal([]);
 
   createEffect(() => {
-    const channel = props.state.current.channel;
-
-    if (!channel) return;
-
-    setMessages([]);
+    if (props.state.thirdBarContext !== "inbox") return;
 
     props.conn.send({
-      cmd: "messages_pinned",
-      channel,
+      cmd: "pings_get",
+      limit: 20
     });
   });
 
@@ -22,13 +18,13 @@ export default function PinnedList(props) {
 
     if (!event) return;
 
-    if (event.cmd === "messages_pinned") {
+    if (event.cmd === "pings_get") {
       setMessages(event.messages ?? []);
     }
   });
 
   return (
-    <div class="pinned_messages_list y">
+    <div class="search_results_list y">
       <For each={messages()}>
         {(msg, i) => (
           <Message

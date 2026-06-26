@@ -6,7 +6,7 @@ import {
 } from "solid-js";
 
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
-import { tempState } from "../App.jsx";
+import { tempState } from "../../App.jsx";
 
 const GROUP_ICONS = {
   0: "😎",

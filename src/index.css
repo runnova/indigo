@@ -51,6 +51,7 @@ html,
 body {
   background-color: var(--bg-one);
   color: var(--fg-one);
+  font-size: 16px;
   margin: 0;
 }
 
@@ -253,6 +254,7 @@ nav button.active {
   padding: .5em;
   align-items: center;
   gap: .5em;
+  z-index: 5;
 }
 
 .message_single {
@@ -405,7 +407,6 @@ nav button.active {
 
 .vml-item {
   box-sizing: border-box;
-  padding: 2px 0;
   transition: background 0.4s ease;
   content-visibility: auto;
   contain-intrinsic-size: 65px;
@@ -1693,7 +1694,7 @@ textarea.settings_input {
 }
 
 img.logo {
-  max-width: 700px;
+  max-width: 400px;
   width: 80vw;
   height: 80vh;
   animation: bltocolor .5s, flicker 1s infinite;
@@ -1708,7 +1709,7 @@ img.logo {
   height: 100%;
   z-index: 10;
   border-radius: 0 .5em .5em 0;
-  background-color: var(--bg-two);
+  background-color: var(--bg-one);
   align-items: center;
   justify-content: center;
   transition: opacity 300ms ease;
@@ -1716,4 +1717,15 @@ img.logo {
 
 .appLoader.fade-out {
   opacity: 0;
+}
+
+.big_emoji {
+  font-size: 35px;
+  line-height: 1;
+}
+
+img.big_emoji {
+  width: 30px;
+  height: 30px;
+  vertical-align: middle;
 }

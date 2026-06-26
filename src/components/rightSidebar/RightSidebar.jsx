@@ -1,5 +1,5 @@
 import { Dynamic } from "solid-js/web";
-import MemberList from "./MemberList.jsx";
+import MemberList from "./memberList/MemberList.jsx";
 import PinnedList from "./PinnedList.jsx";
 import SelfRoles from "./SelfRoles.jsx";
 import SearchResultsList from "./SearchResultsList.jsx";

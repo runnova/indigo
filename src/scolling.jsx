@@ -6,8 +6,8 @@ import {
   For,
   Show,
 } from "solid-js";
-import { Message } from "./components/message";
-import { MessageActions } from "./components/MessageActions.jsx";
+import { Message } from "./components/messages/message.jsx";
+import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./useChannelMessages";
 import { tempState, state, setState} from "./App.jsx";
 

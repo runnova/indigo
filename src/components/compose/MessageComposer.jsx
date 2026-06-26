@@ -1,9 +1,9 @@
 import { Show, For, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 import EmojiPicker from "./EmojiPicker"
-import { state, setState, tempState } from "../App"
+import { state, setState, tempState } from "../../App"
 import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
-import { fetchRoturValidator } from "../server_connection";
+import { fetchRoturValidator } from "../../server_connection";
 
 export default function MessageComposer(props) {
   let textarea;

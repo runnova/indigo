@@ -1,8 +1,46 @@
 import { For, createMemo } from "solid-js";
-import { tempState, state, setState } from "../App.jsx";
-import { openPopout } from "./popout";
+import { tempState, state, setState } from "../../App.jsx";
+import { openPopout } from "../rightSidebar/memberList/popout.jsx";
+function isBigEmojiMessage(input) {
+  const trimmed = input.trim();
 
+  const tokens = trimmed
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (tokens.length === 0 || tokens.length > 3) {
+    return false;
+  }
+
+  return tokens.every(token =>
+    token.startsWith("originChats:<emoji>//") ||
+    /\p{Extended_Pictographic}/u.test(token)
+  );
+}
 function parseMarkdown(input) {
+  if (isBigEmojiMessage(input)) {
+    return input
+      .trim()
+      .split(/\s+/)
+      .map(token => {
+        if (token.startsWith("originChats:<emoji>//")) {
+          const url = token.slice("originChats:<emoji>//".length);
+          const match = url.match(/^(.+)\/(\d+)$/);
+
+          if (!match) return token;
+
+          return (
+            <img
+              class="inline_emoji big_emoji"
+              src={`https://${match[1]}/emojis/${match[2]}`}
+              alt=""
+            />
+          );
+        }
+
+        return <span class="big_emoji">{token}</span>;
+      });
+  }
   const parts = [];
   let key = 0;
 

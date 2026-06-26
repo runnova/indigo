@@ -1,5 +1,5 @@
 import { createSignal, createEffect, For } from "solid-js";
-import { Message } from "./message";
+import { Message } from "../messages/message";
 
 export default function SearchResultsList(props) {
   const [messages, setMessages] = createSignal([]);
