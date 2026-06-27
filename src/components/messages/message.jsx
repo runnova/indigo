@@ -1,5 +1,5 @@
 import { For, createMemo } from "solid-js";
-import { tempState, state, setState } from "../../App.jsx";
+import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 function isBigEmojiMessage(input) {
   const trimmed = input.trim();
@@ -335,6 +335,10 @@ function EmbeddedLink(props) {
               alt=""
               class="embedded_image"
               loading="lazy"
+              onClick={setPreview({
+                src: props.urls,
+                type: type,
+              })}
             />
           );
         }
@@ -490,6 +494,13 @@ export function Message(props) {
                         alt={file.name}
                         class="attachment_image"
                         loading="lazy"
+
+                        onClick={() => {
+                          setPreview({
+                            src: file.url,
+                            type: file.mime_type,
+                          })
+                        }}
                       />
                     );
                   }

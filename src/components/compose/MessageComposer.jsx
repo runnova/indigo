@@ -4,8 +4,7 @@ import EmojiPicker from "./EmojiPicker"
 import { state, setState, tempState } from "../../App"
 import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
 import { fetchRoturValidator } from "../../server_connection";
-
-
+import Typing from "./Typing";
 
 export default function MessageComposer(props) {
   let textarea;
@@ -20,6 +19,26 @@ export default function MessageComposer(props) {
     suggestions: [],
     selected: 0
   });
+  let typingTimer;
+  let lastTypingSent = 0;
+
+  function sendTyping() {
+    const duration = 6000;
+    const now = Date.now();
+
+    if (now - lastTypingSent < duration) return;
+
+    lastTypingSent = now;
+
+    tempState?.conn?.send({
+      cmd: "typing",
+      channel: props.channel,
+      duration,
+      global: true,
+      thread_id: null,
+      user: tempState?.conn.me().username
+    });
+  }
   onMount(() => {
     tempState?.conn?.send({
       cmd: "slash_list"
@@ -223,6 +242,7 @@ export default function MessageComposer(props) {
 
   return (
     <div class="text_box_wrapper y">
+      <Typing></Typing>
       <Show when={state.replying}>
         <div class="reply_bar x">
           <span>Replying to @{state.replying.user}</span>
@@ -385,7 +405,16 @@ export default function MessageComposer(props) {
                 if (file) queueAttachment(file);
               }
             }}
-            onInput={(e) => { parseSlash(e.target.value) }}
+            onInput={(e) => {
+              parseSlash(e.target.value);
+
+              sendTyping();
+
+              clearTimeout(typingTimer);
+              typingTimer = setTimeout(() => {
+                lastTypingSent = 0;
+              }, 6000);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();

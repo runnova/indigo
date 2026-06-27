@@ -65,10 +65,6 @@ body {
   height: calc(100% - .6em);
   width: calc(100vw - .6em);
   overflow: hidden;
-
-  &>* {
-    box-shadow: var(--border);
-  }
 }
 
 .x,

@@ -33,6 +33,7 @@ import {
   ensureConnected,
   connections
 } from "./server_connection";
+import MediaPreview from "./components/MediaPreview";
 
 import { Rotur } from "rotur-sdk";
 
@@ -53,6 +54,7 @@ const defaultState = {
 export const [unreads, setUnreads] = createStore({
   servers: {}
 });
+export const [preview, setPreview] = createSignal(null);
 
 export const [loaded, setLoaded] = createStore({ done: false });
 const [showLoader, setShowLoader] = createSignal(true);
@@ -507,6 +509,13 @@ function App() {
         </div>
       </div>
       <MemberPopout />
+      <Show when={preview()}>
+        <MediaPreview
+          src={preview().src}
+          type={preview().type}
+          onClose={() => setPreview(null)}
+        />
+      </Show>
     </div >
   );
 }
