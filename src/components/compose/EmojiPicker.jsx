@@ -132,12 +132,12 @@ export default function EmojiPicker(props) {
                 type="button"
                 class={emoji.custom ? "custom_emoji" : "unicode_emoji"}
                 title={emoji.custom ? emoji.name : emoji.annotation}
-                onClick={() =>
+                onClick={() =>{
                   props.onSelect(
                     emoji.custom
-                      ? `<:${emoji.name}>`
+                      ? `originChats:<emoji>//${tempState.conn.serverInfo().src}/${emoji.id}`
                       : emoji.emoji
-                  )
+                  )}
                 }
               >
                 <Show

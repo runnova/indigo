@@ -334,6 +334,7 @@ function EmbeddedLink(props) {
               src={props.url}
               alt=""
               class="embedded_image"
+              loading="lazy"
             />
           );
         }
@@ -344,6 +345,7 @@ function EmbeddedLink(props) {
               src={props.url}
               controls
               class="embedded_video"
+              loading="lazy"
             />
           );
         }
@@ -353,6 +355,7 @@ function EmbeddedLink(props) {
             <audio
               src={props.url}
               controls
+              loading="lazy"
             />
           );
         }
@@ -378,6 +381,8 @@ export function Message(props) {
   if (props.reply) {
     props.reply.username = props.reply.user;
   }
+  const member = tempState?.conn?.members()?.find(user => user.username === props.username);
+  const gradient = member?.gradient;
   return (
     <div class={`message_single y ${props.grouped ? "grouped" : ""}`}>
       {(props.reply || props.interaction) && (
@@ -392,6 +397,7 @@ export function Message(props) {
                   src={`https://avatars.rotur.dev/${props.reply.user}`}
                   alt=""
                   class="pfp"
+                  loading="lazy"
                 />
                 {props.reply.user}
               </div>
@@ -407,6 +413,7 @@ export function Message(props) {
                   src={`https://avatars.rotur.dev/${props.interaction.username}`}
                   alt=""
                   class="pfp"
+                  loading="lazy"
                 />
                 {props.interaction.username}
               </div>
@@ -430,11 +437,13 @@ export function Message(props) {
               src={`https://avatars.rotur.dev/${props.username}`}
               alt=""
               class="pfp"
+              loading="lazy"
             />
             <img
               src={`https://avatars.rotur.dev/.overlay/${props.username}`}
               alt=""
               class="overlay"
+              loading="lazy"
             />
           </div>
         )}
@@ -442,7 +451,26 @@ export function Message(props) {
         <div class="message_content y flex">
           {!props.grouped && (
             <div class="message_meta x">
-              <div class="username" onClick={(e) => openPopout(props, e.currentTarget)}>{props.username}</div>
+              <div
+                class="username"
+
+                style={
+                  Array.isArray(gradient)
+                    ? {
+                      background: `linear-gradient(90deg, ${gradient.join(", ")})`,
+                      "-webkit-background-clip": "text",
+                      "-webkit-text-fill-color": "transparent",
+                      "background-clip": "text",
+                      color: "transparent"
+                    }
+                    : {
+                      color: member?.color
+                    }
+                }
+                onClick={(e) => openPopout(props, e.currentTarget)}
+              >
+                {props.username}
+              </div>
               <div class="time">{props.time}</div>
             </div>
           )}

@@ -1,14 +1,89 @@
-import { Show, For, createSignal } from "solid-js";
+import { Show, For, createSignal, createEffect, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import EmojiPicker from "./EmojiPicker"
 import { state, setState, tempState } from "../../App"
 import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
 import { fetchRoturValidator } from "../../server_connection";
 
+
+
 export default function MessageComposer(props) {
   let textarea;
   let fileInput;
   const [attachments, setAttachments] = createStore([]);
+  const [slashCommands, setSlashCommands] = createSignal([]);
+  const [slashState, setSlashState] = createStore({
+    active: false,
+    command: null,
+    optionIndex: 0,
+    values: {},
+    suggestions: [],
+    selected: 0
+  });
+  onMount(() => {
+    tempState?.conn?.send({
+      cmd: "slash_list"
+    });
+  });
+
+  createEffect(() => {
+    const event = tempState?.conn.lastEvent();
+    if (!event) return;
+
+    if (event.cmd === "slash_list") {
+      setSlashCommands(event.commands);
+    }
+  });
+
+  function parseSlash(value) {
+    if (!value.startsWith("/")) {
+      setSlashState("active", false);
+      return;
+    }
+
+    const name = value.slice(1).trim();
+
+    const command = slashCommands().find(c => c.name === name);
+
+    if (!command) {
+      setSlashState({
+        active: true,
+        command: null,
+        suggestions: slashCommands().filter(c =>
+          c.name.startsWith(name)
+        )
+      });
+      return;
+    }
+
+    const values = {};
+
+    command.options.forEach(option => {
+      values[option.name] = "";
+    });
+
+    setSlashState({
+      active: true,
+      command,
+      values
+    });
+  }
+
+  function closeSlash() {
+    setSlashState({
+      active: false,
+      command: null,
+      values: {},
+      suggestions: [],
+      optionIndex: 0,
+      selected: 0
+    });
+
+    if (textarea) {
+      textarea.value = "";
+      requestAnimationFrame(() => textarea.focus());
+    }
+  }
 
   async function handleFiles(e) {
     const files = [...e.target.files];
@@ -136,7 +211,7 @@ export default function MessageComposer(props) {
       emoji +
       textarea.value.slice(end);
 
-    const pos = start + emoji.length;
+    const pos = start + emoji?.length;
 
     textarea.focus();
 
@@ -203,6 +278,25 @@ export default function MessageComposer(props) {
           </For>
         </div>
       </Show>
+      <Show when={slashState.active && !slashState.command}>
+        <div class="slash_popup y">
+          <For each={slashState.suggestions}>
+            {command => (
+              <button
+                class="x"
+                onClick={() => {
+                  textarea.value = `/${command.name}`;
+                  parseSlash(textarea.value);
+                  textarea.focus();
+                }}
+              >
+                <strong>/{command.name}</strong>
+                <span>{command.description}</span>
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
 
       <div class="text_box x">
         <div className="dropdown_container">
@@ -223,55 +317,120 @@ export default function MessageComposer(props) {
             </button>
           </div>
         </div>
-        <textarea
-          ref={textarea}
-          rows={1}
-          placeholder={`Message #${props.channel}`}
-          class="fill"
-          onPaste={async (e) => {
-            const items = [...(e.clipboardData?.items || [])];
-
-            const imageItems = items.filter(
-              item => item.kind === "file" &&
-                item.type.startsWith("image/")
-            );
-
-            if (imageItems.length === 0) return;
-
-            e.preventDefault();
-
-            for (const item of imageItems) {
-              const file = item.getAsFile();
-              if (file) queueAttachment(file);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-
-              const content = e.currentTarget.value.trim();
-
-              if (
-                !content &&
-                attachments.filter(a => a.uploaded).length === 0
-              ) {
-                return;
+        <Show when={slashState.active && slashState.command}>
+          <div
+            class="slash-form"
+            tabindex="0"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                closeSlash();
               }
+            }}
+          >
+            <div class="command">
+              /{slashState.command.name}
+            </div>
 
-              props.onSend(
-                content,
-                attachments
-                  .filter(a => a.uploaded)
-                  .map(a => a.serverAttachment)
+            <For each={slashState.command.options}>
+              {(option) => (
+                <label class="slash-option">
+                  <span>{option.name}</span>
+
+                  <input
+                    type="text"
+                    placeholder={option.type}
+                    value={slashState.values[option.name] || ""}
+                    onInput={(e) =>
+                      setSlashState(
+                        "values",
+                        option.name,
+                        e.currentTarget.value
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        closeSlash();
+                      }
+                    }}
+                  />
+                </label>
+              )}
+            </For>
+          </div>
+
+        </Show>
+
+        <Show when={!slashState.command}>
+          <textarea
+            ref={textarea}
+            rows={1}
+            placeholder={`Message #${props.channel}`}
+            class="fill"
+            onPaste={async (e) => {
+              const items = [...(e.clipboardData?.items || [])];
+
+              const imageItems = items.filter(
+                item => item.kind === "file" &&
+                  item.type.startsWith("image/")
               );
 
-              setAttachments([]);
-              e.currentTarget.value = "";
-            }
-          }}
-        />
+              if (imageItems.length === 0) return;
 
-        <div class="action_buttons">
+              e.preventDefault();
+
+              for (const item of imageItems) {
+                const file = item.getAsFile();
+                if (file) queueAttachment(file);
+              }
+            }}
+            onInput={(e) => { parseSlash(e.target.value) }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+
+                let content = e.currentTarget.value.trim();
+
+                if (slashState.command) {
+                  content =
+                    "/" +
+                    slashState.command.name +
+                    " " +
+                    slashState.command.options
+                      .map(option => slashState.values[option.name] || "")
+                      .join(" ");
+                }
+
+                if (
+                  !content &&
+                  attachments.filter(a => a.uploaded).length === 0
+                ) {
+                  return;
+                }
+
+                props.onSend(
+                  content,
+                  attachments
+                    .filter(a => a.uploaded)
+                    .map(a => a.serverAttachment)
+                );
+
+                setAttachments([]);
+                e.currentTarget.value = "";
+              }
+            }}
+          />
+        </Show>
+        <div class="action_buttons x">
+          <Show when={slashState.command}>
+            <button
+              class="icon_button"
+              onClick={closeSlash}
+            >
+              <HiOutlineXMark />
+            </button>
+          </Show>
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"
@@ -285,10 +444,11 @@ export default function MessageComposer(props) {
                 <EmojiPicker
                   src={state.current.server?.src}
                   onSelect={(emoji) => {
+                    console.log(emoji)
                     if (emoji.url) {
                       insertEmoji(`:${emoji.name}:`);
                     } else {
-                      insertEmoji(emoji.emoji);
+                      insertEmoji(emoji);
                     }
                   }}
                 />

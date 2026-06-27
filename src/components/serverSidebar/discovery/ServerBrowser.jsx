@@ -55,10 +55,8 @@ export default function ServerBrowser(props) {
 
               <button
                 onClick={() => {
-                  setState("current", {
-                    server: serverInput.value,
-                    channel: null
-                  });
+                  const server = { src: serverInput }
+                  props.onJoin(server)
                 }}
               >
                 Join

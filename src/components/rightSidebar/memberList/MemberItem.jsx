@@ -31,9 +31,19 @@ export default function MemberItem(props) {
       </div>
 
       <span
-        style={{
-          color: role()?.color
-        }}
+        style={
+          role()?.gradient
+            ? {
+              background: `linear-gradient(90deg, ${role().gradient.join(", ")})`,
+              "-webkit-background-clip": "text",
+              "-webkit-text-fill-color": "transparent",
+              "background-clip": "text",
+              color: "transparent"
+            }
+            : {
+              color: role()?.color
+            }
+        }
       >
         {props.user.username}
       </span>

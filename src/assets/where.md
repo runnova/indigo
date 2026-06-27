@@ -1,0 +1,48 @@
+tempState
+- members() [array of objects]
+  - color
+  - cracked
+  - gradient [array of strings] (gradient color points)
+  - nickname
+  - roles [array]
+  - status 
+    - status (string)
+    - text
+  - username
+- conn {object}
+  - channels() [array of objects]
+  - emojis [array of objects] (custom server emojis)
+  - lastEvent {object} (last ws event)
+  - me {object}
+    - cracked (bool)
+    - nickname (string)
+    - roles [array]
+    - username (string)
+    - status 
+      - status (string)
+      - text
+  - members()
+  - membersOnline() [array of member objects]
+  - roles() {object of server roles}
+    - category (category of role)
+    - color
+    - description
+    - hoisted (bool)
+    - id
+    - permissions [array of strings]
+    - position
+    - self_assignable (bool)
+  - serverInfo()  {object}
+    - auth_mode
+    - banner
+    - capabilities [array of strings]
+    - icon
+    - limits
+      - max_reactions_per_message
+      - post_content
+      - search_results
+    - name
+    - src
+    - validator_key
+  - setMe()
+  - status (string)

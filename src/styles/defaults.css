@@ -1,0 +1,133 @@
+:root {
+  --bg-one: #010101;
+  --bg-two: #0e0e0e;
+  --bg-three: #1d1d1d;
+  --bg-four: #3a3a3a;
+
+  --diff-one: color-mix(in srgb, var(--bg-four) 15%, transparent);
+  --diff-two: color-mix(in srgb, var(--bg-four) 30%, transparent);
+  --diff-three: color-mix(in srgb, var(--bg-four) 45%, transparent);
+
+  --hl-one: rgb(141, 42, 255);
+  --hl-two: rgb(207, 164, 255);
+  --hl-three: rgb(84, 0, 180);
+  --hl-four: rgb(45 29 63);
+
+  --border: 0px 0px 0 1px rgb(255 255 255 / 20%);
+
+  --fg-one: #ffffff;
+  --fg-two: #ffffff7a;
+  --fg-dim: #ffffffb7;
+  --fg-three: rgb(207, 164, 255);
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-one);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-four);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-four);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #555;
+}
+
+body,
+html,
+#root,
+.main {
+  height: 100vh;
+  width: 100vw;
+}
+
+body {
+  background-color: var(--bg-one);
+  color: var(--fg-one);
+  font-size: 16px;
+  margin: 0;
+}
+
+.main {
+  font-family: system-ui, sans-serif;
+  padding: .3em;
+  height: calc(100% - .6em);
+  width: calc(100vw - .6em);
+  overflow: hidden;
+
+  &>* {
+    box-shadow: var(--border);
+  }
+}
+
+.x,
+.y {
+  display: flex;
+
+  &.x {
+    flex-direction: row;
+  }
+
+  &.y {
+    flex-direction: column;
+  }
+}
+
+.fill {
+  flex-grow: 1;
+}
+
+button,
+input,
+textarea {
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  border: none;
+  outline: none;
+}
+
+img {
+  border-radius: .5em;
+}
+
+a {
+  color: var(--hl-two);
+  text-decoration: none;
+
+  &:hover {
+    filter: brightness(1.2);
+  }
+}
+
+hr {
+  width: calc(100% - 1.5em);
+  opacity: .2;
+}
+
+blockquote {
+  border-left: 3px solid var(--bg-four);
+  margin: 0;
+  padding: .2em .5em;
+  opacity: .8;
+}
+
+
+kbd,
+.code_block {
+  background-color: var(--diff-one);
+  padding: 3px 5px;
+  border-radius: .5em;
+  margin: 0;
+}

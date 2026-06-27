@@ -15,7 +15,7 @@ import {
   HiOutlineInbox,
   HiOutlineUserCircle
 } from "solid-icons/hi";
-import appIcon from "/public/icon.svg";
+import appIcon from "/icon.svg";
 
 import MemberPopout from "./components/rightSidebar/memberList/MemberPopout.jsx";
 
@@ -152,25 +152,17 @@ function App() {
   });
   createEffect(() => {
     if (conn.status() !== "ready") return;
+    if (!conn.channels().length) return;
+    if (conn.members().length > 0) return;
 
     const serverSrc = state.current.server?.src;
     if (!serverSrc) return;
 
-    const savedChannel =
-      state.serverChannels[serverSrc];
-
+    const savedChannel = state.serverChannels[serverSrc];
     if (!savedChannel) return;
 
-    if (
-      conn.channels().some(
-        c => c.name === savedChannel
-      )
-    ) {
-      setState(
-        "current",
-        "channel",
-        savedChannel
-      );
+    if (conn.channels().some(c => c.name === savedChannel)) {
+      setState("current", "channel", savedChannel);
     }
   });
 

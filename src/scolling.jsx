@@ -229,7 +229,7 @@ function scrollToBottom(instant = false) {
 
   scrollEl.scrollTo({
     top: scrollEl.scrollHeight,
-    behavior: instant ? "auto" : "smooth",
+    behavior: "auto" ,
   });
 }
 let wasNearBottom = true;
@@ -358,12 +358,11 @@ const replyMessage = msg()?.reply_to
             <div
               attr:data-index={index()}
               attr:data-id={msg()?.id}
-              
   classList={{
-  "vml-item": true,
-  "is-reply-target":
-    state.replying?.id === msg()?.id,
-}}
+    "vml-item": true,
+    "is-grouped": grouped,
+    "is-reply-target": state.replying?.id === msg()?.id,
+  }}
               onMouseEnter={(e) => {
                     clearTimeout(hideTimer);
                     const message = msg();
