@@ -20,6 +20,7 @@ import appIcon from "/icon.svg";
 import MemberPopout from "./components/rightSidebar/memberList/MemberPopout.jsx";
 
 import ServerBar from "./components/serverSidebar/ServerBar.jsx";
+import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
@@ -32,6 +33,8 @@ import {
   ensureConnected,
   connections
 } from "./server_connection";
+
+import { Rotur } from "rotur-sdk";
 
 const defaultState = {
   servers: [
@@ -86,8 +89,9 @@ export const [state, setState] = createStore({
 export var tempState = {};
 window.tempState = tempState
 
+export var conn;
 function App() {
-  const conn = useServerConnection();
+  conn = useServerConnection();
   const currentChannel = createMemo(() =>
     conn
       .channels()
@@ -109,6 +113,7 @@ function App() {
     );
 
     if (settings.type === "token" && settings.token) {
+      tempState.rotur = new Rotur({ token: settings.token });
       conn.connect(server, settings.token);
     } else {
       conn.connectCracked(server, {
@@ -395,24 +400,7 @@ function App() {
               onSelectChannel={selectChannel}
             />
           </Show>
-          <div className="user_display x">
-            <div class="pfpWO">
-              <img
-                src={`https://avatars.rotur.dev/${conn?.me()?.username}`}
-                alt=""
-                class="pfp"
-                loading="lazy"
-              />
-              <img
-                src={`https://avatars.rotur.dev/.overlay/${conn?.me()?.username}`}
-                alt=""
-                class="overlay"
-                loading="lazy"
-              />
-            </div>
-
-            <span>{conn?.me()?.username}</span>
-          </div>
+          <UserDisplay></UserDisplay>
         </div>
 
         <div class="fill y">

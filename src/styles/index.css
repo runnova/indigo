@@ -200,7 +200,7 @@ nav button.active {
   height: calc(100% - 1em);
   padding: .5em;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
 }
 
 iframe#rotur-auth {
@@ -264,10 +264,22 @@ iframe#rotur-auth {
     cursor: pointer;
     content-visibility: auto;
     contain-intrinsic-size: 41.38px;
+    max-width: 230px;
+
+    & * {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
 
     & .pfpWO {
       width: 35px;
       height: 35px;
+      min-width: 35px;
+    }
+
+    & small {
+      opacity: .5;
     }
 
     &:hover {
@@ -565,6 +577,7 @@ img.channel_icon_image {
   max-width: 500px;
   overflow: auto;
 }
+
 .self-roles {
   display: flex;
   flex-direction: column;
@@ -866,7 +879,8 @@ img.channel_icon_image {
 
   & .attachment_single {
     width: 130px;
-    height: 80px;
+    height: fit-content;
+    max-height: 200px;
     background-color: var(--bg-three);
     padding: .5em;
     border-radius: .3em;
@@ -931,6 +945,18 @@ img.channel_icon_image {
   border-radius: .5em;
   align-items: center;
   gap: .5em;
+
+  & .data {
+    width: 0;
+  }
+
+  & small {
+    opacity: .5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
 }
 
 .settings_title {
@@ -1187,5 +1213,118 @@ img.big_emoji {
     width: 6em;
     background-color: var(--bg-one);
     border-radius: .3em;
+  }
+}
+
+.status {
+  position: relative;
+
+  & .status_text {
+    background-color: var(--bg-three);
+    padding: .5em;
+    border-radius: .5em;
+    width: fit-content;
+    margin-left: 1.5em;
+    position: absolute;
+    bottom: 0;
+    max-width: calc(100% - 3em);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 1.2em;
+    transition: .3s cubic-bezier(0.42, 1.67, 0.21, 0.90);
+    text-wrap: nowrap;
+
+    &:hover {
+      height: 55px;
+      white-space: wrap;
+      word-wrap: break-word;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      overflow: hidden;
+    }
+  }
+
+  &::after {
+    width: 10px;
+    height: 10px;
+    background-color: var(--bg-three);
+    content: "";
+    position: absolute;
+    bottom: 16px;
+    left: 12px;
+    border-radius: 50%;
+  }
+
+  &::before {
+    width: 7px;
+    height: 7px;
+    background-color: var(--bg-three);
+    content: "";
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    border-radius: 50%;
+  }
+}
+
+.user_display .editor {
+  &>* {
+    padding: .5em;
+  }
+
+  & .presence {
+    position: relative;
+    display: flex;
+    border-radius: .3em;
+    margin-bottom: .3em;
+    justify-content: stretch;
+    padding: 0;
+
+    &:hover {
+      background-color: var(--diff-one);
+    }
+
+    &>* {
+      width: 100%;
+      text-align: justify;
+      padding: .5em;
+      align-items: center;
+      display: flex;
+      gap: .3em;
+    }
+  }
+
+  & input {
+    background-color: var(--bg-two);
+    border-radius: .3em;
+    margin-bottom: 1em;
+  }
+
+  & .dropup {
+    position: absolute;
+    left: -5px;
+    bottom: calc(100% + 10px);
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    max-width: fit-content;
+    background-color: var(--bg-three);
+    border-radius: .5em;
+    align-items: stretch;
+    box-shadow: var(--border);
+
+    &>* {
+      padding: .5em;
+      text-align: justify;
+      align-items: center;
+      display: flex;
+      gap: .3em;
+
+      &:hover {
+        background-color: var(--diff-one);
+      }
+    }
   }
 }

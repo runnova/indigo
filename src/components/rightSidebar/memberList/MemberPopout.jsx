@@ -243,6 +243,13 @@ export default function MemberPopout() {
                 alt=""
                 class="banner"
               />
+              <Show when={data().status()?.status}>
+                <div className="status">
+                  <div class="status_text">
+                    {data().status()?.status ?? "Loading..."}
+                  </div>
+                </div>
+              </Show>
 
               <div class="popupMemberHeader x">
                 <div class="pfpWO">

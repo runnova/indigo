@@ -1,3 +1,4 @@
+import { Show, createResource } from "solid-js";
 import { openPopout } from "./popout";
 
 export default function MemberItem(props) {
@@ -7,13 +8,18 @@ export default function MemberItem(props) {
   const role = () =>
     props.roles?.[roleId()];
 
+  const [status] = createResource(
+    () => props.online && props.user.username,
+    (username) => tempState.rotur.status.get(username)
+  );
+
   return (
     <div
       class="member_item x"
       style={{
         opacity: props.online ? 1 : 0.5
       }}
-      onClick={(e) => openPopout(props.user, e.currentTarget)}
+      onClick={(e) => openPopout(props.user, e.currentTarget, status)}
     >
       <div class="pfpWO">
         <img
@@ -30,23 +36,29 @@ export default function MemberItem(props) {
         />
       </div>
 
-      <span
-        style={
-          role()?.gradient
-            ? {
-              background: `linear-gradient(90deg, ${role().gradient.join(", ")})`,
-              "-webkit-background-clip": "text",
-              "-webkit-text-fill-color": "transparent",
-              "background-clip": "text",
-              color: "transparent"
-            }
-            : {
-              color: role()?.color
-            }
-        }
-      >
-        {props.user.username}
-      </span>
+      <div className="data y">
+        <span
+          style={
+            role()?.gradient
+              ? {
+                background: `linear-gradient(90deg, ${role().gradient.join(", ")})`,
+                "-webkit-background-clip": "text",
+                "-webkit-text-fill-color": "transparent",
+                "background-clip": "text",
+                color: "transparent"
+              }
+              : {
+                color: role()?.color
+              }
+          }
+        >
+          {props.user.username}
+        </span>
+
+        <Show when={props.online}>
+          <small>{status.loading ? "Loading..." : status().status}</small>
+        </Show>
+        </div>
     </div>
   );
 }
