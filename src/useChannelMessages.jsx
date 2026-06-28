@@ -1,6 +1,6 @@
 import { createSignal, createEffect, on, batch } from "solid-js";
 import { produce } from "solid-js/store";
-import { unreads, setUnreads , setLoaded} from "./App";
+import { unreads, setUnreads, setLoaded } from "./App";
 
 const PAGE_SIZE = 20;
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -73,8 +73,8 @@ export function createForumThreads({
   }
 
   function handleThreadsGet(event) {
-    setThreads(event.threads ?? []);
-    setHasMore((event.threads?.length ?? 0) >= 20);
+    setThreads(event.val ?? event.threads ?? []);
+    setHasMore((event.val?.length ?? event.threads?.length ?? 0) >= 20);
     setLoading(false);
   }
 
@@ -86,15 +86,10 @@ export function createForumThreads({
 
   function handleEvent(event) {
     if (!event) return;
-    if (event.channel !== channel()) return;
+    if (event.cmd?.startsWith("unreads_")) return;
 
-    if (event.cmd === "threads_get") {
-      handleThreadsGet(event);
-    }
-
-    if (event.cmd === "thread_new") {
-      handleThreadNew(event);
-    }
+    if (event.cmd === "threads_get") handleThreadsGet(event);
+    if (event.cmd === "thread_new") handleThreadNew(event);
   }
 
   createEffect(
@@ -122,6 +117,7 @@ export function createChannelMessages({
   sendRequest,
   getScrollElement,
   isNearBottom,
+  threadId,
 }) {
   const [messages, setMessages] = createSignal([]);
   const [loadingOlder, setLoadingOlder] = createSignal(false);
@@ -134,7 +130,11 @@ export function createChannelMessages({
   let pendingAnchorId = null;
 
   function request(payload) {
-    sendRequest({ ...payload, channel: channel() });
+    sendRequest({
+      ...payload,
+      channel: channel(),
+      ...(threadId?.() && { thread_id: threadId() })
+    });
   }
 
   function oldestId() {
@@ -332,6 +332,22 @@ export function createChannelMessages({
       loadingOlderLock = false;
       fetchInitial();
     })
+  );
+
+  createEffect(
+    on(
+      () => threadId?.(),
+      () => {
+        setMessages([]);
+        setHasOlderMessages(true);
+        setLastUpdate(null);
+        pendingDirection = null;
+        pendingAnchorId = null;
+        loadingOlderLock = false;
+        fetchInitial();
+      },
+      { defer: true }
+    )
   );
 
   createEffect(() => {

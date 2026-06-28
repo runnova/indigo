@@ -1,12 +1,14 @@
-import { Show, createResource, createSignal } from "solid-js";
-import { conn, tempState } from "../../App";
+import { Show, createResource, createEffect, createSignal, onCleanup } from "solid-js";
+import { conn, state, tempState } from "../../App";
 import { Dynamic } from "solid-js/web";
 
 import {
   HiOutlineCheckCircle,
   HiOutlineClock,
   HiOutlineMinusCircle,
-  HiOutlineEyeSlash
+  HiOutlineEyeSlash,
+  HiOutlineChevronDown,
+  HiOutlineChevronUp
 } from "solid-icons/hi";
 
 const PRESENCES = {
@@ -33,11 +35,38 @@ export default function UserDisplay(props) {
 
   const [status] = createResource(
     () => conn.me()?.username,
-    username => username ? tempState.rotur.status.get(username) : null
+    async username => {
+      if (!username) return null;
+
+      try {
+        return await tempState.rotur.status.get(username);
+      } catch {
+        return null;
+      }
+    }
   );
 
   const [presence, setPresence] = createSignal("online");
+
   const [customStatus, setCustomStatus] = createSignal("");
+
+  let statusTimeout;
+
+  createEffect(() => {
+    const value = customStatus();
+
+    clearTimeout(statusTimeout);
+
+    statusTimeout = setTimeout(() => {
+      tempState.rotur.socket.send({
+        cmd: "set_status",
+        presence: presence(),
+        status: value,
+      });
+    }, 400);
+  });
+
+  onCleanup(() => clearTimeout(statusTimeout));
 
   const toggle = () => {
     const value = !expanded();
@@ -45,16 +74,28 @@ export default function UserDisplay(props) {
     props.onExpand?.(value);
   };
 
-  const updatePresence = value => {
+  const updatePresence = async (value) => {
+
     setPresence(value);
-    tempState.rotur.socket.setPresence(value);
+
+    tempState.rotur.socket.send({
+      cmd: "set_status",
+      presence: value,
+      status: status()?.status,
+    });
   };
 
-  const updateStatus = value => {
+  const updateStatus = async (value) => {
     setCustomStatus(value);
-    tempState.rotur.socket.setStatus(value);
-  };
 
+    tempState.rotur.socket.setStatus();
+
+    tempState.rotur.socket.send({
+      cmd: "set_status",
+      presence: status()?.presence || "online",
+      status: value,
+    });
+  };
 
   const [menuOpen, setMenuOpen] = createSignal(false);
   const current = PRESENCES[presence()];
@@ -75,6 +116,11 @@ export default function UserDisplay(props) {
                 color={current.color}
               />
               <span>{presence()}</span>
+
+              <Dynamic
+                component={menuOpen() ? HiOutlineChevronDown : HiOutlineChevronUp}
+                size={16}
+              />
             </button>
 
             <Show when={menuOpen()}>
@@ -102,8 +148,8 @@ export default function UserDisplay(props) {
           <input
             type="text"
             placeholder="What's happening?"
-            value={customStatus()}
-            onInput={e => updateStatus(e.currentTarget.value)}
+            value={status()?.status}
+            onInput={e => setCustomStatus(e.currentTarget.value)}
           />
         </div>
       </Show>
@@ -129,6 +175,11 @@ export default function UserDisplay(props) {
             {status()?.presence} &bull; {status()?.status}
           </small>
         </div>
+
+        <Dynamic
+          component={expanded() ? HiOutlineChevronDown : HiOutlineChevronUp}
+          size={18}
+        />
       </div>
 
     </div>

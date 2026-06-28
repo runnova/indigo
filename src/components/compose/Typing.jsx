@@ -1,6 +1,6 @@
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Show } from "solid-js";
-import { tempState } from "../../App";
+import { tempState, state } from "../../App";
 
 export default function Typing() {
   const [typingUsers, setTypingUsers] = createSignal([]);
@@ -10,6 +10,7 @@ export default function Typing() {
     const event = tempState?.conn.lastEvent();
 
     if (!event || event.cmd !== "typing") return;
+    if (event.channel !=state.current.channel) return;
 
     const { user, duration } = event;
 

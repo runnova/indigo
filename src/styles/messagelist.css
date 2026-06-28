@@ -289,6 +289,17 @@
     white-space: pre-wrap;
     overflow-wrap: break-word;
   }
+
+  & img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+  }
+  &>.col {
+    display: inherit;
+    flex-direction: column;
+    gap: .5em;
+  }
 }
 
 .embed_author {
@@ -299,8 +310,15 @@
 .embed_title {
   font-weight: 600;
 }
-
+.embed_url {
+    opacity: .5;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: small;
+}
 .embed_description {
+  opacity: .5;
+  font-size: small;
   white-space: pre-wrap;
 }
 

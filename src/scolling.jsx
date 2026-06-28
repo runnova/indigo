@@ -6,6 +6,7 @@ import {
   For,
   Show,
 } from "solid-js";
+import { HiOutlineChevronLeft } from "solid-icons/hi"
 import { Message } from "./components/messages/message.jsx";
 import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./useChannelMessages";
@@ -52,6 +53,7 @@ export function VirtualMessageList(props) {
       sendRequest: props.sendRequest,
       getScrollElement: () => scrollEl,
       isNearBottom,
+      threadId: () => props.threadId,
     });
   const SECTION_SIZE = 30;
   const WINDOW_RADIUS = 2;
@@ -277,15 +279,15 @@ function onScroll() {
         });
         return;
       }
-if (update.type === "append") {
-  if (wasNearBottom) {
-    requestAnimationFrame(() => {
-      scrollToBottom();
-    });
-  } else {
-    setShowNewIndicator(true);
-  }
-}
+      if (update.type === "append") {
+        if (wasNearBottom) {
+          requestAnimationFrame(() => {
+            scrollToBottom();
+          });
+        } else {
+          setShowNewIndicator(true);
+        }
+      }
 
       if (update.type === "jump") {
         requestAnimationFrame(() => {
@@ -310,6 +312,13 @@ if (update.type === "append") {
   );
   return (
     <>
+      <Show when={props.onBack}>
+        <div class="forum-thread-header">
+          <button class="forum-back-btn" onClick={props.onBack}>
+            <HiOutlineChevronLeft/> Back
+          </button>
+        </div>
+      </Show>
     <div ref={(el) => (scrollEl = el)} class="vml-scroll" onScroll={onScroll}>
       <Show when={!hasOlderMessages() && messages().length}>
         <div class="vml-beginning">You've reached the beginning.</div>
@@ -331,38 +340,38 @@ if (update.type === "append") {
   {(section) => (
     <div
       ref={(el) => {
-       sectionHeights.set(
-  section.id,
-  el.offsetHeight
-);
+        sectionHeights.set(
+          section.id,
+          el.offsetHeight
+        );
       }}
     >
       <For each={section.messages}>
         {(message, index) => {
           const msg = () => message;
-  const previous =
-  index() > 0
-    ? section.messages[index() - 1]
-    : null;
+          const previous =
+          index() > 0
+            ? section.messages[index() - 1]
+            : null;
 
-const interaction = msg()?.interaction;
-const grouped =
-  previous &&
-  previous.user === message.user;
-const replyMessage = msg()?.reply_to
-  ? section.messages.find(
-      m => m.id === msg().reply_to.id
-    )
-  : null;
+        const interaction = msg()?.interaction;
+        const grouped =
+          previous &&
+          previous.user === message.user;
+        const replyMessage = msg()?.reply_to
+          ? section.messages.find(
+              m => m.id === msg().reply_to.id
+            )
+          : null;
           return (
             <div
               attr:data-index={index()}
               attr:data-id={msg()?.id}
-  classList={{
-    "vml-item": true,
-    "is-grouped": grouped,
-    "is-reply-target": state.replying?.id === msg()?.id,
-  }}
+              classList={{
+                "vml-item": true,
+                "is-grouped": grouped,
+                "is-reply-target": state.replying?.id === msg()?.id,
+              }}
               onMouseEnter={(e) => {
                     clearTimeout(hideTimer);
                     const message = msg();

@@ -10,9 +10,16 @@ export default function MemberItem(props) {
 
   const [status] = createResource(
     () => props.online && props.user.username,
-    (username) => tempState.rotur.status.get(username)
-  );
+    async username => {
+      if (!username) return null;
 
+      try {
+        return await tempState.rotur.status.get(username);
+      } catch {
+        return null;
+      }
+    }
+  );
   return (
     <div
       class="member_item x"
@@ -58,7 +65,7 @@ export default function MemberItem(props) {
         <Show when={props.online}>
           <small>{status.loading ? "Loading..." : status().status}</small>
         </Show>
-        </div>
+      </div>
     </div>
   );
 }

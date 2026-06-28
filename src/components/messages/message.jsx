@@ -251,48 +251,62 @@ function getParsedMarkdown(id, content) {
 
 function Embed(props) {
   const embed = props.embed;
+  console.log(embed)
 
   return (
     <a
       href={embed.url}
       target="_blank"
       rel="noopener noreferrer"
-      class="embed_card"
+      class="embed_card x"
     >
-      {embed.author && (
-        <div class="embed_author">
-          {embed.author.url ? (
-            <a
-              href={embed.author.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {embed.author.name}
-            </a>
-          ) : (
-            embed.author.name
-          )}
-        </div>
-      )}
+      <div className="col fill">
+        {embed.url && (
+          <div class="embed_url">
+            {embed.url.replace(/(^\w+:|^)\/\//, '')}
+          </div>
+        )}
+        {embed.author && (
+          <div class="embed_author">
+            {embed.author.url ? (
+              <a
+                href={embed.author.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {embed.author.name}
+              </a>
+            ) : (
+              embed.author.name
+            )}
+          </div>
+        )}
 
-      {embed.title && (
-        <div class="embed_title">
-          {embed.title}
-        </div>
-      )}
+        {embed.title && (
+          <div class="embed_title">
+            {embed.title}
+          </div>
+        )}
 
-      {embed.description && (
-        <div class="embed_description">
-          {parseMarkdown(embed.description)}
-        </div>
-      )}
+        {embed.description && (
+          <div class="embed_description">
+            {parseMarkdown(embed.description)}
+          </div>
+        )}
 
-      {embed.timestamp && (
-        <div class="embed_timestamp">
-          {new Date(embed.timestamp).toLocaleString()}
-        </div>
-      )}
+        {embed.timestamp && (
+          <div class="embed_timestamp">
+            {new Date(embed.timestamp).toLocaleString()}
+          </div>
+        )}</div>
+      <div className="col">
+        {embed.image && (
+          <div class="embed_timestamp">
+            <img src={embed.image.url} alt="" />
+          </div>
+        )}
+      </div>
     </a>
   );
 }
@@ -329,16 +343,19 @@ function EmbeddedLink(props) {
         const type = data().type;
 
         if (type.startsWith("image/")) {
+          console.log("d")
           return (
             <img
               src={props.url}
               alt=""
               class="embedded_image"
               loading="lazy"
-              onClick={setPreview({
-                src: props.urls,
-                type: type,
-              })}
+              onClick={() =>
+                setPreview({
+                  src: props.url,
+                  type,
+                })
+              }
             />
           );
         }
@@ -495,12 +512,12 @@ export function Message(props) {
                         class="attachment_image"
                         loading="lazy"
 
-                        onClick={() => {
+                        onClick={() =>
                           setPreview({
                             src: file.url,
                             type: file.mime_type,
                           })
-                        }}
+                        }
                       />
                     );
                   }

@@ -25,6 +25,7 @@ import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
 import { VirtualMessageList } from "./scolling";
+import { ForumView } from "./components/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
 
@@ -90,6 +91,7 @@ export const [state, setState] = createStore({
 
 export var tempState = {};
 window.tempState = tempState
+window.state = state;
 
 export var conn;
 function App() {
@@ -99,7 +101,7 @@ function App() {
       .channels()
       .find(channel => channel.name === state.current.channel)
   );
-  onMount(() => {
+  onMount(async () => {
     tempState.conn = conn;
 
     const server =
@@ -123,6 +125,16 @@ function App() {
         password: "guest"
       });
     }
+    const getHostname = (src) => {
+      return new URL(
+        src.includes("://") ? src : `https://${src}`
+      ).hostname;
+    };
+    await tempState.rotur.connectSocket();
+
+    await tempState.rotur.socket.join(
+      state.servers.map(({ src }) => `originChats:${getHostname(src)}`)
+    );
   });
   function getPersistedState() {
     return {
@@ -412,7 +424,7 @@ function App() {
                 <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} /> <span>{currentChannel()?.display_name || currentChannel()?.name}</span>
                 &bull;
                 <div className="channel_desc">
-                  {currentChannel()?.description}
+                  {currentChannel()?.description || ""}
                 </div>
               </Show>
               <div class="inpgrp x">
@@ -470,14 +482,23 @@ function App() {
               >
 
                 {
-                  <VirtualMessageList
-                    channel={state.current.channel}
-                    sendRequest={conn.send}
-                    wsMessages={conn.lastEvent}
-                    onReady={(api) => {
-                      tempState.virtMsgList = api;
-                    }}
-                  />
+                  currentChannel()?.type === "forum"
+                    ? (
+                      <ForumView
+                        channel={state.current.channel}
+                        sendRequest={conn.send}
+                        wsMessages={conn.lastEvent}
+                        onReady={(api) => { tempState.virtMsgList = api; }}
+                      />
+                    )
+                    : (
+                      <VirtualMessageList
+                        channel={state.current.channel}
+                        sendRequest={conn.send}
+                        wsMessages={conn.lastEvent}
+                        onReady={(api) => { tempState.virtMsgList = api; }}
+                      />
+                    )
                 }
 
                 <MessageComposer
