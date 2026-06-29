@@ -466,7 +466,11 @@ function onScroll() {
               })}
             }
             onEdit={() => console.log("edit", hoveredMessage())}
-            onDelete={() => console.log("delete", hoveredMessage())}
+            onDelete={() => tempState.conn.send({
+              "cmd": "message_delete",
+              "id": hoveredMessage().id,
+              "channel": state.current.channel
+            })}
             onReact={() => console.log("react", hoveredMessage())}
           />
         </div>

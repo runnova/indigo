@@ -37,6 +37,16 @@ import {
 import MediaPreview from "./components/MediaPreview";
 
 import { Rotur } from "rotur-sdk";
+import "./themeManager";
+import {
+  addTheme,
+  removeTheme,
+  listThemes,
+  resetThemes,
+  quickCss,
+  setQuickCss
+} from "./themeManager";
+addTheme("/fun.css");
 
 const defaultState = {
   servers: [
@@ -50,7 +60,11 @@ const defaultState = {
   serverChannels: {},
   replying: null,
   thirdBarContext: "",
-  searchQuery: ""
+  searchQuery: "",
+  theme: {
+    stylesheets: [],
+    quickCss: ""
+  }
 };
 export const [unreads, setUnreads] = createStore({
   servers: {}
@@ -86,7 +100,11 @@ export const [state, setState] = createStore({
   },
   replying: null,
   thirdBarContext: "",
-  searchQuery: ""
+  searchQuery: "",
+  theme: {
+    ...defaultState.theme,
+    ...(savedState.theme ?? {})
+  }
 });
 
 export var tempState = {};
@@ -140,7 +158,8 @@ function App() {
     return {
       servers: state.servers,
       current: state.current,
-      serverChannels: state.serverChannels
+      serverChannels: state.serverChannels,
+      theme: state.theme
     };
   }
   createEffect(() => {

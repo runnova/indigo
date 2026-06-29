@@ -526,8 +526,12 @@ export function Message(props) {
                     return (
                       <video
                         src={file.url}
-                        controls
                         class="attachment_video"
+                        onClick={() =>
+                          setPreview({
+                            src: file.url,
+                            type: file.mime_type,
+                          })}
                       />
                     );
                   }
