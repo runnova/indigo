@@ -1,0 +1,15 @@
+:root {
+  --bg-one: #ffffff;
+  --bg-two: #dedede;
+  --bg-three: #bebebe;
+  --bg-four: #c5c5c5;
+  --hl-one: rgb(255 42 186);
+  --hl-two: rgb(255 164 245);
+  --hl-three: #FDAD49;
+  --hl-four: #FB75A6;
+  --border: 0px 0px 0 1px rgb(255 255 255 / 20%);
+  --fg-one: #000000;
+  --fg-two: #000000;
+  --fg-dim: #000000b7;
+  --fg-three: rgb(254 164 255);
+}

@@ -2,10 +2,15 @@ import { createSignal, createEffect, on, For, Show } from "solid-js";
 import { HiOutlineRocketLaunch, HiOutlineUserGroup, HiOutlineChatBubbleOvalLeft } from "solid-icons/hi";
 import { createForumThreads } from "../useChannelMessages";
 import { VirtualMessageList } from "../scolling";
-import { timeAgo } from "./Utility"
+import { timeAgo } from "./Utility";
+import { state, setState } from "../App";
 
 export function ForumView(props) {
   const [activeThread, setActiveThread] = createSignal(null);
+
+  createEffect(() => {
+    setState("current", "thread", activeThread());
+  });
 
   const { threads, loading } = createForumThreads({
     channel: () => props.channel,
@@ -20,7 +25,7 @@ export function ForumView(props) {
         <ForumThreadList
           threads={threads}
           loading={loading}
-          onSelect={setActiveThread}
+          onSelect={(thread) => { setActiveThread(thread) }}
         />
       }
     >
@@ -67,27 +72,27 @@ function ForumThreadList(props) {
       class="forum-thread-item y"
       onClick={() => props.onSelect(thread)}
     >
-        <small>
-          <img
-              src={`https://avatars.rotur.dev/${thread.created_by}`}
-              alt=""
-              class="pfp"
-              loading="lazy"
-            />
-          <span class="username">
-            
-            {thread.created_by}</span>
-          <span style={{"margin": "0 .3em"}}>&bull;</span>
-          <span>{timeAgo(thread.created_at)}</span>
-        </small>
+      <small>
+        <img
+          src={`https://avatars.rotur.dev/${thread.created_by}`}
+          alt=""
+          class="pfp"
+          loading="lazy"
+        />
+        <span class="username">
 
-        <div class="thread_name">{thread.name ?? "Untitled Thread"}</div>
+          {thread.created_by}</span>
+        <span style={{ "margin": "0 .3em" }}>&bull;</span>
+        <span>{timeAgo(thread.created_at)}</span>
+      </small>
 
-        <Show when={thread.pinned}>
-          <span class="pinned_icon">
-            <HiOutlineRocketLaunch />
-          </span>
-        </Show>
+      <div class="thread_name">{thread.name ?? "Untitled Thread"}</div>
+
+      <Show when={thread.pinned}>
+        <span class="pinned_icon">
+          <HiOutlineRocketLaunch />
+        </span>
+      </Show>
 
       <small class="subt x">
         <HiOutlineUserGroup /> {thread.participants?.length ?? 0}

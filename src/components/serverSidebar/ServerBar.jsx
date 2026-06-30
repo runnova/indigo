@@ -34,7 +34,7 @@ export default function ServerBar(props) {
                 />
                 {!(
                   props.unreads.servers?.[server.src]?.online ||
-                  props.currentServer.src === server.src
+                  props?.currentServer?.src === server.src
                 ) && <span class="server_offline_indicator" />}
 
                 <span class="server_tooltip">{server.name}</span>

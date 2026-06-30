@@ -21,7 +21,7 @@
  */
 
 import { createSignal } from "solid-js";
-import { state, setState, unreads, setUnreads } from "./App"
+import { state, setState, unreads, setUnreads, setLoaded } from "./App"
 
 
 export const connections = new Map();
@@ -263,6 +263,17 @@ function handlePacket(connection, packet) {
         banner: val.server?.banner ?? null,
       };
 
+      if (!state.servers.some(server => server.src === info.src)) {
+        setState("servers", servers => [
+          ...servers,
+          {
+            src: info.src,
+            name: info.name,
+            icon: info.icon,
+          },
+        ]);
+      }
+
       connection.state.serverInfo = {
         ...info,
         limits: val.limits ?? {},
@@ -334,7 +345,7 @@ function handlePacket(connection, packet) {
 
       if (!connection.state.loaded) {
         connection.state.loaded = true;
-
+        setLoaded({ done: true })
         connection.ws.send(JSON.stringify({ cmd: "channels_get" }));
         connection.ws.send(JSON.stringify({ cmd: "users_list" }));
         connection.ws.send(JSON.stringify({ cmd: "users_online" }));
@@ -520,23 +531,23 @@ export function useServerConnection() {
       password
     });
   }
-  
- function send(payload) {
-  const connection =
-    [...connections.values()]
-      .find(c => c.ws === ws);
 
-  if (
-    !ws ||
-    ws.readyState !== WebSocket.OPEN ||
-    status() !== "ready"
-  ) {
-    connection?.pending.push(payload);
-    return;
+  function send(payload) {
+    const connection =
+      [...connections.values()]
+        .find(c => c.ws === ws);
+
+    if (
+      !ws ||
+      ws.readyState !== WebSocket.OPEN ||
+      status() !== "ready"
+    ) {
+      connection?.pending.push(payload);
+      return;
+    }
+
+    ws.send(JSON.stringify(payload));
   }
-
-  ws.send(JSON.stringify(payload));
-}
 
   function disconnect() {
     if (!ws) return;

@@ -1,6 +1,6 @@
 import { createSignal, createEffect, on, batch } from "solid-js";
 import { produce } from "solid-js/store";
-import { unreads, setUnreads, setLoaded } from "./App";
+import { unreads, setUnreads } from "./App";
 
 const PAGE_SIZE = 20;
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -143,7 +143,6 @@ export function createChannelMessages({
   }
 
   function fetchInitial() {
-    setLoaded({ done: true })
     request({ cmd: "messages_get", limit: PAGE_SIZE });
   }
 

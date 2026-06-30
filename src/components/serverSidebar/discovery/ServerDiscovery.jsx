@@ -81,7 +81,7 @@ export default function ServerDiscovery(props) {
 
                     <button
                       class="discovery_join"
-                      onClick={() => props.onJoin?.(server)}
+                      onClick={() => {props.onJoin?.(server);console.log(server)}}
                     >
                       Join
                     </button>

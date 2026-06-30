@@ -214,7 +214,6 @@ export default function MemberPopout() {
   return (
     <Show when={popout()}>
       {(data) => {
-        const [expanded, setExpanded] = createSignal(false);
         return (
           <div
             ref={popupRef}
@@ -243,10 +242,10 @@ export default function MemberPopout() {
                 alt=""
                 class="banner"
               />
-              <Show when={data().status()?.status}>
+              <Show when={data()?.status?.()?.status}>
                 <div className="status">
-                  <div class="status_text">
-                    {data().status()?.status ?? "Loading..."}
+                  <div className="status_text">
+                    {data().status().status}
                   </div>
                 </div>
               </Show>
@@ -321,23 +320,12 @@ export default function MemberPopout() {
                         <div
                           style={{
                             "white-space": "pre-wrap",
-                            "max-height": expanded() ? "200px" : "120px",
-                            "overflow-y": expanded() ? "scroll" : "hidden",
+                            "max-height": "200px",
                             overflow: "hidden"
                           }}
                         >
                           {p().bio}
                         </div>
-
-                        {p().bio?.length > 100 && (
-                          <small
-                            type="button"
-                            onClick={() => setExpanded(!expanded())}
-                            className="bio_addit_toggle"
-                          >
-                            {expanded() ? "Show less" : "Show more"}
-                          </small>
-                        )}
                       </div>
 
                       <div className="boxes x">

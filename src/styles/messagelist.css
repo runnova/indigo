@@ -326,3 +326,11 @@
   font-size: 12px;
   opacity: 0.6;
 }
+
+.forum-back-btn {
+    align-items: center;
+    gap: .3em;
+    background-color: var(--bg-three);
+    border-radius: .5em;
+    padding: .2em .5em;
+}

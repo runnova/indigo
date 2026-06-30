@@ -56,6 +56,7 @@ const defaultState = {
   current: {
     channel: null,
     server: null,
+    thread: null,
   },
   serverChannels: {},
   replying: null,
@@ -443,7 +444,7 @@ function App() {
                 <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} /> <span>{currentChannel()?.display_name || currentChannel()?.name}</span>
                 &bull;
                 <div className="channel_desc">
-                  {currentChannel()?.description || ""}
+                  {currentChannel()?.description || state.current?.thread?.name || ""}
                 </div>
               </Show>
               <div class="inpgrp x">

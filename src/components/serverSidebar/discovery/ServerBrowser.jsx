@@ -55,7 +55,7 @@ export default function ServerBrowser(props) {
 
               <button
                 onClick={() => {
-                  const server = { src: serverInput }
+                  const server = { url: serverInput.value, src: serverInput.value, name: serverInput.value }
                   props.onJoin(server)
                 }}
               >
