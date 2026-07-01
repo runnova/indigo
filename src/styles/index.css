@@ -930,10 +930,10 @@ img.channel_icon_image {
     gap: .5em;
     margin-top: 5px;
     background-color: var(--bg-one);
-        height: 100%;
-        overflow: hidden;
-        max-height: 100px;
-        object-fit: contain;
+    height: 100%;
+    overflow: hidden;
+    max-height: 100px;
+    object-fit: contain;
 
     &>svg {
       font-size: 3em;
@@ -1556,49 +1556,51 @@ img.big_emoji {
 
 
 .scm-menu {
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    min-width: 180px;
-    padding: 4px;
-    border-radius: 8px;
-    z-index: 9999;
-    background: var(--bg-three);
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  border-radius: 8px;
+  z-index: 9999;
+  background: var(--bg-three);
 }
 
 .scm-item {
-    border: none;
-    background: transparent;
-    text-align: left;
-    padding: .3em .5em;
-    cursor: pointer;
-    border-radius: .5em;
-    width: 100%;
-    color: var(--text);
-    font: inherit;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: .3em .5em;
+  cursor: pointer;
+  border-radius: .5em;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+    gap: .5em;
+
+  &>.scm-item-content {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: .5em;
+  }
 }
 
 .scm-item:hover {
-    background: var(--bg-four);
+  background: var(--bg-four);
 }
 
 .scm-submenu-wrapper {
-    position: relative;
-
-    &>.scm-item::after {
-        content: ">";
-        padding: .5em;
-        font-family: 'Material Symbols Rounded';
-        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        position: absolute;
-        right: 0;
-        top: 0;
-    }
+  position: relative;
 }
+
 .scm-submenu {
-    position: absolute;
-    top: 0;
-    left: 100%;
+  position: absolute;
+  top: 0;
+  left: 100%;
 }
 
 .roles_section {
@@ -1624,7 +1626,7 @@ img.big_emoji {
   gap: .4em;
   padding: .22em .55em;
   border-radius: 999px;
-  background: rgba(255,255,255,.06);
+  background: rgba(255, 255, 255, .06);
   font-size: .85rem;
 }
 
@@ -1647,4 +1649,30 @@ img.big_emoji {
 
 .roles_toggle:hover {
   text-decoration: underline;
+}
+
+.message_single.is-fake {
+    border-left: 3px solid var(--hl-two);
+    background: var(--diff-one);
+    border-radius: 0;
+}
+
+.fake-dismiss { 
+    margin-left: .5em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: .5em;
+    background-color: var(--diff-two);
+    border-radius: 1em;
+    padding: 1px 8px;
+    color: var(--hl-two);
+    padding-left: 13px;
+}
+
+.fake-dismiss:hover {
+  opacity: 1;
 }

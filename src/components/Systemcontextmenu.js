@@ -11,9 +11,30 @@ const [menuState, setMenuState] = createStore({
 class SystemContextMenu {
   static instance = new SystemContextMenu();
 
+  #handleContextMenu(e) {
+    const match = this.#findMatchingContext(e.target);
+
+    if (!match) {
+      this.close();
+      return;
+    }
+
+    e.preventDefault();
+
+    this.contextElement = match.element;
+
+    setMenuState({
+      open: true,
+      x: e.clientX,
+      y: e.clientY,
+      actions: match.actions,
+    });
+  }
+
   constructor() {
     this.menus = [];
     this.menuRef = null;
+    this.contextElement = null;
 
     this.boundContextHandler = this.#handleContextMenu.bind(this);
     this.boundClickHandler = this.#handleOutsideClick.bind(this);
@@ -33,11 +54,11 @@ class SystemContextMenu {
   }
 
   close() {
-    if (!menuState.open) return;
+    this.contextElement = null;
+
     setMenuState({
       open: false,
       actions: [],
-      contextElement: null,
     });
   }
 
@@ -61,24 +82,6 @@ class SystemContextMenu {
     if (x !== menuState.x || y !== menuState.y) {
       setMenuState({ x, y });
     }
-  }
-
-  #handleContextMenu(e) {
-    const match = this.#findMatchingContext(e.target);
-    if (!match) {
-      this.close();
-      return;
-    }
-
-    e.preventDefault();
-
-    setMenuState({
-      open: true,
-      x: e.clientX,
-      y: e.clientY,
-      actions: match.actions,
-      contextElement: match.element,
-    });
   }
 
   #handleOutsideClick(e) {

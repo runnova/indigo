@@ -1,4 +1,5 @@
 import { Show, For, createSignal } from 'solid-js';
+import { HiSolidChevronRight } from 'solid-icons/hi';
 import SystemContextMenu, { menuState } from './Systemcontextmenu';
 
 function MenuList(props) {
@@ -12,17 +13,31 @@ function MenuList(props) {
               <button
                 class="scm-item"
                 onClick={() => {
-                  SystemContextMenu.instance.close();
+                  const el = SystemContextMenu.instance.contextElement;
+
                   if (typeof action.fn === 'function') {
-                    action.fn(props.contextElement);
+                    action.fn(el);
                   }
+
+                  SystemContextMenu.instance.close();
                 }}
               >
-                {action.label}
+                <span class="scm-item-content">
+                  <Show when={action.icon}>
+                    <span class="scm-item-icon">
+                      <action.icon />
+                    </span>
+                  </Show>
+
+                  <span class="scm-item-label">{action.label}</span>
+                </span>
               </button>
             }
           >
-            <SubmenuItem action={action} contextElement={props.contextElement} />
+            <SubmenuItem
+              action={action}
+              contextElement={props.contextElement}
+            />
           </Show>
         )}
       </For>
@@ -33,18 +48,19 @@ function MenuList(props) {
 function SubmenuItem(props) {
   const [open, setOpen] = createSignal(false);
   const [side, setSide] = createSignal('right');
- const measure = (el) => {
-  queueMicrotask(() => {
-    const parent = el.parentElement.getBoundingClientRect();
-    const width = el.offsetWidth;
 
-    if (parent.right + width > window.innerWidth) {
-      setSide('left');
-    } else {
-      setSide('right');
-    }
-  });
-};
+  const measure = (el) => {
+    queueMicrotask(() => {
+      const parent = el.parentElement.getBoundingClientRect();
+      const width = el.offsetWidth;
+
+      if (parent.right + width > window.innerWidth) {
+        setSide('left');
+      } else {
+        setSide('right');
+      }
+    });
+  };
 
   return (
     <div
@@ -52,7 +68,20 @@ function SubmenuItem(props) {
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      <button class="scm-item scm-submenu-button">{props.action.label}</button>
+      <button class="scm-item scm-submenu-button">
+        <span class="scm-item-content">
+          <Show when={props.action.icon}>
+            <span class="scm-item-icon">
+              <props.action.icon />
+            </span>
+          </Show>
+
+          <span class="scm-item-label">{props.action.label}</span>
+        </span>
+
+        <HiSolidChevronRight class="scm-submenu-chevron" />
+      </button>
+
       <Show when={open()}>
         <MenuList
           class={`scm-menu scm-submenu${side() === 'left' ? ' scm-submenu--left' : ''}`}
@@ -76,7 +105,7 @@ export default function ContextMenu() {
           top: `${menuState.y}px`,
         }}
         actions={menuState.actions}
-        contextElement={menuState.contextElement}
+        contextElement={SystemContextMenu.instance.contextElement}
         ref={(el) => {
           SystemContextMenu.instance.setMenuRef(el);
           SystemContextMenu.instance.clampToViewport(el.getBoundingClientRect());

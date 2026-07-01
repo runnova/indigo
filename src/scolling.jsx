@@ -13,6 +13,55 @@ import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./useChannelMessages";
 import { tempState, state, setState} from "./App.jsx";
 
+const [fakeMessages, setFakeMessages] = createSignal([]);
+let fakeId = 0;
+
+export function addFakeMessage(data) {
+  const now = Math.floor(Date.now() / 1000);
+
+  setFakeMessages(messages => [
+    ...messages,
+    {
+      id: `fake-${++fakeId}`,
+      user: "Debug",
+      content: "",
+      timestamp: now,
+      avatar: null,
+      reactions: [],
+      attachments: [],
+      embeds: [],
+      ...data,
+      __fake: true,
+    },
+  ]);
+}
+
+export function clearFakeMessages() {
+  setFakeMessages([]);
+}
+
+let getMessage = () => undefined;
+
+export function getMessageById(id) {
+  return getMessage(id);
+}
+
+export function createMessageLookup(messages) {
+  const messageMap = createMemo(() => {
+    const map = new Map();
+
+    for (const message of messages()) {
+      map.set(message.id, message);
+    }
+
+    return map;
+  });
+
+  getMessage = id => messageMap().get(id);
+
+  return messageMap;
+}
+
 const SCROLL_NEAR_TOP = 100;
 const SCROLL_NEAR_BOTTOM = 80;
 
@@ -51,15 +100,27 @@ export function VirtualMessageList(props) {
     );
   }
 
-  const { messages, loadingOlder, hasOlderMessages, lastUpdate, loadOlder } =
-    createChannelMessages({
-      channel: () => props.channel,
-      wsEvent: () => props.wsMessages?.(),
-      sendRequest: props.sendRequest,
-      getScrollElement: () => scrollEl,
-      isNearBottom,
-      threadId: () => props.threadId,
-    });
+ const {
+  messages: realMessages,
+  loadingOlder,
+  hasOlderMessages,
+  lastUpdate,
+  loadOlder,
+} = createChannelMessages({
+  channel: () => props.channel,
+  wsEvent: () => props.wsMessages?.(),
+  sendRequest: props.sendRequest,
+  getScrollElement: () => scrollEl,
+  isNearBottom,
+  threadId: () => props.threadId,
+});
+
+const messages = createMemo(() => [
+  ...realMessages(),
+  ...fakeMessages(),
+]);
+
+createMessageLookup(messages);
 
   const SECTION_SIZE = 30;
   const WINDOW_RADIUS = 2;
@@ -277,7 +338,10 @@ if (update.type === "append") {
           <div style={{ height: `${topSpacerHeight()}px` }} />
           <For each={sections().slice(visibleStart(), visibleEnd() + 1)}>
             {(section) => (
-              <div ref={(el) => { sectionHeights.set(section.id, el.offsetHeight); }}>
+              <div ref={(el) => { new ResizeObserver(() => {
+                sectionHeights.set(section.id, el.offsetHeight);
+                updateVirtualWindow();
+              });}}>
                 <For each={section.messages}>
                   {(message, index) => {
                     const msg = () => message;
@@ -291,6 +355,7 @@ if (update.type === "append") {
                       <div
                         attr:data-index={index()}
                         attr:data-id={msg()?.id}
+                        data-context="message" 
                         classList={{
                           "vml-item": true,
                           "is-grouped": grouped,
@@ -312,25 +377,34 @@ if (update.type === "append") {
                         }}
                       >
                         <Message
-                          username={msg()?.user}
-                          avatar={msg()?.avatar ?? `https://avatars.rotur.dev/${msg()?.user}`}
-                          time={
-                            msg()?.time ??
-                            new Date(
-                              typeof msg()?.timestamp === "number"
-                                ? msg().timestamp * 1000
-                                : Number(msg()?.timestamp) * 1000
-                            ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          }
-                          content={msg()?.content}
-                          id={msg().id}
-                          reactions={msg().reactions}
-                          attachments={msg()?.attachments}
-                          embeds={msg().embeds}
-                          grouped={grouped && !replyMessage && !interaction}
-                          interaction={interaction}
-                          reply={replyMessage}
-                        />
+  username={msg()?.user}
+  avatar={msg()?.avatar ?? `https://avatars.rotur.dev/${msg()?.user}`}
+  time={
+    msg()?.time ??
+    new Date(
+      typeof msg()?.timestamp === "number"
+        ? msg().timestamp * 1000
+        : Number(msg()?.timestamp) * 1000
+    ).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
+  content={msg()?.content}
+  id={msg().id}
+  reactions={msg().reactions}
+  attachments={msg()?.attachments}
+  embeds={msg().embeds}
+  grouped={grouped && !replyMessage && !interaction}
+  interaction={interaction}
+  reply={replyMessage}
+  fake={msg().__fake}
+  onDismiss={() =>
+    setFakeMessages(messages =>
+      messages.filter(m => m.id !== msg().id)
+    )
+  }
+/>
                       </div>
                     );
                   }}

@@ -13,7 +13,16 @@ import {
   HiOutlineMapPin,
   HiOutlineMagnifyingGlass,
   HiOutlineInbox,
-  HiOutlineUserCircle
+  HiOutlineUserCircle,
+  HiOutlineArrowTopRightOnSquare,
+  HiOutlineTrash,
+  HiOutlineArrowPath,
+  HiOutlineArrowUturnLeft,
+  HiOutlineClipboard,
+  HiOutlineChatBubbleLeftRight,
+  HiOutlineCommandLine,
+  HiOutlineDocumentText,
+  HiOutlineChatBubbleBottomCenterText
 } from "solid-icons/hi";
 import appIcon from "/icon.svg";
 
@@ -24,7 +33,7 @@ import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
-import { VirtualMessageList } from "./scolling";
+import { VirtualMessageList, getMessageById, addFakeMessage } from "./scolling";
 import { ForumView } from "./components/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
@@ -55,28 +64,78 @@ SystemContextMenu.init([
   {
     'data-context': 'server',
     actions: [
-      { label: 'Open', fn: (el) => console.log('open', el) },
-      { label: 'Remove', fn: (el) => console.log('rename', el) },
-      { label: 'Reset cache', fn: (el) => console.log('delete', el) },
+      {
+        label: 'Open',
+        icon: HiOutlineArrowTopRightOnSquare,
+        fn: (el) => el.click(),
+      },
+      {
+        label: 'Remove',
+        icon: HiOutlineTrash,
+        fn: (el) => console.log('remove', el),
+      },
+      {
+        label: 'Reset cache',
+        icon: HiOutlineArrowPath,
+        fn: (el) => console.log('reset cache', el),
+      },
     ],
   },
   {
     'data-context': 'message',
     actions: [
-      { label: 'Reply', fn: (el) => console.log('new folder', el) },
-      { label: 'Copy ID', fn: (el) => console.log('refresh', el) },
-       {
+      {
+        label: 'Reply',
+        icon: HiOutlineArrowUturnLeft,
+        fn: (el) => {
+          const msg = getMessageById(el.dataset.id);
+          console.log(el.dataset.id, msg)
+          setState("replying", {
+            id: el.dataset.id,
+            user: msg.user,
+            content: msg.content,
+          });
+        },
+      },
+      {
+        label: 'Copy ID',
+        icon: HiOutlineClipboard,
+        fn: (el) => console.log(el.dataset.id),
+      },
+      {
         label: 'Message Actions',
+        icon: HiOutlineChatBubbleLeftRight,
         actions: [
-          { label: 'Packet inspect', fn: (el) => console.log('copy link', el) },
-          { label: 'Copy text', fn: (el) => console.log('email', el) },
-          { label: 'Quote', fn: (el) => console.log('email', el) },
+          {
+            label: 'Packet inspect',
+            icon: HiOutlineCommandLine,
+            fn: (el) => {
+              const msg = getMessageById(el.dataset.id);
+              console.log(el.dataset.id, msg)
+              addFakeMessage({
+                user: "Indigo",
+                avatar: "/icon_small.svg",
+                content: `\`\`\`json
+${JSON.stringify(msg, null, 2)}
+\`\`\``,
+              });
+            },
+          },
+          {
+            label: 'Copy text',
+            icon: HiOutlineDocumentText,
+            fn: (el) => console.log('copy text', el),
+          },
+          {
+            label: 'Quote',
+            icon: HiOutlineChatBubbleBottomCenterText,
+            fn: (el) => console.log('quote', el),
+          },
         ],
       },
     ],
   },
 ]);
-
 const defaultState = {
   servers: [
     { src: "dms.mistium.com", icon: null, name: "dms" },
@@ -150,14 +209,18 @@ function App() {
       .find(channel => channel.name === state.current.channel)
   );
   onMount(async () => {
-    tempState.conn = conn;
+    Object.assign(tempState, {
+      conn,
+      roles: conn.roles,
+      members: conn.members,
+      membersOnline: conn.membersOnline
+    });
 
     const server =
       state.current.server ??
       state.servers[0];
 
     if (!server) return;
-
     setState("current", "server", server);
 
     const settings = JSON.parse(
@@ -438,13 +501,13 @@ function App() {
   return (
     <div class="main x">
       <ServerBar
-  servers={state.servers}
-  currentServer={state.current.server}
-  unreadTotal={getServerUnreadTotal}
-  unreads={unreads}
-  onSelect={selectServer}
-  onReorder={(servers) => setState("servers", servers)}
-/>
+        servers={state.servers}
+        currentServer={state.current.server}
+        unreadTotal={getServerUnreadTotal}
+        unreads={unreads}
+        onSelect={selectServer}
+        onReorder={(servers) => setState("servers", servers)}
+      />
       <div class="server_content x fill">
         <Show when={showLoader()}>
           <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>

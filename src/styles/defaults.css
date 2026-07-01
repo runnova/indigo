@@ -127,3 +127,9 @@ kbd,
   border-radius: .5em;
   margin: 0;
 }
+
+.code_block {
+  overflow: auto;
+  max-height: 60vh;
+  padding: .5em;
+}
