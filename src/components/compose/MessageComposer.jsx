@@ -1,4 +1,4 @@
-import { Show, For, createSignal, createEffect, onMount } from "solid-js";
+import { Show, For, createSignal, createEffect, onMount, on } from "solid-js";
 import { createStore } from "solid-js/store";
 import EmojiPicker from "./EmojiPicker"
 import { state, setState, tempState } from "../../App"
@@ -53,6 +53,21 @@ export default function MessageComposer(props) {
       setSlashCommands(event.commands);
     }
   });
+  createEffect(
+    on(
+      () => state.replying?.id,
+      (id) => {
+        if (!id || !textarea) return;
+
+        requestAnimationFrame(() => {
+          textarea.focus();
+
+          const pos = textarea.value.length;
+          textarea.setSelectionRange(pos, pos);
+        });
+      }
+    )
+  );
 
   function parseSlash(value) {
     if (!value.startsWith("/")) {

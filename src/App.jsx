@@ -28,6 +28,7 @@ import { VirtualMessageList } from "./scolling";
 import { ForumView } from "./components/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
+import SystemContextMenu from './components/Systemcontextmenu.js';
 
 import {
   useServerConnection,
@@ -47,6 +48,33 @@ import {
   setQuickCss
 } from "./themeManager";
 addTheme("/fun.css");
+
+import ContextMenu from './components/Contextmenu.jsx';
+
+SystemContextMenu.init([
+  {
+    'data-context': 'file',
+    actions: [
+      { label: 'Open', fn: (el) => console.log('open', el) },
+      { label: 'Rename', fn: (el) => console.log('rename', el) },
+      {
+        label: 'Share',
+        actions: [
+          { label: 'Copy link', fn: (el) => console.log('copy link', el) },
+          { label: 'Email', fn: (el) => console.log('email', el) },
+        ],
+      },
+      { label: 'Delete', fn: (el) => console.log('delete', el) },
+    ],
+  },
+  {
+    'data-context': 'desktop',
+    actions: [
+      { label: 'New folder', fn: (el) => console.log('new folder', el) },
+      { label: 'Refresh', fn: (el) => console.log('refresh', el) },
+    ],
+  },
+]);
 
 const defaultState = {
   servers: [
@@ -409,13 +437,13 @@ function App() {
   return (
     <div class="main x">
       <ServerBar
-        servers={state.servers}
-        currentServer={state.current.server}
-        unreadTotal={getServerUnreadTotal}
-        unreads={unreads}
-        onSelect={selectServer}
-      />
-
+  servers={state.servers}
+  currentServer={state.current.server}
+  unreadTotal={getServerUnreadTotal}
+  unreads={unreads}
+  onSelect={selectServer}
+  onReorder={(servers) => setState("servers", servers)}
+/>
       <div class="server_content x fill">
         <Show when={showLoader()}>
           <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>
@@ -483,7 +511,8 @@ function App() {
             </div>
           </div>
           <div class="x fill server_content_box">
-            <div class="interactive_section y fill">
+            <div class="interactive_section y fill"
+              data-context="file">
               <Show
                 when={conn.status() === "ready" && state.current.channel}
                 fallback={
@@ -520,10 +549,9 @@ function App() {
                       />
                     )
                 }
-
                 <MessageComposer
                   channel={state.current.channel}
-                  onSend={(content, attachments) =>
+                  onSend={(content, attachments) => {
                     conn.send({
                       cmd: "message_new",
                       channel: state.current.channel,
@@ -532,8 +560,12 @@ function App() {
                       ...(state.replying && {
                         reply_to: state.replying.id
                       })
-                    })
-                  }
+                    });
+
+                    if (state.replying) {
+                      setState("replying", null);
+                    }
+                  }}
                 />
               </Show>
             </div>
@@ -557,6 +589,7 @@ function App() {
           onClose={() => setPreview(null)}
         />
       </Show>
+      <ContextMenu />
     </div >
   );
 }

@@ -7,7 +7,7 @@ import {
   Show,
   onCleanup,
 } from "solid-js";
-import { HiOutlineChevronLeft } from "solid-icons/hi"
+import { HiOutlineChevronLeft, HiOutlineChevronDown } from "solid-icons/hi"
 import { Message } from "./components/messages/message.jsx";
 import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./useChannelMessages";
@@ -66,6 +66,7 @@ export function VirtualMessageList(props) {
 
   const [visibleStart, setVisibleStart] = createSignal(0);
   const [visibleEnd, setVisibleEnd] = createSignal(0);
+  const [scrollLocked, setScrollLocked] = createSignal(true);
 
   const sectionHeights = new Map();
 
@@ -160,6 +161,10 @@ export function VirtualMessageList(props) {
   const [showNewIndicator, setShowNewIndicator] = createSignal(false);
   const [hoveredMessage, setHoveredMessage] = createSignal(null);
   const [hoverRect, setHoverRect] = createSignal(null);
+  const [showScrollButton, setShowScrollButton] = createSignal(false);
+const [hasUnreadBelow, setHasUnreadBelow] = createSignal(false);
+const [unreadCount, setUnreadCount] = createSignal(0);
+
   let hideTimer;
 function scrollToBottom(instant = false) {
   console.log("scrolling to", scrollEl.scrollHeight);
@@ -173,15 +178,36 @@ function scrollToBottom(instant = false) {
   });
 }
   let wasNearBottom = true;
+function onScroll() {
+  if (!scrollEl) return;
 
-  function onScroll() {
-    if (!scrollEl) return;
-    wasNearBottom = isNearBottom();
-    if (scrollEl.scrollTop < SCROLL_NEAR_TOP) loadOlder();
-    if (showNewIndicator() && wasNearBottom) setShowNewIndicator(false);
-    updateVirtualWindow();
+  const nearBottom = isNearBottom();
+
+  setScrollLocked(nearBottom);
+  setShowScrollButton(!nearBottom);
+
+  if (nearBottom) {
+    setUnreadCount(0);
   }
 
+  if (scrollEl.scrollTop < SCROLL_NEAR_TOP)
+    loadOlder();
+
+  updateVirtualWindow();
+}
+function onVisibilityChange() {
+  if (!document.hidden && scrollLocked()) {
+    requestAnimationFrame(() => {
+      scrollToBottom(true);
+    });
+  }
+}
+
+document.addEventListener("visibilitychange", onVisibilityChange);
+
+onCleanup(() => {
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+});
   createEffect(
     on(sections, () => { queueMicrotask(updateVirtualWindow); }, { defer: true })
   );
@@ -202,17 +228,14 @@ function scrollToBottom(instant = false) {
         return;
       }
 
-    if (update.type === "append") {
-  const shouldScroll = isNearBottom();
-  requestAnimationFrame(() => {
-    if (shouldScroll) {
-      scrollToBottom(false);
-    } else {
-      setShowNewIndicator(true);
-    }
-  });
+if (update.type === "append") {
+  if (scrollLocked()) {
+    scrollToBottom(false);
+  } else {
+    setShowScrollButton(true);
+    setUnreadCount(c => c + 1);
+  }
 }
-
       if (update.type === "jump") {
         requestAnimationFrame(() => {
           const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
@@ -236,6 +259,17 @@ function scrollToBottom(instant = false) {
         </div>
       </Show>
       <div ref={(el) => { scrollEl = el; }} class="vml-scroll" onScroll={onScroll}>
+      <Show when={showScrollButton()}>
+        <button class="scroll-to-bottom-btn" onClick={() => {
+        console.log("clicked");
+        scrollToBottom();
+      }}> 
+      <HiOutlineChevronDown/>
+        <Show when={unreadCount() > 0}>
+          <span class="badge">{unreadCount()}</span>
+        </Show>
+      </button>
+      </Show>
         <Show when={!hasOlderMessages() && messages().length}>
           <div class="vml-beginning">You've reached the beginning.</div>
         </Show>

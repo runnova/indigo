@@ -6,45 +6,63 @@ import Settings from "./Settings"
 export default function ServerBar(props) {
   const [dialogOpen, setDialogOpen] = createSignal(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = createSignal(false);
+
+  const [dragIndex, setDragIndex] = createSignal(null);
+
+  function move(array, from, to) {
+    const copy = [...array];
+    const [item] = copy.splice(from, 1);
+    copy.splice(to, 0, item);
+    return copy;
+  }
   const fallbackIcon = `https://icons.veryicon.com/png/o/commerce-shopping/soft-designer-online-tools-icon/group-38.png`;
   return (
     <>
       <div class="server_bar y">
         <For each={props.servers}>
-          {(server) => {
-            createEffect(() => {
-              console.log(
-                server.src,
-                props.unreads.servers?.[server.src]?.online
-              );
-            });
+          {(server, index) => (
+            <div
+              draggable
+              onClick={() => props.onSelect(server)}
+              onDragStart={() => {
+                setDragIndex(index());
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={() => {
+                const from = dragIndex();
+                const to = index();
 
-            return (
-              <div
-                class={`server_single${props.currentServer?.src === server.src
-                  ? " server_single--active"
-                  : ""
-                  }`}
-                onClick={() => props.onSelect(server)}
-              >
-                <img
-                  src={server.icon ?? fallbackIcon}
-                  alt={server.name}
-                  class="server_icon"
-                />
-                {!(
-                  props.unreads.servers?.[server.src]?.online ||
-                  props?.currentServer?.src === server.src
-                ) && <span class="server_offline_indicator" />}
+                if (from == null || from === to) return;
 
-                <span class="server_tooltip">{server.name}</span>
+                props.onReorder(move(props.servers, from, to));
 
-                {props.unreadTotal(server.src) > 0 && (
-                  <span class="unread_badge"></span>
-                )}
-              </div>
-            );
-          }}
+                setDragIndex(null);
+              }}
+              onDragEnd={() => setDragIndex(null)}
+              class={`server_single ${props.currentServer?.src === server.src
+                ? "server_single--active"
+                : ""
+                }`}
+            >
+              <img
+                src={server.icon ?? fallbackIcon}
+                alt={server.name}
+                class="server_icon"
+              />
+              {!(
+                props.unreads.servers?.[server.src]?.online ||
+                props?.currentServer?.src === server.src
+              ) && <span class="server_offline_indicator" />}
+
+              <span class="server_tooltip">{server.name}</span>
+
+              {props.unreadTotal(server.src) > 0 && (
+                <span class="unread_badge"></span>
+              )}
+            </div>
+          )}
         </For>
 
         <div

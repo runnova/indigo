@@ -1381,6 +1381,9 @@ img.big_emoji {
   place-items: center;
   cursor: grab;
   user-select: none;
+  max-height: 90vh;
+  margin: auto;
+  margin-top: 4em;
 }
 
 .media_viewport:active {
@@ -1517,4 +1520,80 @@ img.big_emoji {
   justify-content: center;
   position: absolute;
   right: -11px;
+}
+
+.scroll-to-bottom-btn {
+  position: absolute;
+  bottom: 5em;
+  right: 1em;
+  z-index: 99;
+  padding: .5em;
+  background-color: var(--bg-three);
+  border-radius: .5em;
+  display: flex;
+  gap: .5em;
+
+  & .badge {
+    position: absolute;
+    top: -11px;
+    right: -7px;
+    background-color: var(--hl-one);
+    padding: 4px;
+    border-radius: 1em;
+    display: flex;
+    height: 1em;
+    width: 1em;
+    align-items: center;
+    font-size: small;
+    justify-content: center;
+  }
+}
+
+
+.scm-menu {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    padding: 4px;
+    border-radius: 8px;
+    z-index: 9999;
+    background: var(--bg-three);
+}
+
+.scm-item {
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: .3em .5em;
+    cursor: pointer;
+    border-radius: .5em;
+    width: 100%;
+    color: var(--text);
+    font: inherit;
+}
+
+.scm-item:hover {
+    background: var(--bg-four);
+}
+
+.scm-submenu-wrapper {
+    position: relative;
+
+    &>.scm-item::after {
+        content: ">";
+        padding: .5em;
+        font-family: 'Material Symbols Rounded';
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+}
+
+.scm-submenu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    display: none;
 }

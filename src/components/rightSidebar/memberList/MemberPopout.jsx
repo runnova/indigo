@@ -214,6 +214,7 @@ export default function MemberPopout() {
   return (
     <Show when={popout()}>
       {(data) => {
+        console.log(data())
         return (
           <div
             ref={popupRef}
