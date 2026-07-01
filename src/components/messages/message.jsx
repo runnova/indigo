@@ -405,7 +405,7 @@ export function Message(props) {
   const member = tempState?.conn?.members()?.find(user => user.username === props.username);
   const gradient = member?.gradient;
   return (
-    <div class={`message_single y ${props.grouped ? "grouped" : ""}`}>
+    <div data-context="message" class={`message_single y ${props.grouped ? "grouped" : ""}`}>
       {(props.reply || props.interaction) && (
         <div class="reply_preview x">
           {props.reply ? (

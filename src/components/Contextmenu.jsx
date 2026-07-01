@@ -33,11 +33,18 @@ function MenuList(props) {
 function SubmenuItem(props) {
   const [open, setOpen] = createSignal(false);
   const [side, setSide] = createSignal('right');
-  const measure = (el) => {
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setSide(rect.right > window.innerWidth ? 'left' : 'right');
-  };
+ const measure = (el) => {
+  queueMicrotask(() => {
+    const parent = el.parentElement.getBoundingClientRect();
+    const width = el.offsetWidth;
+
+    if (parent.right + width > window.innerWidth) {
+      setSide('left');
+    } else {
+      setSide('right');
+    }
+  });
+};
 
   return (
     <div

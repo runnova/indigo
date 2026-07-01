@@ -53,25 +53,26 @@ import ContextMenu from './components/Contextmenu.jsx';
 
 SystemContextMenu.init([
   {
-    'data-context': 'file',
+    'data-context': 'server',
     actions: [
       { label: 'Open', fn: (el) => console.log('open', el) },
-      { label: 'Rename', fn: (el) => console.log('rename', el) },
-      {
-        label: 'Share',
-        actions: [
-          { label: 'Copy link', fn: (el) => console.log('copy link', el) },
-          { label: 'Email', fn: (el) => console.log('email', el) },
-        ],
-      },
-      { label: 'Delete', fn: (el) => console.log('delete', el) },
+      { label: 'Remove', fn: (el) => console.log('rename', el) },
+      { label: 'Reset cache', fn: (el) => console.log('delete', el) },
     ],
   },
   {
-    'data-context': 'desktop',
+    'data-context': 'message',
     actions: [
-      { label: 'New folder', fn: (el) => console.log('new folder', el) },
-      { label: 'Refresh', fn: (el) => console.log('refresh', el) },
+      { label: 'Reply', fn: (el) => console.log('new folder', el) },
+      { label: 'Copy ID', fn: (el) => console.log('refresh', el) },
+       {
+        label: 'Message Actions',
+        actions: [
+          { label: 'Packet inspect', fn: (el) => console.log('copy link', el) },
+          { label: 'Copy text', fn: (el) => console.log('email', el) },
+          { label: 'Quote', fn: (el) => console.log('email', el) },
+        ],
+      },
     ],
   },
 ]);
@@ -511,8 +512,7 @@ function App() {
             </div>
           </div>
           <div class="x fill server_content_box">
-            <div class="interactive_section y fill"
-              data-context="file">
+            <div class="interactive_section y fill">
               <Show
                 when={conn.status() === "ready" && state.current.channel}
                 fallback={

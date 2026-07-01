@@ -929,6 +929,11 @@ img.channel_icon_image {
     flex: 1;
     gap: .5em;
     margin-top: 5px;
+    background-color: var(--bg-one);
+        height: 100%;
+        overflow: hidden;
+        max-height: 100px;
+        object-fit: contain;
 
     &>svg {
       font-size: 3em;
@@ -1590,10 +1595,56 @@ img.big_emoji {
         top: 0;
     }
 }
-
 .scm-submenu {
     position: absolute;
     top: 0;
     left: 100%;
-    display: none;
+}
+
+.roles_section {
+  margin-top: .8em;
+}
+
+.roles_title {
+  font-size: .8rem;
+  font-weight: 600;
+  opacity: .7;
+  margin-bottom: .4em;
+}
+
+.roles_list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35em;
+}
+
+.role_chip {
+  display: flex;
+  align-items: center;
+  gap: .4em;
+  padding: .22em .55em;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  font-size: .85rem;
+}
+
+.role_dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.roles_toggle {
+  margin-top: .5em;
+  background: none;
+  border: none;
+  color: var(--hl-two);
+  cursor: pointer;
+  padding: 0;
+  font-size: .85rem;
+}
+
+.roles_toggle:hover {
+  text-decoration: underline;
 }

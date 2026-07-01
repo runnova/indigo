@@ -169,6 +169,7 @@ export default function MemberPopout() {
 
   const [profile, setProfile] = createSignal(null);
   const [loading, setLoading] = createSignal(false);
+  const [showAllRoles, setShowAllRoles] = createSignal(false);
 
   createEffect(async () => {
     const current = popout();
@@ -190,6 +191,36 @@ export default function MemberPopout() {
     } finally {
       setLoading(false);
     }
+  });
+
+  createEffect(() => {
+    const current = popout();
+    loading();
+    profile();
+
+    if (!current || !popupRef) return;
+
+    queueMicrotask(() => {
+      const width = popupRef.offsetWidth;
+      const height = popupRef.offsetHeight;
+
+      const padding = 12;
+      const minRightGap = 250;
+
+      let left = current.x + padding;
+
+      const maxLeft = window.innerWidth - width - minRightGap;
+      left = Math.min(left, maxLeft);
+      left = Math.max(left, padding);
+
+      let top = current.y - 20;
+      top = Math.max(
+        padding,
+        Math.min(top, window.innerHeight - height - padding)
+      );
+
+      setPosition({ left, top });
+    });
   });
 
   const handlePointerDown = (e) => {
@@ -214,7 +245,7 @@ export default function MemberPopout() {
   return (
     <Show when={popout()}>
       {(data) => {
-        console.log(data())
+        console.log("popout roles", data().user.roles);
         return (
           <div
             ref={popupRef}
@@ -270,7 +301,8 @@ export default function MemberPopout() {
                   <div class="x" style={{
                     "font-size": "1.5em",
                     "flex-wrap": "wrap",
-                    "align-items": "center"
+                    "align-items": "center",
+                    "overflow-wrap": "anywhere"
                   }}>
                     <span style={{ "margin-right": ".3em" }}>{profile()?.username}</span>
                     <small style={{ "font-size": "14px" }}>
@@ -328,7 +360,40 @@ export default function MemberPopout() {
                           {p().bio}
                         </div>
                       </div>
+                      <Show when={data().user.roles?.length}>
+                        <div class="roles_section">
+                          <div class="roles_title">Roles</div>
 
+                          <div class="roles_list">
+                            {(showAllRoles()
+                              ? data().user.roles
+                              : data().user.roles.slice(0, 5)
+                            ).map((role) => (
+                              <div class="role_chip">
+                                <span
+                                  class="role_dot"
+                                  style={{
+                                    background:
+                                      tempState.roles()?.[role]?.color || "#888"
+                                  }}
+                                />
+                                {role}
+                              </div>
+                            ))}
+                          </div>
+
+                          <Show when={data().user.roles.length > 5}>
+                            <button
+                              class="roles_toggle"
+                              onClick={() => setShowAllRoles(v => !v)}
+                            >
+                              {showAllRoles()
+                                ? "Show less"
+                                : `+${data().user.roles.length - 5} more`}
+                            </button>
+                          </Show>
+                        </div>
+                      </Show>
                       <div className="boxes x">
                         <div className="box">
                           {p().currency}
