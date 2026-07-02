@@ -1,0 +1,32 @@
+[
+  {
+    "id": "aqua",
+    "name": "Aqua",
+    "author": "Indigo",
+    "version": "1.0.0",
+    "description": "Glowy.",
+    "file": "aqua.css",
+    "preview": "#BA06F8",
+    "price": 0
+  },
+  {
+    "id": "dracula",
+    "name": "Dracula",
+    "author": "Jane Doe",
+    "version": "1.0.0",
+    "description": "Reddish dark theme",
+    "file": "dracula.css",
+    "preview": "#bd0101",
+    "price": 10
+  },
+  {
+    "id": "official",
+    "name": "Theme Official",
+    "author": "Indigo",
+    "version": "1.0.0",
+    "description": "Makes it slightly look like the Official client",
+    "file": "official.css",
+    "preview": "#bd93f9",
+    "price": 0
+  }
+]

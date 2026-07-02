@@ -9,6 +9,8 @@ import {
   HiOutlineShieldCheck,
 } from "solid-icons/hi";
 
+import ThemeSettings from "./settings/Theme"
+
 function GeneralSettings() {
   return (
     <>
@@ -90,12 +92,12 @@ const tabs = [
     icon: HiOutlineCog6Tooth,
     component: GeneralSettings,
   },
-  // {
-  //   id: "profile",
-  //   title: "Profile",
-  //   icon: HiOutlineUser,
-  //   component: ProfileSettings,
-  // },
+  {
+    id: "themes",
+    title: "Themes",
+    icon: HiOutlinePaintBrush,
+    component: ThemeSettings,
+  },
   // {
   //   id: "notifications",
   //   title: "Notifications",
@@ -124,7 +126,7 @@ export default function SettingsPage() {
 
   return (
     <div class="fill x" style={{ "height": "100%" }}>
-      <nav class="y" style={{ "padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
+      <nav class="y" style={{ "gap":".3em","padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
         <For each={tabs}>
           {(tab) => {
             const Icon = tab.icon;

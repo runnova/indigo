@@ -1,0 +1,51 @@
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: .5em;
+  --green:rgb(0, 148, 0);
+  --tgreen: rgb(155, 255, 155);
+  &>.theme-card {
+    background-color: var(--bg-two);
+    border-radius: .5em;
+    padding: 0;
+    align-items: justify;
+    text-align: left;
+    cursor: pointer;
+    &:hover {
+      background-color: var(--diff-two);
+    }
+    & .theme-color {
+      background-color: var(--bg-three);
+      height: 3em;
+      border-radius: .5em .5em 0 0;
+    }
+    & h3, p {
+      margin: 0;
+    }
+    & .author {
+      opacity: .5;
+      font-size: small;
+      margin-bottom: .5em;
+    }
+    & .data {
+      padding: 1em;
+    }
+    & .getbtn {
+      background-color: var(--green);
+      color: white;
+      border-radius: .5em;
+      padding: .3em 1em;
+      font-size:medium;
+    }
+    & .buyCont {
+      margin-left: auto;
+      align-items: center;
+      gap: .5em;
+      color :var(--tgreen);
+      font-size: large;
+      & *{
+        white-space: nowrap;
+      }
+    }
+  }
+}

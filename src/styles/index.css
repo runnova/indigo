@@ -176,14 +176,12 @@ nav button.active {
 }
 
 .server_content_box {
-  background-color: var(--bg-four);
   height: 0;
   flex: 1;
   gap: 1px;
 
   &>* {
     padding: .5em;
-    background-color: var(--bg-one);
   }
 }
 
@@ -201,6 +199,7 @@ nav button.active {
   padding: .5em;
   overflow-y: auto;
   overflow-x: visible;
+  border-left: var(--border);
 }
 
 iframe#rotur-auth {
@@ -381,6 +380,8 @@ iframe#rotur-auth {
 .interactive_section {
   width: calc(100vw - 40em);
   position: relative;
+  border-left: 1px solid var(--diff-three);
+  border-right: 1px solid var(--diff-three);
 }
 
 span.channel_badge {
@@ -1414,7 +1415,6 @@ img.big_emoji {
   position: relative;
   width: 100%;
   font-size: small;
-  background: linear-gradient(0deg, var(--bg-one) 50%, transparent);
 }
 
 .loader {
@@ -1675,4 +1675,18 @@ img.big_emoji {
 
 .fake-dismiss:hover {
   opacity: 1;
+}
+
+.username_clickable {
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.settings_subt {
+    opacity: .5;
+    margin: .7em;
+    margin-top: -1em;
+    margin-bottom: 1em;
 }

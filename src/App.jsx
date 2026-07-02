@@ -56,7 +56,7 @@ import {
   quickCss,
   setQuickCss
 } from "./themeManager";
-addTheme("/fun.css");
+addTheme("/themes/fun.css");
 
 import ContextMenu from './components/Contextmenu.jsx';
 

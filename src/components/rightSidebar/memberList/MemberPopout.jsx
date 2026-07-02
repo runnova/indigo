@@ -304,7 +304,7 @@ export default function MemberPopout() {
                     "align-items": "center",
                     "overflow-wrap": "anywhere"
                   }}>
-                    <span style={{ "margin-right": ".3em" }}>{profile()?.username}</span>
+                    <span onClick={()=>window.open("https://rotur.dev/profile/" + profile()?.username)} class="username_clickable" style={{ "margin-right": ".3em" }}>{profile()?.username}</span>
                     <small style={{ "font-size": "14px" }}>
                       {profile()?.pronouns}
                     </small>
