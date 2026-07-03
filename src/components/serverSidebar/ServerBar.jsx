@@ -25,6 +25,7 @@ export default function ServerBar(props) {
               draggable
               onClick={() => props.onSelect(server)}
               data-context="server"
+              data-src={server.src}
               onDragStart={() => {
                 setDragIndex(index());
               }}

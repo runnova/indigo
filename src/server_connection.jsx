@@ -184,7 +184,11 @@ function createConnection(server, roturToken, crackedUser) {
     false
   );
 
-  const ws = new WebSocket(`wss://${server.src}`);
+  let ws;
+  try {
+
+    ws = new WebSocket(`wss://${server.src}`);
+  } catch (e) { }
 
   connection.ws = ws;
 
@@ -202,28 +206,34 @@ function createConnection(server, roturToken, crackedUser) {
       crackedUser
     );
   };
+ws.onerror = () => {
+  connection.state.error = "Failed to connect to "+connection.src + ". It may be down.";
+  connection.state.status = "error";
 
-  ws.onclose = () => {
+  syncActive(connection);
+
+  setUnreads(
+    "servers",
+    connection.src,
+    "online",
+    false
+  );
+};
+
+ws.onclose = () => {
+  if (connection.state.status !== "error") {
     connection.state.status = "closed";
+  }
 
-    setUnreads(
-      "servers",
-      connection.src,
-      "online",
-      false
-    );
-  };
+  syncActive(connection);
 
-  ws.onerror = () => {
-    connection.state.status = "error";
-
-    setUnreads(
-      "servers",
-      connection.src,
-      "online",
-      false
-    );
-  };
+  setUnreads(
+    "servers",
+    connection.src,
+    "online",
+    false
+  );
+};
 
   connections.set(server.src, connection);
 

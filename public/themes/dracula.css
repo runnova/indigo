@@ -1,0 +1,21 @@
+:root {
+    --bg-one: #000000;
+    --bg-two: #070000;
+    --bg-three: #1e0000;
+    --bg-four: #4d0000;
+    --diff-one: 
+color-mix(in srgb, var(--bg-four) 15%, transparent);
+    --diff-two: 
+color-mix(in srgb, var(--bg-four) 30%, transparent);
+    --diff-three: 
+color-mix(in srgb, var(--bg-four) 45%, transparent);
+    --hl-one: #E51C42;
+    --hl-two: #ff5f7d;
+    --hl-three: rgb(169 0 96);
+    --hl-four: #1F0312;
+    --border: 0px 0px 0 1px rgb(255 50 50 / 40%);
+    --fg-one: #ff9fc0;
+    --fg-two: #ffffff7a;
+    --fg-dim: #ffffffb7;
+    --fg-three: rgb(255 47 47);
+}

@@ -121,7 +121,8 @@ blockquote {
 
 
 kbd,
-.code_block {
+.code_block,
+code {
   background-color: var(--diff-one);
   padding: 3px 5px;
   border-radius: .5em;
@@ -132,4 +133,8 @@ kbd,
   overflow: auto;
   max-height: 60vh;
   padding: .5em;
+}
+
+li {
+  margin-bottom: .5em;
 }

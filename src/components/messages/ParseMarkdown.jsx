@@ -1,4 +1,5 @@
-
+import { setState, state } from "../../App"
+import { setPreview } from "../../App";
 const markdownCache = new Map();
 
 function getParsedMarkdown(id, content) {
@@ -12,7 +13,7 @@ function getParsedMarkdown(id, content) {
   return parsed;
 }
 
-function Embed(props) {
+export function Embed(props) {
   const embed = props.embed;
   console.log(embed)
 
@@ -206,7 +207,7 @@ export function parseMarkdown(input) {
     if (!text) return;
 
     const tokens = text.split(
-      /(\[[^\]]+\]\(https?:\/\/[^)\s]+\)|https?:\/\/[^\s]+|originChats:<emoji>\/\/[^\s]+|originChats:\/\/\S+|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|@\w+)/
+      /(\[[^\]]+\]\(https?:\/\/[^)\s]+\)|https?:\/\/[^\s]+|originChats:<emoji>\/\/[^\s]+|originChats:\/\/\S+|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|@&[\w-]+|@\w+)/
     );
 
     for (const token of tokens) {
@@ -297,6 +298,26 @@ export function parseMarkdown(input) {
           parts.push(
             <EmbeddedLink url={token} />
           );
+        }
+      } else if (token.match(/^@&[\w-]+$/)) {
+        const id = token.slice(2);
+
+        const entry = Object.entries(tempState.conn.roles?.() ?? {})
+          .find(([, role]) => role.id === id);
+
+        if (entry) {
+          const [name, role] = entry;
+
+          parts.push(
+            <span
+              class="mention role_mention"
+              style={role.color ? { color: role.color } : undefined}
+            >
+              @{name}
+            </span>
+          );
+        } else {
+          parts.push(token);
         }
       } else if (token.match(/^@\w+$/)) {
         const username = token.slice(1);

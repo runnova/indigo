@@ -1,7 +1,7 @@
 import { For, createMemo } from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
-import { parseMarkdown } from "./ParseMarkdown.jsx";
+import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
 import { HiOutlineXMark } from "solid-icons/hi";
 
 export function Message(props) {

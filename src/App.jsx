@@ -60,6 +60,12 @@ addTheme("/themes/fun.css");
 
 import ContextMenu from './components/Contextmenu.jsx';
 
+const removeServer = (src) => {
+  setState("servers", servers =>
+    servers.filter(server => server.src !== src)
+  );
+};
+
 SystemContextMenu.init([
   {
     'data-context': 'server',
@@ -72,7 +78,9 @@ SystemContextMenu.init([
       {
         label: 'Remove',
         icon: HiOutlineTrash,
-        fn: (el) => console.log('remove', el),
+        fn: (el) => {
+          removeServer(el.dataset.src)
+        },
       },
       {
         label: 'Reset cache',
@@ -392,7 +400,6 @@ function App() {
       setState("serverChannels", serverSrc, channelName);
     }
   }
-
   const currentServerName = () =>
     conn.serverInfo()?.name ?? state.current.server?.name ?? "";
 
@@ -402,7 +409,7 @@ function App() {
     handshake: "Handshaking…",
     authenticating: "Authenticating…",
     ready: "",
-    error: `Error: ${conn.error()}`,
+    error: `Error: ${conn?.error()}`,
     closed: "Disconnected",
   }[conn.status()] ?? "");
   const getHoistedRole = (user) => {

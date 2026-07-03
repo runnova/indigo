@@ -14,6 +14,9 @@ import ThemeSettings from "./settings/Theme"
 function GeneralSettings() {
   return (
     <>
+    <div className="note">
+      None of the general settings is usable yet. I'm working on this. Head to the themes section for the moment.
+    </div>
       <h2 class="settings_title">General</h2>
       <div className="settings_item x">
         <div className="settings_section_label">DMs server</div>

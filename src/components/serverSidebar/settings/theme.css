@@ -36,6 +36,9 @@
       border-radius: .5em;
       padding: .3em 1em;
       font-size:medium;
+      &[value="Disable"] {
+        background-color: var(--diff-three);
+      }
     }
     & .buyCont {
       margin-left: auto;
@@ -46,6 +49,30 @@
       & *{
         white-space: nowrap;
       }
+    }
+  }
+}
+
+.quickcss {
+    box-shadow: var(--border);
+    border-radius: .5em;
+    width: calc(100% - 1.4em);
+    background-color: var(--bg-two);
+    padding: .7em;
+}
+
+.theme-actions {
+  display: flex;
+  gap: .2em;
+  flex-direction: row;
+  margin-bottom: .5em;
+  & button {
+    background-color: var(--bg-two);
+    padding: .5em .8em;
+    border-radius: .5em;
+    cursor: pointer;
+    &.hl {
+      background-color: var(--hl-four);
     }
   }
 }
