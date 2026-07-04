@@ -24,6 +24,9 @@ export default function ThemeSettings() {
     setEnabledThemes(await listThemes());
   }
 
+  const themePath = (theme) =>
+    `${import.meta.env.BASE_URL}themes/${theme.file}`;
+
   async function refreshOwned() {
     const owned = await tempState.rotur.me.getKey("indigo_themes");
 
@@ -41,7 +44,8 @@ export default function ThemeSettings() {
   }
 
   onMount(async () => {
-    const res = await fetch("/themes/index.json");
+
+    const res = await fetch(`${import.meta.env.BASE_URL}themes/index.json`);
     setThemes(await res.json());
 
     await refreshEnabled();
@@ -53,20 +57,21 @@ export default function ThemeSettings() {
     ownedThemes().includes(theme.id);
 
   const isEnabled = (theme) =>
-    enabledThemes().includes("/themes/" + theme.file);
+    enabledThemes().includes(themePath(theme));
 
   const toggleTheme = async (theme) => {
-    const path = "/themes/" + theme.file;
+    const path = themePath(theme);
 
     if (isEnabled(theme)) {
       await removeTheme(path);
     } else {
+console.log("BASE_URL =", import.meta.env.BASE_URL);
+console.log("PATH =", path);
       await addTheme(path);
     }
 
     await refreshEnabled();
   };
-
   const grantOwnership = async (theme) => {
     const owned = new Set(ownedThemes());
     owned.add(theme.id);
@@ -89,7 +94,7 @@ export default function ThemeSettings() {
     );
 
     if (isEnabled(theme)) {
-      await removeTheme("/themes/" + theme.file);
+      await removeTheme(themePath(theme));
       await refreshEnabled();
     }
 

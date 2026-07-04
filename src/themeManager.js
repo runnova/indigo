@@ -6,7 +6,21 @@ const saved = JSON.parse(
   localStorage.getItem(STORAGE_KEY) || "{}"
 );
 
-const [themes, setThemes] = createSignal(saved.themes ?? []);
+const base = import.meta.env.BASE_URL;
+
+const migratedThemes = (saved.themes ?? []).map(href => {
+  if (href.startsWith("/themes/")) {
+    return `${base}themes/${href.slice("/themes/".length)}`;
+  }
+
+  if (href.startsWith("themes/")) {
+    return `${base}${href}`;
+  }
+
+  return href;
+});
+
+const [themes, setThemes] = createSignal(migratedThemes);
 const [quickCss, setQuickCss] = createSignal(saved.quickCss ?? "");
 
 const links = new Map();

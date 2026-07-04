@@ -1,3 +1,9 @@
+# Known Bugs
+- bot slash commands have not been implemented yet.
+- virt scrolling is bad. scrolling back down doesnt load newer messages. (3.2)
+- CORS. it needs to be able to proxy attatchments (5.1.4)
+
+# To Do
 1. **Big stuff**
    1. **Server settings/admin**
    2. **Threads**
@@ -33,7 +39,7 @@
       2. **Profile overlays** toggle
       3. **Send typing** toggle
          Related: 6.3
-      4. **Media proxy** server
+      4. **Media proxy** server setting
       5. **Idle connection** types
       6. **Load attachment** methods
       7. **Show nicknames** methods
