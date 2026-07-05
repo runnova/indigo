@@ -1,4 +1,4 @@
-import { For, Show } from "solid-js";
+import { For, Show, onCleanup } from "solid-js";
 import {
   HiOutlineHashtag,
   HiOutlineSpeakerWave,
@@ -23,6 +23,10 @@ import {
   HiOutlineCodeBracketSquare,
   HiOutlineCog6Tooth
 } from "solid-icons/hi";
+
+import { preloadChannel, markActive, markBackground } from "../channelCache";
+import { createHoverPreloadHandlers } from "../useHoverPreload";
+
 const channelIcons = {
   text: HiOutlineHashtag,
   voice: HiOutlineSpeakerWave,
@@ -32,38 +36,24 @@ const channelIcons = {
 
 const iconRules = [
   [/\b(general|lobby|chat)\b/i, HiOutlineHome],
-
   [/\b(voice|vc|call)\b/i, HiOutlineSpeakerWave],
   [/\b(announce|announcement|news|update)\b/i, HiOutlineMegaphone],
   [/\b(forum|discussion|thread)\b/i, HiOutlineChatBubbleLeftRight],
-
   [/\b(music|songs|playlist)\b/i, HiOutlineMusicalNote],
   [/\b(game|gaming)\b/i, HiOutlinePuzzlePiece],
   [/\b(art|design)\b/i, HiOutlinePaintBrush],
   [/\b(photo|media|gallery)\b/i, HiOutlinePhoto],
-
   [/\b(code|dev|development|programming)\b/i, HiOutlineCodeBracket],
-
   [/\b(commit|commits|git|github|pushes)\b/i, HiOutlineCodeBracketSquare],
-
   [/\b(help|support|questions)\b/i, HiOutlineQuestionMarkCircle],
-
   [/\b(staff|admin|admins|moderator|mods)\b/i, HiOutlineShieldCheck],
-
   [/\b(rule|rules|guidelines)\b/i, HiOutlineScale],
-
   [/\b(bot|bots|ai|assistant|agents)\b/i, HiOutlineCpuChip],
-
   [/\b(status|uptime|health)\b/i, HiOutlineSignal],
-
   [/\b(test|testing|sandbox)\b/i, HiOutlineBeaker],
-
   [/\b(count|counting)\b/i, HiOutlineCalculator],
-
   [/\b(team|community|members|people)\b/i, HiOutlineUserGroup],
-
   [/\b(automation|tools)\b/i, HiOutlineWrenchScrewdriver],
-
   [/\b(done|completed|verified)\b/i, HiOutlineCheckCircle]
 ];
 
@@ -74,8 +64,7 @@ function getChannelIcon(channel) {
     return typeIcon;
   }
 
-  const text =
-    `${channel.name} ${channel.display_name ?? ""}`;
+  const text = `${channel.name} ${channel.display_name ?? ""}`;
 
   for (const [pattern, Icon] of iconRules) {
     if (pattern.test(text)) {
@@ -90,7 +79,34 @@ function isImageSrc(src) {
   return typeof src === "string" && src.trim().length > 0;
 }
 
+// props.preloadChannel(channelName) should call your data-fetch (e.g. sendRequest
+// + await the response, or read from an existing store) and resolve with the
+// payload to cache. Passed down from the parent so ChannelList stays decoupled
+// from the connection layer.
 export default function ChannelList(props) {
+  const cleanupFns = [];
+
+  onCleanup(() => {
+    cleanupFns.forEach(fn => fn());
+  });
+
+  function handleHoverPreload(channelName) {
+    if (!channelName) return;
+    if (channelName === props.currentChannel) return;
+
+    preloadChannel(channelName, () => props.preloadChannel(channelName));
+  }
+
+  function handleSelect(channelName) {
+    // previous active channel becomes background and starts its TTL
+    if (props.currentChannel && props.currentChannel !== channelName) {
+      markBackground(props.currentChannel);
+    }
+
+    markActive(channelName);
+    props.onSelect(channelName);
+  }
+
   return (
     <div class="channel_list fill y">
       <For each={props.channels}>
@@ -100,7 +116,13 @@ export default function ChannelList(props) {
           }
 
           const unread = props.unreads[ch.name];
-          const Icon = getChannelIcon(ch)
+          const Icon = getChannelIcon(ch);
+
+          const hover = createHoverPreloadHandlers(
+            () => handleHoverPreload(ch.name),
+            300
+          );
+          cleanupFns.push(hover.cleanup);
 
           return (
             <div
@@ -108,7 +130,9 @@ export default function ChannelList(props) {
                 ? " channel_item--active"
                 : ""
                 }`}
-              onClick={() => props.onSelect(ch.name)}
+              onClick={() => handleSelect(ch.name)}
+              onMouseEnter={hover.onMouseEnter}
+              onMouseLeave={hover.onMouseLeave}
             >
               <span class="channel_icon">
                 <Show

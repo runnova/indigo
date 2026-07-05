@@ -10,6 +10,7 @@ export default function ServerSidebar(props) {
         currentChannel={props.currentChannel}
         unreads={props.unreads}
         onSelect={props.onSelectChannel}
+        preloadChannel={props.preloadChannel}
       />
     </>
   );

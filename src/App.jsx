@@ -2,7 +2,7 @@ import {
   Show,
   createEffect,
   onMount,
-  createMemo, createSignal
+  createMemo, createSignal, on
 } from "solid-js";
 
 import { createStore } from "solid-js/store";
@@ -209,6 +209,26 @@ window.tempState = tempState
 window.state = state;
 
 export var conn;
+
+function preloadChannelMessages(channelName) {
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    const dispose = createEffect(on(conn.lastEvent, (packet) => {
+      if (resolved || !packet) return;
+      if (packet.cmd === "messages_get" && packet.channel === channelName) {
+        resolved = true;
+        resolve(packet.messages ?? []);
+      }
+    }));
+
+    conn.send({ cmd: "messages_get", channel: channelName, limit: 20 });
+
+    setTimeout(() => {
+      if (!resolved) resolve([]);
+    }, 5000);
+  });
+}
 function App() {
   conn = useServerConnection();
   const currentChannel = createMemo(() =>
@@ -531,6 +551,7 @@ function App() {
               currentChannel={state.current.channel}
               unreads={unreads}
               onSelectChannel={selectChannel}
+              preloadChannel={preloadChannelMessages}
             />
           </Show>
           <UserDisplay></UserDisplay>
