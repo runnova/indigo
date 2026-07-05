@@ -228,14 +228,9 @@ const [unreadCount, setUnreadCount] = createSignal(0);
 
   let hideTimer;
 function scrollToBottom(instant = false) {
-  console.log("scrolling to", scrollEl.scrollHeight);
   scrollEl.scrollTo({
     top: scrollEl.scrollHeight,
     behavior: instant ? "instant" : "smooth",
-  });
-
-  requestAnimationFrame(() => {
-    console.log("after", scrollEl.scrollHeight, scrollEl.scrollTop);
   });
 }
   let wasNearBottom = true;
@@ -309,6 +304,7 @@ if (update.type === "append") {
       }
     })
   );
+  const renderOverlay = state.settings.profileOverlays;
 
   return (
     <>
@@ -392,6 +388,7 @@ if (update.type === "append") {
   }
   content={msg()?.content}
   id={msg().id}
+  renderOverlay={renderOverlay}
   reactions={msg().reactions}
   attachments={msg()?.attachments}
   embeds={msg().embeds}

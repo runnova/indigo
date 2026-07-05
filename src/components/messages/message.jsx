@@ -66,17 +66,20 @@ export function Message(props) {
         ) : (
           <div className="pfpWO" onClick={(e) => openPopout(props, e.currentTarget)}>
             <img
-              src={`${props.avatar}`}
+              src={props.avatar}
               alt=""
-              class="pfp"
+              class={`pfp ${!props.renderOverlay ? "overlayless" : ""}`}
               loading="lazy"
             />
-            <img
-              src={`https://avatars.rotur.dev/.overlay/${props.username}`}
-              alt=""
-              class="overlay"
-              loading="lazy"
-            />
+
+            {props.renderOverlay && (
+              <img
+                src={`https://avatars.rotur.dev/.overlay/${props.username}`}
+                alt=""
+                class="overlay"
+                loading="lazy"
+              />
+            )}
           </div>
         )}
 
@@ -112,7 +115,7 @@ export function Message(props) {
                   class="fake-dismiss"
                   onClick={props.onDismiss}
                 >
-                  Dismiss <HiOutlineXMark/>
+                  Dismiss <HiOutlineXMark />
                 </button>
               </Show>
             </div>

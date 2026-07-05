@@ -9,6 +9,7 @@ export default function MemberList(props) {
     }
     return null;
   });
+  const renderOverlay = state.settings.profileOverlays;
 
   return (
     <div class="members_list y">
@@ -31,6 +32,7 @@ export default function MemberList(props) {
                   roles={props.roles}
                   getHoistedRole={props.getHoistedRole}
                   owner={owner() == user.username}
+                  renderOverlay= {renderOverlay}
                 />
               )}
             </For>

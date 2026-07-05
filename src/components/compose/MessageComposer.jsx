@@ -21,8 +21,10 @@ export default function MessageComposer(props) {
   });
   let typingTimer;
   let lastTypingSent = 0;
+  const sendTypinghuh = state.settings.sendTypingStatus;
 
   function sendTyping() {
+    if (!sendTypinghuh) return;
     const duration = 6000;
     const now = Date.now();
 

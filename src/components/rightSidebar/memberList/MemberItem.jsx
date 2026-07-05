@@ -32,15 +32,18 @@ export default function MemberItem(props) {
         <img
           src={`https://avatars.rotur.dev/${props.user.username}`}
           alt=""
-          class="pfp"
+          class={"pfp " + (!props.renderOverlay ? "overlayless" : "")}
           loading="lazy"
         />
-        <img
-          src={`https://avatars.rotur.dev/.overlay/${props.user.username}`}
-          alt=""
-          class="overlay"
-          loading="lazy"
-        />
+
+        {props.renderOverlay && (
+          <img
+            src={`https://avatars.rotur.dev/.overlay/${props.user.username}`}
+            alt=""
+            class="overlay"
+            loading="lazy"
+          />
+        )}
       </div>
 
       <div className="data y">

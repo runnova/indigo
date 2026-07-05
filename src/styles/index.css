@@ -5,12 +5,16 @@
   padding: .5em;
 }
 
+.topbar {
+  border-bottom: 1px solid var(--diff-three);
+}
+
 .server_bar {
   border-radius: .5em 0 0 .5em;
   padding: .5em;
   min-width: fit-content;
   gap: .3em;
-  box-shadow: .5em 0 0 var(--bg-two);
+  border-right: 1px solid var(--diff-three);
 }
 
 .server_single {
@@ -97,7 +101,7 @@ nav button.active {
 }
 
 .text_box {
-  background-color: var(--bg-two);
+  background-color: var(--bg-three);
   border-radius: .5em;
   padding: .5em;
   align-items: center;
@@ -111,7 +115,7 @@ nav button.active {
   background-color: var(--bg-two);
   padding: .5em;
   z-index: 2;
-  box-shadow: -1px 0 0 var(--bg-four);
+  border-right: 1px solid var(--diff-three);
 }
 
 @keyframes tap {
@@ -281,7 +285,7 @@ iframe#rotur-auth {
     }
 
     &:hover {
-      background-color: var(--bg-two);
+      background-color: var(--diff-one);
     }
   }
 }
@@ -373,13 +377,13 @@ iframe#rotur-auth {
     border-radius: .5em;
     margin-top: .5em;
     width: calc(100% - 1.35em);
+  border: 1px solid var(--diff-three);
   }
 }
 
 .interactive_section {
   width: calc(100vw - 40em);
   position: relative;
-  border-left: 1px solid var(--diff-three);
   border-right: 1px solid var(--diff-three);
 }
 
@@ -455,6 +459,7 @@ span.channel_badge {
       background-color: var(--bg-one);
       padding: .5em;
       border-radius: .5em;
+  border: 1px solid var(--diff-three);
     }
 
     & .emoji_grid {
@@ -564,6 +569,7 @@ img.channel_icon_image {
   border-radius: .3em;
   padding: .3em .5em;
   display: flex;
+  border: 1px solid var(--diff-three);
 
   &>input {
     min-width: 0;
@@ -672,6 +678,7 @@ img.channel_icon_image {
   & .searchbox {
     background-color: var(--bg-two);
     margin-bottom: 1em;
+    align-items: center;
 
     &>input {
       flex: 1;
@@ -681,6 +688,7 @@ img.channel_icon_image {
   & .member_section_label {
     margin-bottom: .3em;
   }
+
   & .settings_content {
     overflow-y: auto;
     padding-bottom: 3em !important;
@@ -693,7 +701,7 @@ img.channel_icon_image {
 
 .discovery_grid {
   display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(345px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(345px, 1fr));
   gap: 1rem;
 }
 
@@ -812,9 +820,9 @@ img.channel_icon_image {
 }
 
 .browser_content {
-    padding: 2em;
-    overflow-y: auto;
-    flex: 1;
+  padding: 2em;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .dropdown_container {
@@ -1002,7 +1010,7 @@ img.channel_icon_image {
   &:hover,
   &:focus-within {
     box-shadow: -1px 0px 0 var(--bg-four);
-    background: linear-gradient(90deg, var(--bg-two) 0%, transparent 50%);
+    background: linear-gradient(90deg, var(--diff-one) 0%, transparent 50%);
   }
 }
 
@@ -1586,7 +1594,7 @@ img.big_emoji {
   display: flex;
   align-items: center;
   flex-direction: row;
-    gap: .5em;
+  gap: .5em;
 
   &>.scm-item-content {
     display: flex;
@@ -1659,25 +1667,25 @@ img.big_emoji {
 }
 
 .message_single.is-fake {
-    border-left: 3px solid var(--hl-two);
-    background: var(--diff-one);
-    border-radius: 0;
+  border-left: 3px solid var(--hl-two);
+  background: var(--diff-one);
+  border-radius: 0;
 }
 
-.fake-dismiss { 
-    margin-left: .5em;
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: .5em;
-    background-color: var(--diff-two);
-    border-radius: 1em;
-    padding: 1px 8px;
-    color: var(--hl-two);
-    padding-left: 13px;
+.fake-dismiss {
+  margin-left: .5em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: .5em;
+  background-color: var(--diff-two);
+  border-radius: 1em;
+  padding: 1px 8px;
+  color: var(--hl-two);
+  padding-left: 13px;
 }
 
 .fake-dismiss:hover {
@@ -1686,24 +1694,25 @@ img.big_emoji {
 
 .username_clickable {
   cursor: pointer;
+
   &:hover {
     text-decoration: underline;
   }
 }
 
 .settings_subt {
-    opacity: .5;
-    margin: .7em;
-    margin-top: -1em;
-    margin-bottom: 1em;
+  opacity: .5;
+  margin: .7em;
+  margin-top: -1em;
+  margin-bottom: 1em;
 }
 
 .note {
-    padding: .7em;
-    background-color: var(--hl-four);
-    box-shadow: var(--border);
-    border-radius: .5em;
-    margin-top: 4em;
+  padding: .7em;
+  background-color: var(--hl-four);
+  box-shadow: var(--border);
+  border-radius: .5em;
+  margin-top: 4em;
 }
 
 .owner_crown {
@@ -1711,4 +1720,8 @@ img.big_emoji {
   color: rgb(255, 200, 0);
   margin-left: 5px;
   width: 14px;
+}
+
+.pfpWO .overlayless {
+  transform: scale(1.2);
 }
