@@ -161,6 +161,16 @@ const defaultState = {
   theme: {
     stylesheets: [],
     quickCss: ""
+  },
+  settings: {
+    dmsServer: "dms.mistium.com",
+    profileOverlays: true,
+    sendTypingStatus: true,
+    ownerCrown: false,
+    idleConnections: "keep",
+    loadAttachments: "all",
+    showNicknames: "nickname",
+    blockedMessages: "collapsed",
   }
 };
 export const [unreads, setUnreads] = createStore({
@@ -201,7 +211,11 @@ export const [state, setState] = createStore({
   theme: {
     ...defaultState.theme,
     ...(savedState.theme ?? {})
-  }
+  },
+  settings: {
+    ...defaultState.settings,
+    ...(savedState.settings ?? {})
+  },
 });
 
 export var tempState = {};
@@ -280,7 +294,8 @@ function App() {
       servers: state.servers,
       current: state.current,
       serverChannels: state.serverChannels,
-      theme: state.theme
+      theme: state.theme,
+      settings: state.settings,
     };
   }
   createEffect(() => {

@@ -1,7 +1,15 @@
-import { For } from "solid-js";
+import { For, createMemo } from "solid-js";
 import MemberItem from "./MemberItem";
+import { conn } from "../../../App"
 
 export default function MemberList(props) {
+  const owner = createMemo(() => {
+    if (state.settings.ownerCrown) {
+      return conn.serverInfo()?.owner?.name;
+    }
+    return null;
+  });
+
   return (
     <div class="members_list y">
       <For each={props.sections}>
@@ -22,6 +30,7 @@ export default function MemberList(props) {
                   online={props.onlineUsers.has(user.username)}
                   roles={props.roles}
                   getHoistedRole={props.getHoistedRole}
+                  owner={owner() == user.username}
                 />
               )}
             </For>

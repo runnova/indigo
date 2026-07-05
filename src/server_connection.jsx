@@ -271,6 +271,7 @@ function handlePacket(connection, packet) {
         name: val.server?.name ?? connection.src,
         icon: val.server?.icon ?? null,
         banner: val.server?.banner ?? null,
+        owner: val.server?.owner ?? null,
       };
 
       if (!state.servers.some(server => server.src === info.src)) {

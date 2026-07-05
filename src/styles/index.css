@@ -247,7 +247,6 @@ iframe#rotur-auth {
 }
 
 .settings_section_label {
-  opacity: .5;
   padding-left: .5em;
   text-transform: capitalize;
 }
@@ -682,6 +681,10 @@ img.channel_icon_image {
   & .member_section_label {
     margin-bottom: .3em;
   }
+  & .settings_content {
+    overflow-y: auto;
+    padding-bottom: 3em !important;
+  }
 }
 
 .discovery {
@@ -1029,7 +1032,6 @@ input[type="radio"].settings_input {
 
 select.settings_input {
   cursor: pointer;
-  appearance: none;
   min-height: 2em;
 }
 
@@ -1702,4 +1704,11 @@ img.big_emoji {
     box-shadow: var(--border);
     border-radius: .5em;
     margin-top: 4em;
+}
+
+.owner_crown {
+  height: 14px;
+  color: rgb(255, 200, 0);
+  margin-left: 5px;
+  width: 14px;
 }

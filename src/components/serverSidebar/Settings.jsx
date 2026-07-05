@@ -1,5 +1,6 @@
 import { createSignal, For } from "solid-js";
 import { Dynamic } from "solid-js/web";
+import { setState, state } from "../../App";
 
 import {
   HiOutlineCog6Tooth,
@@ -12,77 +13,109 @@ import {
 import ThemeSettings from "./settings/Theme"
 
 function GeneralSettings() {
+  function SettingInput(props) {
+    return (
+      <input
+        class="settings_input"
+        value={state.settings[props.setting]}
+        onInput={(e) =>
+          setState("settings", props.setting, e.currentTarget.value)
+        }
+      />
+    );
+  }
+  function SettingCheckbox(props) {
+    return (
+      <input
+        class="settings_input"
+        type="checkbox"
+        checked={state.settings[props.setting]}
+        onChange={(e) =>
+          setState("settings", props.setting, e.currentTarget.checked)
+        }
+      />
+    );
+  }
+  function SettingSelect(props) {
+    return (
+      <select
+        class="settings_input"
+        value={state.settings[props.setting]}
+        onChange={(e) =>
+          setState("settings", props.setting, e.currentTarget.value)
+        }
+        disabled={props.disabled}
+      >
+        {props.children}
+      </select>
+    );
+  }
   return (
     <>
-    <div className="note">
-      None of the general settings is usable yet. I'm working on this. Head to the themes section for the moment.
-    </div>
+      <div class="note">
+        None of the general settings is usable yet. I'm working on this. Head to the themes section for the moment.
+      </div>
+
       <h2 class="settings_title">General</h2>
-      <div className="settings_item x">
-        <div className="settings_section_label">DMs server</div>
-        <input class="settings_input" type="text" placeholder="dms.mistium.com" />
+
+      <div class="settings_item x">
+        <div class="settings_section_label">DMs server</div>
+        <SettingInput setting="dmsServer" />
       </div>
-      <div className="settings_item x">
-        <div className="settings_section_label">Profile Overlays</div>
-        <input class="settings_input" type="checkbox" />
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Profile Overlays</div>
+        <SettingCheckbox setting="profileOverlays" />
       </div>
-      <h2 class="settings_title">Privacy</h2>
-      <div className="settings_item x">
-        <div className="settings_section_label">Send typing status</div>
-        <input class="settings_input" type="checkbox" />
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Send typing status</div>
+        <SettingCheckbox setting="sendTypingStatus" />
       </div>
 
       <h2 class="settings_title">Performance</h2>
-      <div className="settings_item x">
-        <div className="settings_section_label">Idle connections</div>
-        <select name="" id="">
-          <option value="Nickname" selected>Keep connected</option>
-          <option value="Nickname (Username)">No idle connections</option>
-          <option value="Username">Keep DMs connected</option>
-        </select>
-      </div>
-      <div className="settings_item x">
-        <div className="settings_section_label">Load attachments</div>
-        <select name="" id="">
-          <option value="Nickname" selected>Load everything</option>
-          <option value="Nickname (Username)">Load on demand</option>
-          <option value="Username">Server whitelist</option>
-        </select>
-      </div>
-      <h2 class="settings_title">Identity</h2>
-      <div className="settings_item x">
-        <div className="settings_section_label">Show Nicknames</div>
-        <select name="" id="">
-          <option value="Nickname" selected>Nickname</option>
-          <option value="Nickname (Username)">Nickname (Username)</option>
-          <option value="Username">Username</option>
-        </select>
-      </div>
-      <div className="settings_item x">
-        <div className="settings_section_label">Messages from blocked users</div>
-        <select name="" id="">
-          <option value="Nickname" selected>Show collapsed</option>
-          <option value="Nickname (Username)">Always Show</option>
-          <option value="Username">Always Hide</option>
-        </select>
-      </div>
-      <div className="settings_item x">
-        <div className="settings_section_label">Owner crown</div>
-        <input class="settings_input" type="checkbox" />
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Idle connections</div>
+        <SettingSelect setting="idleConnections" disabled>
+          <option value="keep">Keep connected</option>
+          <option value="none">No idle connections</option>
+          <option value="dms">Keep DMs connected</option>
+        </SettingSelect>
       </div>
 
-      <h2 class="settings_title">Looks</h2>
-      <div className="settings_item x">
-        <div className="settings_section_label">Theme Stylesheets</div>
-        <input class="settings_input" type="checkbox" />
+      <div class="settings_item x">
+        <div class="settings_section_label">Load attachments</div>
+        <SettingSelect setting="loadAttachments" disabled>
+          <option value="all">Load everything</option>
+          <option value="ondemand">Load on demand</option>
+          <option value="whitelist">Server whitelist</option>
+        </SettingSelect>
       </div>
-      <hr />
-      <div className="settings_item x">
-        <div className="settings_section_label">Indigo &bull; By dark dot
-        </div>
-        <div class="x" style={{"gap": ".2em"}}>
-          <input class="settings_input" type="button" value={"Feedback"} />
-          <input class="settings_input" type="button" value={"Tip a credit"} /></div>
+
+      <h2 class="settings_title">Identity</h2>
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Show Nicknames</div>
+        <SettingSelect setting="showNicknames" disabled>
+          <option value="nickname">Nickname</option>
+          <option value="nickname_username">Nickname (Username)</option>
+          <option value="username">Username</option>
+        </SettingSelect>
+      </div>
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Messages from blocked users</div>
+        <SettingSelect setting="blockedMessages" disabled>
+          <option value="collapsed">Show collapsed</option>
+          <option value="show">Always Show</option>
+          <option value="hide">Always Hide</option>
+        </SettingSelect>
+      </div>
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Owner crown</div>
+        <SettingCheckbox setting="ownerCrown" />
       </div>
     </>
   );
@@ -129,7 +162,7 @@ export default function SettingsPage() {
 
   return (
     <div class="fill x" style={{ "height": "100%" }}>
-      <nav class="y" style={{ "gap":".3em","padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
+      <nav class="y" style={{ "gap": ".3em", "padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
         <For each={tabs}>
           {(tab) => {
             const Icon = tab.icon;
@@ -149,7 +182,7 @@ export default function SettingsPage() {
         </For>
       </nav>
 
-      <main class="fill" style={{ "padding": "0 2em" }}>
+      <main class="fill settings_content" style={{ "padding": "0 2em" }}>
         <Dynamic component={currentTab()?.component} />
       </main>
     </div>
