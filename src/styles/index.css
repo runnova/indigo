@@ -105,7 +105,6 @@ nav button.active {
 }
 
 .text_box_wrapper {
-  margin-top: .5em;
   gap: 0;
 }
 
@@ -192,7 +191,7 @@ opacity: 1;
     cursor: pointer;
 
     &:hover {
-      background-color: var(--bg-three);
+      background-color: var(--diff-two);
       opacity: 1;
     }
 
@@ -1458,7 +1457,7 @@ img.big_emoji {
   height: 1.2em;
   white-space: nowrap;
   color: var(--fg-dim);
-  margin: .2em .8em;
+  margin: .5em .8em;
   margin-top: 0;
   align-items: center;
   position: relative;

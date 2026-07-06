@@ -79,10 +79,6 @@ function isImageSrc(src) {
   return typeof src === "string" && src.trim().length > 0;
 }
 
-// props.preloadChannel(channelName) should call your data-fetch (e.g. sendRequest
-// + await the response, or read from an existing store) and resolve with the
-// payload to cache. Passed down from the parent so ChannelList stays decoupled
-// from the connection layer.
 export default function ChannelList(props) {
   const cleanupFns = [];
 
@@ -98,7 +94,6 @@ export default function ChannelList(props) {
   }
 
   function handleSelect(channelName) {
-    // previous active channel becomes background and starts its TTL
     if (props.currentChannel && props.currentChannel !== channelName) {
       markBackground(props.currentChannel);
     }

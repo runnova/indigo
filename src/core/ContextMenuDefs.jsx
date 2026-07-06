@@ -10,6 +10,13 @@ import {
   HiOutlineChatBubbleBottomCenterText
 } from "solid-icons/hi";
 import SystemContextMenu from '../components/Systemcontextmenu.js';
+import { setState } from "../App.jsx";
+
+const removeServer = (src) => {
+  setState("servers", servers =>
+    servers.filter(server => server.src !== src)
+  );
+};
 
 SystemContextMenu.init([
   {

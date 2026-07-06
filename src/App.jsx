@@ -51,16 +51,8 @@ addTheme("/themes/fun.css");
 
 import ContextMenu from './components/Contextmenu.jsx';
 
-const removeServer = (src) => {
-  setState("servers", servers =>
-    servers.filter(server => server.src !== src)
-  );
-};
-
 import "./core/ContextMenuDefs.jsx"
 
-const [firstBarWidth, setFirstBarWidth] = createSignal(260);
-export const [thirdBarWidth, setThirdBarWidth] = createSignal(320);
 
 
 const defaultState = {
@@ -91,6 +83,8 @@ const defaultState = {
     loadAttachments: "all",
     showNicknames: "nickname",
     blockedMessages: "collapsed",
+  firstBarWidth: 260,
+  thirdBarWidth: 320,
   }
 };
 export const [unreads, setUnreads] = createStore({
@@ -136,6 +130,23 @@ export const [state, setState] = createStore({
     ...defaultState.settings,
     ...(savedState.settings ?? {})
   },
+});
+
+
+const [firstBarWidth, setFirstBarWidth] = createSignal(
+  state.settings.firstBarWidth
+);
+
+export const [thirdBarWidth, setThirdBarWidth] = createSignal(
+  state.settings.thirdBarWidth
+);
+
+createEffect(() => {
+  setState("settings", "firstBarWidth", firstBarWidth());
+});
+
+createEffect(() => {
+  setState("settings", "thirdBarWidth", thirdBarWidth());
 });
 
 export var tempState = {};
