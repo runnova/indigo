@@ -38,6 +38,7 @@ function saveToken(token) {
     "settings",
     JSON.stringify(settings)
   );
+  location.reload();
 }
 
 export async function fetchRoturValidator(validatorKey, roturToken) {
@@ -114,7 +115,6 @@ export async function authenticate({
 
   if (!token) {
     token = await requestRoturToken();
-
     if (onToken) {
       onToken(token);
     }
@@ -206,34 +206,34 @@ function createConnection(server, roturToken, crackedUser) {
       crackedUser
     );
   };
-ws.onerror = () => {
-  connection.state.error = "Failed to connect to "+connection.src + ". It may be down.";
-  connection.state.status = "error";
+  ws.onerror = () => {
+    connection.state.error = "Failed to connect to " + connection.src + ". It may be down.";
+    connection.state.status = "error";
 
-  syncActive(connection);
+    syncActive(connection);
 
-  setUnreads(
-    "servers",
-    connection.src,
-    "online",
-    false
-  );
-};
+    setUnreads(
+      "servers",
+      connection.src,
+      "online",
+      false
+    );
+  };
 
-ws.onclose = () => {
-  if (connection.state.status !== "error") {
-    connection.state.status = "closed";
-  }
+  ws.onclose = () => {
+    if (connection.state.status !== "error") {
+      connection.state.status = "closed";
+    }
 
-  syncActive(connection);
+    syncActive(connection);
 
-  setUnreads(
-    "servers",
-    connection.src,
-    "online",
-    false
-  );
-};
+    setUnreads(
+      "servers",
+      connection.src,
+      "online",
+      false
+    );
+  };
 
   connections.set(server.src, connection);
 

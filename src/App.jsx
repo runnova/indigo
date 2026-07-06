@@ -24,7 +24,7 @@ import {
   HiOutlineDocumentText,
   HiOutlineChatBubbleBottomCenterText
 } from "solid-icons/hi";
-import appIcon from "/icon.svg";
+const appIcon = `${import.meta.env.BASE_URL}icon.svg`;
 
 import MemberPopout from "./components/rightSidebar/memberList/MemberPopout.jsx";
 
@@ -144,6 +144,12 @@ ${JSON.stringify(msg, null, 2)}
     ],
   },
 ]);
+
+
+const [firstBarWidth, setFirstBarWidth] = createSignal(260);
+export const [thirdBarWidth, setThirdBarWidth] = createSignal(320);
+
+
 const defaultState = {
   servers: [
     { src: "dms.mistium.com", icon: null, name: "dms" },
@@ -156,7 +162,7 @@ const defaultState = {
   },
   serverChannels: {},
   replying: null,
-  thirdBarContext: "",
+  thirdBarContext: "members",
   searchQuery: "",
   theme: {
     stylesheets: [],
@@ -167,6 +173,7 @@ const defaultState = {
     profileOverlays: true,
     sendTypingStatus: true,
     ownerCrown: false,
+    channelPreload: false,
     idleConnections: "keep",
     loadAttachments: "all",
     showNicknames: "nickname",
@@ -206,7 +213,7 @@ export const [state, setState] = createStore({
     ...(savedState.serverChannels ?? {})
   },
   replying: null,
-  thirdBarContext: "",
+  thirdBarContext: "members",
   searchQuery: "",
   theme: {
     ...defaultState.theme,
@@ -326,8 +333,9 @@ function App() {
   });
   createEffect(() => {
     if (conn.status() !== "ready") return;
-    if (!conn.channels().length) return;
-    if (conn.members().length > 0) return;
+
+    const channels = conn.channels();
+    if (!channels.length) return;
 
     const serverSrc = state.current.server?.src;
     if (!serverSrc) return;
@@ -335,8 +343,13 @@ function App() {
     const savedChannel = state.serverChannels[serverSrc];
     if (!savedChannel) return;
 
-    if (conn.channels().some(c => c.name === savedChannel)) {
-      setState("current", "channel", savedChannel);
+    if (
+      state.current.channel !== savedChannel &&
+      channels.some(c => c.name === savedChannel)
+    ) {
+      setTimeout(() => {
+        setState("current", "channel", savedChannel)
+      }, 500);
     }
   });
 
@@ -540,6 +553,7 @@ function App() {
       }, 300);
     }
   });
+
   return (
     <div class="main x">
       <ServerBar
@@ -558,7 +572,14 @@ function App() {
             </div>
           </div>
         </Show>
-        <div class="first_bar bar y">
+        <div
+          class="first_bar bar y"
+          style={{
+            width: `${firstBarWidth()}px`,
+            "min-width": `${firstBarWidth()}px`,
+            "max-width": `${firstBarWidth()}px`,
+          }}
+        >
           <Show when={conn.status() === "ready"}>
             <ServerSidebar
               serverInfo={conn.serverInfo()}
@@ -571,7 +592,27 @@ function App() {
           </Show>
           <UserDisplay></UserDisplay>
         </div>
+        <div
+          class="resize_handle"
+          onMouseDown={(e) => {
+            const start = e.clientX;
+            const startWidth = firstBarWidth();
 
+            const move = (ev) => {
+              setFirstBarWidth(
+                Math.max(180, Math.min(500, startWidth + ev.clientX - start))
+              );
+            };
+
+            const up = () => {
+              window.removeEventListener("mousemove", move);
+              window.removeEventListener("mouseup", up);
+            };
+
+            window.addEventListener("mousemove", move);
+            window.addEventListener("mouseup", up);
+          }}
+        />
         <div class="fill y">
           <div class="topbar">
             <div class="channelbar x">
@@ -583,15 +624,32 @@ function App() {
                 </div>
               </Show>
               <div class="inpgrp x">
-                <button onClick={() => setState("thirdBarContext", "selfroles")}>
+                <button
+                  className={state.thirdBarContext === "selfroles" ? "active" : ""}
+                  onClick={() => setState("thirdBarContext", "selfroles")}
+                >
                   <HiOutlineUserCircle />
                 </button>
-                <button onClick={() => setState("thirdBarContext", "inbox")}>
+
+                <button
+                  className={state.thirdBarContext === "inbox" ? "active" : ""}
+                  onClick={() => setState("thirdBarContext", "inbox")}
+                >
                   <HiOutlineInbox />
                 </button>
 
-                <button onClick={() => setState("thirdBarContext", "pinned")}>
+                <button
+                  className={state.thirdBarContext === "pinned" ? "active" : ""}
+                  onClick={() => setState("thirdBarContext", "pinned")}
+                >
                   <HiOutlineMapPin />
+                </button>
+
+                <button
+                  className={state.thirdBarContext === "members" ? "active" : ""}
+                  onClick={() => setState("thirdBarContext", "members")}
+                >
+                  <HiOutlineUsers />
                 </button>
 
                 <div class="searchbox">
@@ -611,9 +669,6 @@ function App() {
                   <HiOutlineMagnifyingGlass />
                 </div>
 
-                <button onClick={() => setState("thirdBarContext", "members")}>
-                  <HiOutlineUsers />
-                </button>
               </div>
             </div>
           </div>
@@ -635,7 +690,6 @@ function App() {
                   </div>
                 }
               >
-
                 {
                   currentChannel()?.type === "forum"
                     ? (
@@ -676,6 +730,27 @@ function App() {
               </Show>
             </div>
 
+            <div
+              class="resize_handle left"
+              onMouseDown={(e) => {
+                const start = e.clientX;
+                const startWidth = thirdBarWidth();
+
+                const move = (ev) => {
+                  setThirdBarWidth(
+                    Math.max(220, Math.min(500, startWidth - (ev.clientX - start)))
+                  );
+                };
+
+                const up = () => {
+                  window.removeEventListener("mousemove", move);
+                  window.removeEventListener("mouseup", up);
+                };
+
+                window.addEventListener("mousemove", move);
+                window.addEventListener("mouseup", up);
+              }}
+            />
             <RightSidebar
               sections={memberSections()}
               onlineUsers={onlineUsers()}

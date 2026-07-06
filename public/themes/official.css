@@ -15,16 +15,15 @@
 }
 
 .first_bar {
-  border-right: 1px solid rgb(255 255 255 / 20%);
+  border-right: 1px solid var(--diff-three);
 }
 
 .topbar {
-  border-bottom: 1px solid rgb(255 255 255 / 20%);
+  border-bottom: 1px solid var(--diff-three);
 }
 
 .text_box,
-.user_display,
-.searchbox {
+.user_display {
   box-shadow: var(--border);
   background-color: var(--bg-three);
 }
@@ -40,4 +39,13 @@
 
 .pfp {
   border-radius: 5em !important;
+}
+
+.server_info {
+  border-bottom: 1px solid var(--diff-three);
+  border-radius: 0;
+
+  & .dropdown.x {
+    background: transparent;
+  }
 }

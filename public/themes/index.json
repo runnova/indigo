@@ -10,6 +10,25 @@
     "price": 0
   },
   {
+    "id": "pride",
+    "name": "Pride Topbar",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "POC Inclusive topbar",
+    "file": "pride.css",
+    "preview": "#F6CF2A",
+    "price": 0
+  },
+  {
+    "id": "centeredserverbar",
+    "name": "Centered Server Bar",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Apply and get a nice centered server bar.",
+    "file": "centeredserverbar.css",
+    "price": 0
+  },
+  {
     "id": "dracula",
     "name": "Dracula",
     "author": "darkdot",
@@ -21,12 +40,22 @@
   },
   {
     "id": "official",
-    "name": "Theme Official",
+    "name": "Clean Dark",
     "author": "darkdot",
     "version": "1.0.0",
-    "description": "Makes it slightly look like the Official client",
+    "description": "A clean dark theme.",
     "file": "official.css",
     "preview": "#bd93f9",
+    "price": 0
+  },
+  {
+    "id": "light",
+    "name": "Clean light",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "A clean light theme.",
+    "file": "light.css",
+    "preview": "#ffffff",
     "price": 0
   }
 ]

@@ -4,6 +4,7 @@ import PinnedList from "./PinnedList.jsx";
 import SelfRoles from "./SelfRoles.jsx";
 import SearchResultsList from "./SearchResultsList.jsx";
 import Inbox from "./Inbox.jsx";
+import { thirdBarWidth } from "../../App.jsx"
 
 const thirdBarViews = {
   members: MemberList,
@@ -18,8 +19,17 @@ export default function RightSidebar(props) {
     thirdBarViews[props.state.thirdBarContext] || MemberList;
 
   return (
-    <div class="third_bar bar">
-      <Dynamic component={View()} {...props} />
-    </div>
+    <>
+      <div
+        class="third_bar bar"
+        style={{
+          width: `${thirdBarWidth()}px`,
+          "min-width": `${thirdBarWidth()}px`,
+          "max-width": `${thirdBarWidth()}px`,
+        }}
+      >
+        <Dynamic component={View()} {...props} />
+      </div>
+    </>
   );
 }

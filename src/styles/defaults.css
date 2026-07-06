@@ -1,6 +1,6 @@
 :root {
   --bg-one: #010101;
-  --bg-two: #0e0e0e;
+  --bg-two: #0D0D0D;
   --bg-three: #1d1d1d;
   --bg-four: #3a3a3a;
 
@@ -57,6 +57,7 @@ body {
   color: var(--fg-one);
   font-size: 16px;
   margin: 0;
+  user-select: none;
 }
 
 .main {

@@ -1,313 +1,343 @@
 import {
-  createSignal,
-  createEffect,
-  createMemo,
-  on,
-  For,
-  Show,
-  onCleanup,
+    createSignal,
+    createEffect,
+    createMemo,
+    on,
+    For,
+    Show,
+    onCleanup,
 } from "solid-js";
-import { HiOutlineChevronLeft, HiOutlineChevronDown } from "solid-icons/hi"
-import { Message } from "./components/messages/message.jsx";
-import { MessageActions } from "./components/messages/MessageActions.jsx";
-import { createChannelMessages } from "./useChannelMessages";
-import { tempState, state, setState} from "./App.jsx";
+import {
+    HiOutlineChevronLeft,
+    HiOutlineChevronDown
+} from "solid-icons/hi"
+import {
+    Message
+} from "./components/messages/message.jsx";
+import {
+    MessageActions
+} from "./components/messages/MessageActions.jsx";
+import {
+    createChannelMessages
+} from "./useChannelMessages";
+import {
+    tempState,
+    state,
+    setState
+} from "./App.jsx";
 
 const [fakeMessages, setFakeMessages] = createSignal([]);
 let fakeId = 0;
 
 export function addFakeMessage(data) {
-  const now = Math.floor(Date.now() / 1000);
+    const now = Math.floor(Date.now() / 1000);
 
-  setFakeMessages(messages => [
-    ...messages,
-    {
-      id: `fake-${++fakeId}`,
-      user: "Debug",
-      content: "",
-      timestamp: now,
-      avatar: null,
-      reactions: [],
-      attachments: [],
-      embeds: [],
-      ...data,
-      __fake: true,
-    },
-  ]);
+    setFakeMessages(messages => [
+        ...messages,
+        {
+            id: `fake-${++fakeId}`,
+            user: "Debug",
+            content: "",
+            timestamp: now,
+            avatar: null,
+            reactions: [],
+            attachments: [],
+            embeds: [],
+            ...data,
+            __fake: true,
+        },
+    ]);
 }
 
 export function clearFakeMessages() {
-  setFakeMessages([]);
+    setFakeMessages([]);
 }
 
 let getMessage = () => undefined;
 
 export function getMessageById(id) {
-  return getMessage(id);
+    return getMessage(id);
 }
 
 export function createMessageLookup(messages) {
-  const messageMap = createMemo(() => {
-    const map = new Map();
+    const messageMap = createMemo(() => {
+        const map = new Map();
 
-    for (const message of messages()) {
-      map.set(message.id, message);
-    }
+        for (const message of messages()) {
+            map.set(message.id, message);
+        }
 
-    return map;
-  });
+        return map;
+    });
 
-  getMessage = id => messageMap().get(id);
+    getMessage = id => messageMap().get(id);
 
-  return messageMap;
+    return messageMap;
 }
 
 const SCROLL_NEAR_TOP = 100;
 const SCROLL_NEAR_BOTTOM = 80;
 
 export function VirtualMessageList(props) {
-  let scrollEl;
-  let innerEl;
-  let resizeObserver;
+    let scrollEl;
+    let innerEl;
+    let resizeObserver;
 
-  function attachResizeObserver(el) {
-    resizeObserver?.disconnect();
-    resizeObserver = new ResizeObserver(() => {
-     scrollToBottom(false);
+    function attachResizeObserver(el) {
+        resizeObserver?.disconnect();
+        resizeObserver = new ResizeObserver(() => {
+            scrollToBottom(false);
+        });
+        resizeObserver.observe(el);
+    }
+
+    onCleanup(() => resizeObserver?.disconnect());
+
+    function scrollToMessage(messageId, behavior = "smooth") {
+        const el = scrollEl?.querySelector(`[data-id="${messageId}"]`);
+        if (!el) return false;
+        el.scrollIntoView({
+            block: "center",
+            behavior
+        });
+        return true;
+    }
+
+    props.onReady?.({
+        scrollToMessage,
+        scrollToBottom,
     });
-    resizeObserver.observe(el);
-  }
 
-  onCleanup(() => resizeObserver?.disconnect());
+    function isNearBottom() {
+        if (!scrollEl) return true;
+        return (
+            scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight <
+            SCROLL_NEAR_BOTTOM
+        );
+    }
 
-  function scrollToMessage(messageId, behavior = "smooth") {
-    const el = scrollEl?.querySelector(`[data-id="${messageId}"]`);
-    if (!el) return false;
-    el.scrollIntoView({ block: "center", behavior });
-    return true;
-  }
+    const {
+        messages: realMessages,
+        loadingOlder,
+        hasOlderMessages,
+        lastUpdate,
+        loadOlder,
+    } = createChannelMessages({
+        channel: () => props.channel,
+        wsEvent: () => props.wsMessages?.(),
+        sendRequest: props.sendRequest,
+        getScrollElement: () => scrollEl,
+        isNearBottom,
+        threadId: () => props.threadId,
+    });
 
-  props.onReady?.({
-    scrollToMessage,
-    scrollToBottom,
-  });
+    const messages = createMemo(() => [
+        ...realMessages(),
+        ...fakeMessages(),
+    ]);
 
-  function isNearBottom() {
-    if (!scrollEl) return true;
-    return (
-      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight <
-      SCROLL_NEAR_BOTTOM
+    createMessageLookup(messages);
+
+    const SECTION_SIZE = 30;
+    const WINDOW_RADIUS = 2;
+
+    const [visibleStart, setVisibleStart] = createSignal(0);
+    const [visibleEnd, setVisibleEnd] = createSignal(0);
+    const [scrollLocked, setScrollLocked] = createSignal(true);
+
+    const sectionHeights = new Map();
+
+    let anchorId = null;
+    let anchorOffset = 0;
+
+    const sections = createMemo(() => {
+        const result = [];
+        const msgs = messages();
+        for (let i = 0; i < msgs.length; i += SECTION_SIZE) {
+            const chunk = msgs.slice(i, i + SECTION_SIZE);
+            result.push({
+                id: chunk[0]?.id,
+                messages: chunk
+            });
+        }
+        return result;
+    });
+
+    function estimateSectionHeight(sectionId) {
+        return sectionHeights.get(sectionId) ?? 1800;
+    }
+
+    const topSpacerHeight = createMemo(() => {
+        let total = 0;
+        const s = sections();
+        for (let i = 0; i < visibleStart(); i++) {
+            total += estimateSectionHeight(s[i]?.id);
+        }
+        return total;
+    });
+
+    const bottomSpacerHeight = createMemo(() => {
+        let total = 0;
+        const s = sections();
+        for (let i = visibleEnd() + 1; i < s.length; i++) {
+            total += estimateSectionHeight(s[i]?.id);
+        }
+        return total;
+    });
+
+    function captureAnchor() {
+        if (!scrollEl) return;
+        const containerRect = scrollEl.getBoundingClientRect();
+        const centerY = containerRect.top + scrollEl.clientHeight / 2;
+        let best = null;
+        let bestDist = Infinity;
+        scrollEl.querySelectorAll(".vml-item").forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            const itemCenter = rect.top + rect.height / 2;
+            const dist = Math.abs(itemCenter - centerY);
+            if (dist < bestDist) {
+                best = el;
+                bestDist = dist;
+            }
+        });
+        if (!best) return;
+        anchorId = best.dataset.id;
+        anchorOffset = best.getBoundingClientRect().top - containerRect.top;
+    }
+
+    function restoreAnchor() {
+        if (!anchorId || !scrollEl) return;
+        requestAnimationFrame(() => {
+            const anchor = scrollEl.querySelector(`[data-id="${anchorId}"]`);
+            if (!anchor) return;
+            const containerRect = scrollEl.getBoundingClientRect();
+            const newOffset = anchor.getBoundingClientRect().top - containerRect.top;
+            scrollEl.scrollTop += newOffset - anchorOffset;
+        });
+    }
+
+    function updateVirtualWindow() {
+        if (!scrollEl) return;
+        const centerY = scrollEl.scrollTop + scrollEl.clientHeight / 2;
+        let accumulated = 0;
+        let centerSection = 0;
+        const s = sections();
+        for (let i = 0; i < s.length; i++) {
+            accumulated += estimateSectionHeight(s[i].id);
+            if (accumulated >= centerY) {
+                centerSection = i;
+                break;
+            }
+        }
+        const start = Math.max(0, centerSection - WINDOW_RADIUS);
+        const end = Math.min(sections().length - 1, centerSection + WINDOW_RADIUS);
+        if (start === visibleStart() && end === visibleEnd()) return;
+        captureAnchor();
+        setVisibleStart(start);
+        setVisibleEnd(end);
+        queueMicrotask(restoreAnchor);
+    }
+
+    const [showNewIndicator, setShowNewIndicator] = createSignal(false);
+    const [hoveredMessage, setHoveredMessage] = createSignal(null);
+    const [hoverRect, setHoverRect] = createSignal(null);
+    const [showScrollButton, setShowScrollButton] = createSignal(false);
+    const [hasUnreadBelow, setHasUnreadBelow] = createSignal(false);
+    const [unreadCount, setUnreadCount] = createSignal(0);
+
+    let hideTimer;
+
+    function scrollToBottom(instant = false) {
+        scrollEl.scrollTo({
+            top: scrollEl.scrollHeight,
+            behavior: instant ? "instant" : "smooth",
+        });
+    }
+    let wasNearBottom = true;
+
+    function onScroll() {
+        if (!scrollEl) return;
+
+        const nearBottom = isNearBottom();
+
+        setScrollLocked(nearBottom);
+        setShowScrollButton(!nearBottom);
+
+        if (nearBottom) {
+            setUnreadCount(0);
+        }
+
+        if (scrollEl.scrollTop < SCROLL_NEAR_TOP)
+            loadOlder();
+
+        updateVirtualWindow();
+    }
+
+    function onVisibilityChange() {
+        if (!document.hidden && scrollLocked()) {
+            requestAnimationFrame(() => {
+                scrollToBottom(true);
+            });
+        }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    onCleanup(() => {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+    });
+    createEffect(
+        on(sections, () => {
+            queueMicrotask(updateVirtualWindow);
+        }, {
+            defer: true
+        })
     );
-  }
 
- const {
-  messages: realMessages,
-  loadingOlder,
-  hasOlderMessages,
-  lastUpdate,
-  loadOlder,
-} = createChannelMessages({
-  channel: () => props.channel,
-  wsEvent: () => props.wsMessages?.(),
-  sendRequest: props.sendRequest,
-  getScrollElement: () => scrollEl,
-  isNearBottom,
-  threadId: () => props.threadId,
-});
+    createEffect(
+        on(lastUpdate, (update) => {
+            if (!update) return;
 
-const messages = createMemo(() => [
-  ...realMessages(),
-  ...fakeMessages(),
-]);
+            if (update.type === "initial") {
+                setShowNewIndicator(false);
+                const total = sections().length;
+                setVisibleStart(Math.max(0, total - 5));
+                setVisibleEnd(total - 1);
+                requestAnimationFrame(() => {
+                    scrollToBottom(true);
+                    updateVirtualWindow();
+                });
+                return;
+            }
 
-createMessageLookup(messages);
+            if (update.type === "append") {
+                if (scrollLocked()) {
+                    scrollToBottom(false);
+                } else {
+                    setShowScrollButton(true);
+                    setUnreadCount(c => c + 1);
+                }
+            }
+            if (update.type === "jump") {
+                requestAnimationFrame(() => {
+                    const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
+                    if (el) el.scrollIntoView({
+                        block: "center",
+                        behavior: "auto"
+                    });
+                });
+            }
 
-  const SECTION_SIZE = 30;
-  const WINDOW_RADIUS = 2;
+            if (update.type === "reset") {
+                requestAnimationFrame(() => scrollToBottom(true));
+            }
+        })
+    );
+    const renderOverlay = state.settings.profileOverlays;
 
-  const [visibleStart, setVisibleStart] = createSignal(0);
-  const [visibleEnd, setVisibleEnd] = createSignal(0);
-  const [scrollLocked, setScrollLocked] = createSignal(true);
-
-  const sectionHeights = new Map();
-
-  let anchorId = null;
-  let anchorOffset = 0;
-
-  const sections = createMemo(() => {
-    const result = [];
-    const msgs = messages();
-    for (let i = 0; i < msgs.length; i += SECTION_SIZE) {
-      const chunk = msgs.slice(i, i + SECTION_SIZE);
-      result.push({ id: chunk[0]?.id, messages: chunk });
-    }
-    return result;
-  });
-
-  function estimateSectionHeight(sectionId) {
-    return sectionHeights.get(sectionId) ?? 1800;
-  }
-
-  const topSpacerHeight = createMemo(() => {
-    let total = 0;
-    const s = sections();
-    for (let i = 0; i < visibleStart(); i++) {
-      total += estimateSectionHeight(s[i]?.id);
-    }
-    return total;
-  });
-
-  const bottomSpacerHeight = createMemo(() => {
-    let total = 0;
-    const s = sections();
-    for (let i = visibleEnd() + 1; i < s.length; i++) {
-      total += estimateSectionHeight(s[i]?.id);
-    }
-    return total;
-  });
-
-  function captureAnchor() {
-    if (!scrollEl) return;
-    const containerRect = scrollEl.getBoundingClientRect();
-    const centerY = containerRect.top + scrollEl.clientHeight / 2;
-    let best = null;
-    let bestDist = Infinity;
-    scrollEl.querySelectorAll(".vml-item").forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const itemCenter = rect.top + rect.height / 2;
-      const dist = Math.abs(itemCenter - centerY);
-      if (dist < bestDist) {
-        best = el;
-        bestDist = dist;
-      }
-    });
-    if (!best) return;
-    anchorId = best.dataset.id;
-    anchorOffset = best.getBoundingClientRect().top - containerRect.top;
-  }
-
-  function restoreAnchor() {
-    if (!anchorId || !scrollEl) return;
-    requestAnimationFrame(() => {
-      const anchor = scrollEl.querySelector(`[data-id="${anchorId}"]`);
-      if (!anchor) return;
-      const containerRect = scrollEl.getBoundingClientRect();
-      const newOffset = anchor.getBoundingClientRect().top - containerRect.top;
-      scrollEl.scrollTop += newOffset - anchorOffset;
-    });
-  }
-
-  function updateVirtualWindow() {
-    if (!scrollEl) return;
-    const centerY = scrollEl.scrollTop + scrollEl.clientHeight / 2;
-    let accumulated = 0;
-    let centerSection = 0;
-    const s = sections();
-    for (let i = 0; i < s.length; i++) {
-      accumulated += estimateSectionHeight(s[i].id);
-      if (accumulated >= centerY) {
-        centerSection = i;
-        break;
-      }
-    }
-    const start = Math.max(0, centerSection - WINDOW_RADIUS);
-    const end = Math.min(sections().length - 1, centerSection + WINDOW_RADIUS);
-    if (start === visibleStart() && end === visibleEnd()) return;
-    captureAnchor();
-    setVisibleStart(start);
-    setVisibleEnd(end);
-    queueMicrotask(restoreAnchor);
-  }
-
-  const [showNewIndicator, setShowNewIndicator] = createSignal(false);
-  const [hoveredMessage, setHoveredMessage] = createSignal(null);
-  const [hoverRect, setHoverRect] = createSignal(null);
-  const [showScrollButton, setShowScrollButton] = createSignal(false);
-const [hasUnreadBelow, setHasUnreadBelow] = createSignal(false);
-const [unreadCount, setUnreadCount] = createSignal(0);
-
-  let hideTimer;
-function scrollToBottom(instant = false) {
-  scrollEl.scrollTo({
-    top: scrollEl.scrollHeight,
-    behavior: instant ? "instant" : "smooth",
-  });
-}
-  let wasNearBottom = true;
-function onScroll() {
-  if (!scrollEl) return;
-
-  const nearBottom = isNearBottom();
-
-  setScrollLocked(nearBottom);
-  setShowScrollButton(!nearBottom);
-
-  if (nearBottom) {
-    setUnreadCount(0);
-  }
-
-  if (scrollEl.scrollTop < SCROLL_NEAR_TOP)
-    loadOlder();
-
-  updateVirtualWindow();
-}
-function onVisibilityChange() {
-  if (!document.hidden && scrollLocked()) {
-    requestAnimationFrame(() => {
-      scrollToBottom(true);
-    });
-  }
-}
-
-document.addEventListener("visibilitychange", onVisibilityChange);
-
-onCleanup(() => {
-  document.removeEventListener("visibilitychange", onVisibilityChange);
-});
-  createEffect(
-    on(sections, () => { queueMicrotask(updateVirtualWindow); }, { defer: true })
-  );
-
-  createEffect(
-    on(lastUpdate, (update) => {
-      if (!update) return;
-
-      if (update.type === "initial") {
-        setShowNewIndicator(false);
-        const total = sections().length;
-        setVisibleStart(Math.max(0, total - 5));
-        setVisibleEnd(total - 1);
-        requestAnimationFrame(() => {
-          scrollToBottom(true);
-          updateVirtualWindow();
-        });
-        return;
-      }
-
-if (update.type === "append") {
-  if (scrollLocked()) {
-    scrollToBottom(false);
-  } else {
-    setShowScrollButton(true);
-    setUnreadCount(c => c + 1);
-  }
-}
-      if (update.type === "jump") {
-        requestAnimationFrame(() => {
-          const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
-          if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
-        });
-      }
-
-      if (update.type === "reset") {
-        requestAnimationFrame(() => scrollToBottom(true));
-      }
-    })
-  );
-  const renderOverlay = state.settings.profileOverlays;
-
-  return (
-    <>
+    return (
+        <>
+                <div className="realchannelcontent">
       <Show when={props.onBack}>
         <div class="forum-thread-header">
           <button class="forum-back-btn x" onClick={props.onBack}>
@@ -315,18 +345,18 @@ if (update.type === "append") {
           </button>
         </div>
       </Show>
-      <div ref={(el) => { scrollEl = el; }} class="vml-scroll" onScroll={onScroll}>
-      <Show when={showScrollButton()}>
+       <Show when={showScrollButton()}>
         <button class="scroll-to-bottom-btn" onClick={() => {
-        console.log("clicked");
-        scrollToBottom();
-      }}> 
-      <HiOutlineChevronDown/>
+            scrollToBottom();
+          }}> 
+        <HiOutlineChevronDown/>
         <Show when={unreadCount() > 0}>
           <span class="badge">{unreadCount()}</span>
         </Show>
-      </button>
+       </button>
       </Show>
+      <div ref={(el) => { scrollEl = el; }} class="vml-scroll" onScroll={onScroll}>
+     
         <Show when={!hasOlderMessages() && messages().length}>
           <div class="vml-beginning">You've reached the beginning.</div>
         </Show>
@@ -451,6 +481,7 @@ if (update.type === "append") {
           />
         </div>
       </Show>
+      </div>
     </>
-  );
+    );
 }

@@ -1,0 +1,11 @@
+.server_bar {
+  justify-content: center;
+}
+
+.server_single {
+  &:has(.add_server) {
+    margin-top: 0 !important;
+    position: absolute;
+    bottom: 0.7em;
+  }
+}

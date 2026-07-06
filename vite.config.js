@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import solid from 'vite-plugin-solid'
+import { defineConfig } from "vite";
+import solid from "vite-plugin-solid";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [solid()],
-  base: "/indigo/",
-})
+  base: command === "build" ? "/indigo/" : "/",
+}));

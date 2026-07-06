@@ -84,6 +84,15 @@
   display: block;
 }
 
+.server_single,
+.browser_tabs button,
+.discovery_join,
+.server_tooltip,
+.emoji_category,
+nav button {
+  border: 1px solid transparent;
+}
+
 .server_single--active,
 .browser_tabs button.active,
 .discovery_join,
@@ -92,7 +101,7 @@
 nav button.active {
   position: relative;
   background-color: var(--bg-three);
-  box-shadow: var(--border);
+  border-color: var(--hl-four);
 }
 
 .text_box_wrapper {
@@ -116,6 +125,27 @@ nav button.active {
   padding: .5em;
   z-index: 2;
   border-right: 1px solid var(--diff-three);
+}
+
+.first_bar,
+.third_bar {
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.resize_handle {
+  width: 4px;
+  cursor: col-resize;
+  flex-shrink: 0;
+  padding: 0 !important;
+  background-color: var(--bg-three);
+  transition: .3s;
+opacity: 0;
+}
+
+.resize_handle:hover,
+.resize_handle:active {
+opacity: 1;
 }
 
 @keyframes tap {
@@ -218,7 +248,6 @@ iframe#rotur-auth {
 
 .server_info {
   width: 100%;
-  max-width: 275px;
   position: sticky;
   top: 0;
   background-color: var(--bg-two);
@@ -266,7 +295,7 @@ iframe#rotur-auth {
     cursor: pointer;
     content-visibility: auto;
     contain-intrinsic-size: 41.38px;
-    max-width: 230px;
+    max-width: calc(100% - .4em);
 
     & * {
       overflow: hidden;
@@ -377,7 +406,7 @@ iframe#rotur-auth {
     border-radius: .5em;
     margin-top: .5em;
     width: calc(100% - 1.35em);
-  border: 1px solid var(--diff-three);
+    border: 1px solid var(--diff-three);
   }
 }
 
@@ -459,7 +488,7 @@ span.channel_badge {
       background-color: var(--bg-one);
       padding: .5em;
       border-radius: .5em;
-  border: 1px solid var(--diff-three);
+      border: 1px solid var(--diff-three);
     }
 
     & .emoji_grid {
@@ -482,7 +511,6 @@ span.channel_badge {
 
     & .emoji_category {
       padding: .2em .3em;
-      background: var(--bg-three);
       margin-bottom: .2em;
       border-radius: .5em;
       aspect-ratio: 1 / 1;
@@ -561,6 +589,11 @@ img.channel_icon_image {
     &:hover {
       background-color: var(--bg-three);
     }
+
+    &.active {
+      background-color: var(--bg-three);
+      border: 1px solid var(--diff-three);
+    }
   }
 }
 
@@ -569,6 +602,7 @@ img.channel_icon_image {
   border-radius: .3em;
   padding: .3em .5em;
   display: flex;
+  margin-left: .5em;
   border: 1px solid var(--diff-three);
 
   &>input {
@@ -594,7 +628,7 @@ img.channel_icon_image {
     border-radius: .5em;
     padding: .5em .7em;
     width: 100%;
-    background-color: var(--bg-two);
+    background-color: var(--diff-one);
     padding-left: 2em;
     margin-top: .2em;
     text-align: left;
@@ -1018,7 +1052,7 @@ img.channel_icon_image {
   background-color: var(--bg-two);
   padding: .3em .5em;
   border-radius: .3em;
-  border: none;
+  border: 1px solid var(--diff-three);
   color: inherit;
 
   &:focus,
@@ -1544,7 +1578,7 @@ img.big_emoji {
 
 .scroll-to-bottom-btn {
   position: absolute;
-  bottom: 5em;
+  bottom: 0em;
   right: 1em;
   z-index: 99;
   padding: .5em;
@@ -1724,4 +1758,11 @@ img.big_emoji {
 
 .pfpWO .overlayless {
   transform: scale(1.2);
+}
+
+.realchannelcontent {
+  position: relative;
+  display: flex;
+  height: 0;
+  flex: 1;
 }

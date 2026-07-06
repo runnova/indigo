@@ -68,8 +68,8 @@ export default function MemberItem(props) {
             : ""}
         </span>
 
-        <Show when={props.online}>
-          <small>{status.loading ? "Loading..." : status().status}</small>
+        <Show when={props.online && status}>
+          <small>{status.loading ? "Loading..." : status()?.status}</small>
         </Show>
       </div>
     </div>

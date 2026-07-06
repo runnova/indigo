@@ -51,6 +51,7 @@
 
   & .message_text {
     margin-top: .3em;
+    user-select: text;
   }
 
   & .message_meta {
@@ -158,6 +159,7 @@
   overflow-x: hidden;
   scroll-behavior: auto;
   overscroll-behavior: contain;
+  position: relative;
 }
 
 .vml-inner {
@@ -279,7 +281,7 @@
   gap: 4px;
   padding: 10px;
   border-left: 4px solid var(--hl-two);
-  background: var(--bg-two);
+  background: var(--diff-two);
   border-radius: 6px;
   text-decoration: none;
   color: inherit;

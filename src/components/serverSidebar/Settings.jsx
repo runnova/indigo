@@ -52,10 +52,6 @@ function GeneralSettings() {
   }
   return (
     <>
-      <div class="note">
-        None of the general settings is usable yet. I'm working on this. Head to the themes section for the moment.
-      </div>
-
       <h2 class="settings_title">General</h2>
 
       <div class="settings_item x">
@@ -71,6 +67,10 @@ function GeneralSettings() {
       <div class="settings_item x">
         <div class="settings_section_label">Send typing status</div>
         <SettingCheckbox setting="sendTypingStatus" />
+      </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">Parse markdown in messages</div>
+        <SettingCheckbox setting="parseMarkdown" />
       </div>
 
       <h2 class="settings_title">Performance</h2>
@@ -91,6 +91,11 @@ function GeneralSettings() {
           <option value="ondemand">Load on demand</option>
           <option value="whitelist">Server whitelist</option>
         </SettingSelect>
+      </div>
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Preload channels on hover</div>
+        <SettingCheckbox setting="channelPreload" />
       </div>
 
       <h2 class="settings_title">Identity</h2>
