@@ -2,8 +2,9 @@
   background: linear-gradient(to right, rgb(0, 0, 0), rgb(54, 35, 18), rgb(120, 79, 23), rgb(181, 63, 27), rgb(237, 34, 36), rgb(243, 91, 34), rgb(249, 150, 33), rgb(245, 193, 30), rgb(241, 235, 27) 48%, rgb(241, 235, 27), rgb(241, 235, 27) 52%, rgb(99, 199, 32), rgb(12, 155, 73), rgb(33, 135, 141), rgb(57, 84, 165), rgb(97, 55, 155), rgb(147, 40, 142));
   padding: 0;
   &>.channelbar {
-    background-color: var(--bg-one);
-    opacity: .7;
+    color: white;
+    background-color: #000000ab;
     padding: .5em;
+    border-radius: .5em;
   }
 }

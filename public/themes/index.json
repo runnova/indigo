@@ -1,5 +1,25 @@
 [
   {
+    "id": "official",
+    "name": "Clean Dark",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "A clean dark theme.",
+    "file": "official.css",
+    "preview": "#bd93f9",
+    "price": 0
+  },
+  {
+    "id": "light",
+    "name": "Clean light",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "A clean light theme.",
+    "file": "light.css",
+    "preview": "#ffffff",
+    "price": 0
+  },
+  {
     "id": "aqua",
     "name": "Aqua",
     "author": "darkdot",
@@ -39,23 +59,22 @@
     "price": 0
   },
   {
-    "id": "official",
-    "name": "Clean Dark",
+    "id": "imagebg",
+    "name": "Wallpaper",
     "author": "darkdot",
     "version": "1.0.0",
-    "description": "A clean dark theme.",
-    "file": "official.css",
-    "preview": "#bd93f9",
+    "description": "Use this theme for themes with images",
+    "file": "imagebg.css",
     "price": 0
   },
   {
-    "id": "light",
-    "name": "Clean light",
+    "id": "neongirl",
+    "name": "NEON",
     "author": "darkdot",
     "version": "1.0.0",
-    "description": "A clean light theme.",
-    "file": "light.css",
-    "preview": "#ffffff",
+    "description": "Use wallpaper theme. Neon theme",
+    "file": "neongirl.css",
+    "preview": "#ff74dc",
     "price": 0
   }
 ]

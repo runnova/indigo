@@ -28,7 +28,9 @@ export default function RightSidebar(props) {
           "max-width": `${thirdBarWidth()}px`,
         }}
       >
-        <Dynamic component={View()} {...props} />
+        <Dynamic component={View()}
+          conn={props.conn}
+          getHoistedRole={props.getHoistedRole} {...props} />
       </div>
     </>
   );

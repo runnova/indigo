@@ -13,17 +13,9 @@ import {
   HiOutlineMapPin,
   HiOutlineMagnifyingGlass,
   HiOutlineInbox,
-  HiOutlineUserCircle,
-  HiOutlineArrowTopRightOnSquare,
-  HiOutlineTrash,
-  HiOutlineArrowPath,
-  HiOutlineArrowUturnLeft,
-  HiOutlineClipboard,
-  HiOutlineChatBubbleLeftRight,
-  HiOutlineCommandLine,
-  HiOutlineDocumentText,
-  HiOutlineChatBubbleBottomCenterText
+  HiOutlineUserCircle
 } from "solid-icons/hi";
+
 const appIcon = `${import.meta.env.BASE_URL}icon.svg`;
 
 import MemberPopout from "./components/rightSidebar/memberList/MemberPopout.jsx";
@@ -37,14 +29,13 @@ import { VirtualMessageList, getMessageById, addFakeMessage } from "./scolling";
 import { ForumView } from "./components/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
-import SystemContextMenu from './components/Systemcontextmenu.js';
-
 import {
   useServerConnection,
   ensureConnected,
   connections
-} from "./server_connection";
+} from "./core/server_connection.jsx";
 import MediaPreview from "./components/MediaPreview";
+import useAppInitialization from "./core/useAppInitialization.js"
 
 import { Rotur } from "rotur-sdk";
 import "./themeManager";
@@ -66,85 +57,7 @@ const removeServer = (src) => {
   );
 };
 
-SystemContextMenu.init([
-  {
-    'data-context': 'server',
-    actions: [
-      {
-        label: 'Open',
-        icon: HiOutlineArrowTopRightOnSquare,
-        fn: (el) => el.click(),
-      },
-      {
-        label: 'Remove',
-        icon: HiOutlineTrash,
-        fn: (el) => {
-          removeServer(el.dataset.src)
-        },
-      },
-      {
-        label: 'Reset cache',
-        icon: HiOutlineArrowPath,
-        fn: (el) => console.log('reset cache', el),
-      },
-    ],
-  },
-  {
-    'data-context': 'message',
-    actions: [
-      {
-        label: 'Reply',
-        icon: HiOutlineArrowUturnLeft,
-        fn: (el) => {
-          const msg = getMessageById(el.dataset.id);
-          console.log(el.dataset.id, msg)
-          setState("replying", {
-            id: el.dataset.id,
-            user: msg.user,
-            content: msg.content,
-          });
-        },
-      },
-      {
-        label: 'Copy ID',
-        icon: HiOutlineClipboard,
-        fn: (el) => console.log(el.dataset.id),
-      },
-      {
-        label: 'Message Actions',
-        icon: HiOutlineChatBubbleLeftRight,
-        actions: [
-          {
-            label: 'Packet inspect',
-            icon: HiOutlineCommandLine,
-            fn: (el) => {
-              const msg = getMessageById(el.dataset.id);
-              console.log(el.dataset.id, msg)
-              addFakeMessage({
-                user: "Indigo",
-                avatar: "/icon_small.svg",
-                content: `\`\`\`json
-${JSON.stringify(msg, null, 2)}
-\`\`\``,
-              });
-            },
-          },
-          {
-            label: 'Copy text',
-            icon: HiOutlineDocumentText,
-            fn: (el) => console.log('copy text', el),
-          },
-          {
-            label: 'Quote',
-            icon: HiOutlineChatBubbleBottomCenterText,
-            fn: (el) => console.log('quote', el),
-          },
-        ],
-      },
-    ],
-  },
-]);
-
+import "./core/ContextMenuDefs.jsx"
 
 const [firstBarWidth, setFirstBarWidth] = createSignal(260);
 export const [thirdBarWidth, setThirdBarWidth] = createSignal(320);
@@ -250,6 +163,7 @@ function preloadChannelMessages(channelName) {
     }, 5000);
   });
 }
+
 function App() {
   conn = useServerConnection();
   const currentChannel = createMemo(() =>
@@ -257,45 +171,7 @@ function App() {
       .channels()
       .find(channel => channel.name === state.current.channel)
   );
-  onMount(async () => {
-    Object.assign(tempState, {
-      conn,
-      roles: conn.roles,
-      members: conn.members,
-      membersOnline: conn.membersOnline
-    });
-
-    const server =
-      state.current.server ??
-      state.servers[0];
-
-    if (!server) return;
-    setState("current", "server", server);
-
-    const settings = JSON.parse(
-      localStorage.getItem("settings") || "{}"
-    );
-
-    if (settings.type === "token" && settings.token) {
-      tempState.rotur = new Rotur({ token: settings.token });
-      conn.connect(server, settings.token);
-    } else {
-      conn.connectCracked(server, {
-        username: "guest",
-        password: "guest"
-      });
-    }
-    const getHostname = (src) => {
-      return new URL(
-        src.includes("://") ? src : `https://${src}`
-      ).hostname;
-    };
-    await tempState.rotur.connectSocket();
-
-    await tempState.rotur.socket.join(
-      state.servers.map(({ src }) => `originChats:${getHostname(src)}`)
-    );
-  });
+  useAppInitialization(conn, setState, state, Rotur);
   function getPersistedState() {
     return {
       servers: state.servers,
@@ -306,12 +182,14 @@ function App() {
     };
   }
   createEffect(() => {
+    // get persisted state
     localStorage.setItem(
       "state",
       JSON.stringify(getPersistedState())
     );
   });
   createEffect(() => {
+    // populate icon and name of connected server
     const info = conn.serverInfo();
     const current = state.current.server;
 
@@ -327,11 +205,7 @@ function App() {
     );
   });
   createEffect(() => {
-    tempState.roles = conn.roles;
-    tempState.members = conn.members;
-    tempState.membersOnline = conn.membersOnline;
-  });
-  createEffect(() => {
+    // open default or persisted channel
     if (conn.status() !== "ready") return;
 
     const channels = conn.channels();
@@ -354,6 +228,7 @@ function App() {
   });
 
   createEffect((prev) => {
+    // get unreads
     const ready =
       conn.status() === "ready";
 
@@ -367,6 +242,7 @@ function App() {
   }, false);
 
   createEffect(() => {
+    // mark as read
     if (conn.status() !== "ready") return;
 
     const channel = state.current.channel;
@@ -392,6 +268,7 @@ function App() {
   });
 
   createEffect(() => {
+    // idle servers
     const settings = JSON.parse(
       localStorage.getItem("settings") || "{}"
     );
@@ -414,6 +291,17 @@ function App() {
             }
           }
       );
+    }
+  });
+
+  const [fadeOut, setFadeOut] = createSignal(false);
+  createEffect(() => {
+    if (loaded.done) {
+      setFadeOut(true);
+
+      setTimeout(() => {
+        setShowLoader(false);
+      }, 300);
     }
   });
 
@@ -467,92 +355,6 @@ function App() {
       roles[roleId]?.hoisted
     );
   };
-
-  const onlineUsers = createMemo(
-    () => new Set(conn.membersOnline().map((u) => u.username))
-  );
-  const memberSections = createMemo(() => {
-    const online = new Set(
-      conn.membersOnline().map(u => u.username)
-    );
-
-    const roles = conn.roles?.() ?? {};
-    const members = conn.members();
-
-    const sections = [];
-    const assigned = new Set();
-    const hoistedSections = new Map();
-
-    for (const user of members) {
-      if (!online.has(user.username)) continue;
-
-      const roleId = user.roles?.find(
-        id => roles[id]?.hoisted
-      );
-
-      if (!roleId) continue;
-
-      if (!hoistedSections.has(roleId)) {
-        hoistedSections.set(roleId, []);
-      }
-
-      hoistedSections.get(roleId).push(user);
-      assigned.add(user.username);
-    }
-
-    const sortedHoistedSections = [...hoistedSections.entries()]
-      .sort(
-        ([a], [b]) =>
-          (roles[a]?.position ?? 0) -
-          (roles[b]?.position ?? 0)
-      );
-
-    for (const [roleId, users] of sortedHoistedSections) {
-      users.sort((a, b) =>
-        a.username.localeCompare(b.username)
-      );
-      sections.push({
-        label: roles[roleId]?.name ?? roleId,
-        users,
-      });
-    }
-
-    const onlineUsers = members.filter(user =>
-      online.has(user.username) &&
-      !assigned.has(user.username)
-    );
-
-    if (onlineUsers.length) {
-      sections.push({
-        label: "Online",
-        users: onlineUsers,
-      });
-    }
-
-    const offlineUsers = members.filter(user =>
-      !online.has(user.username)
-    );
-
-    if (offlineUsers.length) {
-      sections.push({
-        label: "Offline",
-        users: offlineUsers,
-      });
-    }
-
-    return sections;
-  });
-
-  const [fadeOut, setFadeOut] = createSignal(false);
-  createEffect(() => {
-    if (loaded.done) {
-      setFadeOut(true);
-
-      setTimeout(() => {
-        setShowLoader(false);
-      }, 300);
-    }
-  });
 
   return (
     <div class="main x">
@@ -752,10 +554,6 @@ function App() {
               }}
             />
             <RightSidebar
-              sections={memberSections()}
-              onlineUsers={onlineUsers()}
-              roles={conn.roles?.()}
-              getHoistedRole={getHoistedRole}
               state={state}
               conn={conn}
             />

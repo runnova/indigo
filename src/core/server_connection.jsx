@@ -21,7 +21,7 @@
  */
 
 import { createSignal } from "solid-js";
-import { state, setState, unreads, setUnreads, setLoaded } from "./App"
+import { state, setState, unreads, setUnreads, setLoaded } from "../App"
 
 
 export const connections = new Map();

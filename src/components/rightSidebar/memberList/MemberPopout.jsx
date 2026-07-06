@@ -374,7 +374,7 @@ export default function MemberPopout() {
                                   class="role_dot"
                                   style={{
                                     background:
-                                      tempState.roles()?.[role]?.color || "#888"
+                                      tempState.conn.roles()?.[role]?.color || "#888"
                                   }}
                                 />
                                 {role}

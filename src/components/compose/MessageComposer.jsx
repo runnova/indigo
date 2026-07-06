@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 import EmojiPicker from "./EmojiPicker"
 import { state, setState, tempState } from "../../App"
 import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
-import { fetchRoturValidator } from "../../server_connection";
+import { fetchRoturValidator } from "../../core/server_connection";
 import Typing from "./Typing";
 
 export default function MessageComposer(props) {

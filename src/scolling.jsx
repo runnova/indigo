@@ -19,7 +19,7 @@ import {
 } from "./components/messages/MessageActions.jsx";
 import {
     createChannelMessages
-} from "./useChannelMessages";
+} from "./core/useChannelMessages";
 import {
     tempState,
     state,

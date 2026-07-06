@@ -1,7 +1,9 @@
 import { Show, createResource } from "solid-js";
 import { openPopout } from "./popout";
+import {tempState} from "../../../App"
 
 export default function MemberItem(props) {
+  props.user = tempState?.conn?.members()?.find(user => user.username === props.user.username)
   const roleId = () =>
     props.getHoistedRole(props.user) ?? props.user.roles?.[0];
 
