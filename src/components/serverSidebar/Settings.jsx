@@ -72,6 +72,10 @@ function GeneralSettings() {
         <div class="settings_section_label">Parse markdown in messages</div>
         <SettingCheckbox setting="parseMarkdown" />
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">Temporarily keep deleted messages</div>
+        <SettingCheckbox setting="messageLogger" />
+      </div>
 
       <h2 class="settings_title">Performance</h2>
 

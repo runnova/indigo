@@ -386,6 +386,7 @@ export function VirtualMessageList(props) {
                           "vml-item": true,
                           "is-grouped": grouped,
                           "is-reply-target": state.replying?.id === msg()?.id,
+                          "is-edit-target": state.editing?.id === msg()?.id,
                         }}
                         onMouseEnter={(e) => {
                           clearTimeout(hideTimer);
@@ -426,6 +427,8 @@ export function VirtualMessageList(props) {
   interaction={interaction}
   reply={replyMessage}
   fake={msg().__fake}
+  deleted={msg()?.deleted}
+  editing={state.editing?.id === msg()?.id}
   onDismiss={() =>
     setFakeMessages(messages =>
       messages.filter(m => m.id !== msg().id)
@@ -471,7 +474,14 @@ export function VirtualMessageList(props) {
                 content: hoveredMessage().content,
               });
             }}
-            onEdit={() => console.log("edit", hoveredMessage())}
+            onEdit={() => {
+              tempState.virtMsgList.scrollToMessage(hoveredMessage().id);
+              setState("editing", {
+                id: hoveredMessage().id,
+                user: hoveredMessage().user,
+                content: hoveredMessage().content,
+              });
+            }}
             onDelete={() => tempState.conn.send({
               "cmd": "message_delete",
               "id": hoveredMessage().id,

@@ -1,4 +1,4 @@
-import { For, createMemo } from "solid-js";
+import { For, Show, createMemo, createSignal, createEffect } from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
@@ -6,16 +6,25 @@ import { HiOutlineXMark } from "solid-icons/hi";
 
 export function Message(props) {
   const rendered = createMemo(() =>
-    parseMarkdown(props.content)
+    !state.settings.parseMarkdown
+      ? props.content
+      : parseMarkdown(props.content)
   );
   if (props.reply) {
     props.reply.username = props.reply.user;
   }
   const member = tempState?.conn?.members()?.find(user => user.username === props.username);
   const gradient = member?.gradient;
+  const [editValue, setEditValue] = createSignal("");
+
+  createEffect(() => {
+    if (props.editing) {
+      setEditValue(props.content);
+    }
+  });
   return (
     <div
-      class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake ? "is-fake" : ""}`}
+      class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
     >
       {(props.reply || props.interaction) && (
         <div class="reply_preview x">
@@ -51,7 +60,7 @@ export function Message(props) {
               </div>
 
               <div class="reply_text">
-                <kdb>/{props.interaction.command}</kdb>
+                <kbd>/{props.interaction.command}</kbd>
               </div>
             </>
           )}
@@ -121,9 +130,49 @@ export function Message(props) {
             </div>
           )}
 
-          <div class="message_text">
-            {rendered()}
-          </div>
+          <Show
+            when={props.editing}
+            fallback={
+              <div class="message_text">
+                {rendered()}
+              </div>
+            }
+          >
+            <textarea
+              class="message_edit_textarea"
+              value={editValue()}
+              onInput={e => setEditValue(e.currentTarget.value)}
+              rows={Math.max(2, editValue().split("\n").length)}
+              autofocus
+              onKeyDown={e => {
+                if (e.key === "Escape") {
+                  setState("editing", null);
+                }
+
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+
+                  tempState.conn.send({
+                    cmd: "message_edit",
+                    id: props.id,
+                    channel: state.current.channel,
+                    content: editValue(),
+                  });
+
+                  setState("editing", null);
+                }
+              }}
+            />
+            <small class="edit_instruct">ESC to <a
+              href=""
+              onClick={e => {
+                e.preventDefault();
+                setState("editing", null);
+              }}
+            >
+              cancel
+            </a>, ENTER to send</small>
+          </Show>
 
           {props.attachments?.length > 0 && (
             <div class="attachments">

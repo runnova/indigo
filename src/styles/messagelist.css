@@ -7,11 +7,14 @@
 .attachments {
   overflow: hidden;
   margin-top: .3em;
+  gap: .5em;
+  display: flex;
+  flex-direction: row;
 
   &>* {
-    max-width: 300px;
-    max-height: 300px;
-    object-fit: scale-down;
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
     border-radius: .5em;
   }
 }
@@ -23,7 +26,7 @@
   transition: background-color .2s;
 
   &:hover {
-      background-color: var(--diff-one);
+    background-color: var(--diff-one);
 
     & .message_spacer {
       opacity: 1;
@@ -97,6 +100,10 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      &>kbd {
+        background-color: var(--diff-two);
+      }
     }
 
     &>.reply_author.x {
@@ -293,14 +300,20 @@
   }
 
   & img {
-    width: 200px;
-    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
     object-fit: contain;
   }
+
   &>.col {
     display: inherit;
     flex-direction: column;
     gap: .5em;
+
+    &:first-child {
+      width: 0;
+      flex: 1;
+    }
   }
 }
 
@@ -312,12 +325,14 @@
 .embed_title {
   font-weight: 600;
 }
+
 .embed_url {
-    opacity: .5;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: small;
+  opacity: .5;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: small;
 }
+
 .embed_description {
   opacity: .5;
   font-size: small;
@@ -330,9 +345,9 @@
 }
 
 .forum-back-btn {
-    align-items: center;
-    gap: .3em;
-    background-color: var(--bg-three);
-    border-radius: .5em;
-    padding: .2em .5em;
+  align-items: center;
+  gap: .3em;
+  background-color: var(--bg-three);
+  border-radius: .5em;
+  padding: .2em .5em;
 }

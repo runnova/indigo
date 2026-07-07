@@ -67,6 +67,7 @@ const defaultState = {
   },
   serverChannels: {},
   replying: null,
+  editing: null,
   thirdBarContext: "members",
   searchQuery: "",
   theme: {
@@ -83,8 +84,9 @@ const defaultState = {
     loadAttachments: "all",
     showNicknames: "nickname",
     blockedMessages: "collapsed",
-  firstBarWidth: 260,
-  thirdBarWidth: 320,
+    messageLogger: false,
+    firstBarWidth: 260,
+    thirdBarWidth: 320,
   }
 };
 export const [unreads, setUnreads] = createStore({
@@ -120,6 +122,7 @@ export const [state, setState] = createStore({
     ...(savedState.serverChannels ?? {})
   },
   replying: null,
+  editing: null,
   thirdBarContext: "members",
   searchQuery: "",
   theme: {

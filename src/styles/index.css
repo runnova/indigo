@@ -1765,3 +1765,20 @@ img.big_emoji {
   height: 0;
   flex: 1;
 }
+
+.deleted {
+  color: rgb(255, 155, 155);
+  background-color: rgba(62, 0, 0, 0.212);
+}
+
+.message_edit_textarea {
+    padding: .5em;
+    background-color: var(--diff-one);
+    border: 1px solid var(--diff-three);
+    border-radius: .5em;
+}
+
+.edit_instruct {
+  opacity: .5;
+  margin: .5em .5em;
+}

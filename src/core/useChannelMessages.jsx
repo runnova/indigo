@@ -1,6 +1,6 @@
 import { createSignal, createEffect, on, batch } from "solid-js";
 import { produce } from "solid-js/store";
-import { unreads, setUnreads } from "../App";
+import { unreads, setUnreads, state } from "../App";
 
 const PAGE_SIZE = 20;
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -302,6 +302,83 @@ export function createChannelMessages({
     }
   }
 
+  function handleMessageDelete(event) {
+    const id = event.id;
+    if (id == null) return;
+
+    if (state.settings.messageLogger) {
+      setMessages(prev =>
+        prev.map(message =>
+          message.id === id
+            ? {
+              ...message,
+              deleted: true,
+            }
+            : message
+        )
+      );
+
+      setLastUpdate({
+        type: "update",
+        id,
+      });
+
+      return;
+    }
+
+    setMessages(prev => prev.filter(message => message.id !== id));
+
+    setLastUpdate({
+      type: "delete",
+      id,
+    });
+  }
+
+  function handleMessageEdit(event) {
+    if (event.id == null) return;
+
+    setMessages(
+      produce(messages => {
+        const message = messages.find(m => m.id === event.id);
+        if (!message) return;
+
+        message.content = event.content;
+        message.edited = true;
+      })
+    );
+
+    setLastUpdate({
+      type: "update",
+      id: event.id,
+    });
+  }
+
+  function handleReactionAdd(event) {
+    if (event.id == null) return;
+
+    setMessages(prev =>
+      prev.map(m => {
+        if (m.id !== event.id) return m;
+
+        return {
+          ...m,
+          reactions: {
+            ...m.reactions,
+            [event.emoji]: [
+              ...(m.reactions?.[event.emoji] ?? []),
+              event.from,
+            ],
+          },
+        };
+      })
+    );
+
+    setLastUpdate({
+      type: "update",
+      id: event.id,
+    });
+  }
+
   function handleEvent(event) {
     if (!event) return;
 
@@ -319,6 +396,9 @@ export function createChannelMessages({
     if (event.cmd === "messages_get") return handleMessagesGet(event);
     if (event.cmd === "messages_around") return handleMessagesAround(event);
     if (event.cmd === "message_new") return handleMessageNew(event);
+    if (event.cmd === "message_edit") return handleMessageEdit(event);
+    if (event.cmd === "message_react_add") return handleReactionAdd(event);
+    if (event.cmd === "message_delete") return handleMessageDelete(event);
   }
 
   createEffect(

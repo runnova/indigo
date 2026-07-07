@@ -115,7 +115,7 @@ hr {
 
 blockquote {
   border-left: 3px solid var(--bg-four);
-  margin: 0;
+  margin: .5em 0;
   padding: .2em .5em;
   opacity: .8;
 }
@@ -138,4 +138,8 @@ code {
 
 li {
   margin-bottom: .5em;
+}
+
+pre code {
+  all: unset;
 }
