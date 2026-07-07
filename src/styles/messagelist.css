@@ -12,10 +12,18 @@
   flex-direction: row;
 
   &>* {
-    width: 200px;
-    height: 200px;
     object-fit: cover;
     border-radius: .5em;
+    width: 200px;
+    height: 200px;
+  }
+
+  &> :only-child {
+    max-width: 350px;
+    max-height: 350px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
   }
 }
 

@@ -97,8 +97,15 @@ export default function MediaPreview(props) {
   } ``
 
   return (
-    <div class="media_preview">
-      <div class="media_actions">
+    <div
+      class="media_preview"
+      onClick={() => {
+        reset();
+        props.onClose?.();
+      }}
+    >
+      <div class="media_actions" 
+    onClick={(e) => e.stopPropagation()}>
         <button onClick={() => zoom(0.2)}>
           <HiOutlineMagnifyingGlassPlus />
         </button>
@@ -136,6 +143,7 @@ export default function MediaPreview(props) {
       <div
         ref={viewport}
         class="media_viewport"
+        onClick={(e) => e.stopPropagation()}
         onWheel={wheel}
         onMouseDown={down}
         onDblClick={() => (scale() === 1 ? zoomTo(2) : reset())}

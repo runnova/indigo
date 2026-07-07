@@ -1,0 +1,42 @@
+@media only screen and (max-width: 500px) {
+  .root {
+    width: 300vw;
+  }
+
+  .main {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overflow-x: auto;
+  }
+
+  .server_bar,
+  .interactive_section,
+  .third_bar {
+    scroll-snap-align: start;
+  }
+
+  .first_bar,
+  .interactive_section,
+  .third_bar {
+    width: calc(100vw - 1em) !important;
+    min-width: calc(100vw - 1em) !important;
+  }
+
+
+  .server_content {
+    &>* {
+      max-width: calc(100vw - 1em) !important;
+
+      &.first_bar {
+        max-width: calc(100vw - 6em) !important;
+        width: calc(100vw - 6em) !important;
+        overflow-x: hidden;
+      }
+
+    }
+
+    & .fill.y {
+      min-width: 200vw;
+    }
+  }
+}

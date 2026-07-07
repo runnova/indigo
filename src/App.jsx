@@ -25,7 +25,7 @@ import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
-import { VirtualMessageList, getMessageById, addFakeMessage } from "./scolling";
+import { VirtualMessageList, getMessageById, addFakeMessage } from "./scrolling";
 import { ForumView } from "./components/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";

@@ -1,7 +1,7 @@
 import { createSignal, createEffect, on, For, Show } from "solid-js";
 import { HiOutlineRocketLaunch, HiOutlineUserGroup, HiOutlineChatBubbleOvalLeft } from "solid-icons/hi";
 import { createForumThreads } from "../core/useChannelMessages";
-import { VirtualMessageList } from "../scolling";
+import { VirtualMessageList } from "../scrolling";
 import { timeAgo } from "./Utility";
 import { state, setState } from "../App";
 

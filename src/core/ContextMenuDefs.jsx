@@ -11,6 +11,7 @@ import {
 } from "solid-icons/hi";
 import SystemContextMenu from '../components/Systemcontextmenu.js';
 import { setState } from "../App.jsx";
+import { getMessageById, addFakeMessage } from "../scrolling.jsx"
 
 const removeServer = (src) => {
   setState("servers", servers =>
