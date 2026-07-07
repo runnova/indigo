@@ -42,7 +42,8 @@
     background-color: var(--bg-three);
   }
 
-  &>img, &>svg {
+  &>img,
+  &>svg {
     width: 100%;
     height: 100%;
     border-radius: .3em;
@@ -139,12 +140,12 @@ nav button.active {
   padding: 0 !important;
   background-color: var(--bg-three);
   transition: .3s;
-opacity: 0;
+  opacity: 0;
 }
 
 .resize_handle:hover,
 .resize_handle:active {
-opacity: 1;
+  opacity: 1;
 }
 
 @keyframes tap {
@@ -1197,6 +1198,12 @@ img.logo {
   transition: opacity 300ms ease;
 }
 
+.logoLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .appLoader.fade-out {
   opacity: 0;
 }
@@ -1762,6 +1769,7 @@ img.big_emoji {
 .realchannelcontent {
   position: relative;
   display: flex;
+  flex-direction: column;
   height: 0;
   flex: 1;
 }
@@ -1772,10 +1780,10 @@ img.big_emoji {
 }
 
 .message_edit_textarea {
-    padding: .5em;
-    background-color: var(--diff-one);
-    border: 1px solid var(--diff-three);
-    border-radius: .5em;
+  padding: .5em;
+  background-color: var(--diff-one);
+  border: 1px solid var(--diff-three);
+  border-radius: .5em;
 }
 
 .edit_instruct {
@@ -1784,8 +1792,34 @@ img.big_emoji {
 }
 
 .inline_sticker {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-    background-color: var(--diff-one);
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  background-color: var(--diff-one);
+}
+
+.loaderProgress {
+  width: 220px;
+  height: 6px;
+  margin-top: 20px;
+  background: rgba(255,255,255,.08);
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+}
+
+.loaderProgressFill {
+  height: 100%;
+  width: 0%;
+  background: var(--hl-two);
+  transition: width .25s ease;
+}
+
+.loaderText {
+  display: block;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  opacity: .7;
 }

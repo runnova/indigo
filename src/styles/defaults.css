@@ -62,9 +62,9 @@ body {
 
 .main {
   font-family: system-ui, sans-serif;
-  padding: .3em;
-  height: calc(100% - .6em);
-  width: calc(100vw - .6em);
+  padding: 0em;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 

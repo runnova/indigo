@@ -1,4 +1,4 @@
-export default async function (conn, setState, state, Rotur) {
+export default async function (conn, setState, state, Rotur, setLoadingProgress) {
   Object.assign(tempState, {
     conn,
     roles: conn.roles,
@@ -12,11 +12,12 @@ export default async function (conn, setState, state, Rotur) {
 
   if (!server) return;
   setState("current", "server", server);
-
+setLoadingProgress(20);
   // get auth settings
   const settings = JSON.parse(
     localStorage.getItem("settings") || "{}"
   );
+  setLoadingProgress(35);
 
   if (settings.type === "token" && settings.token) {
     tempState.rotur = new Rotur({ token: settings.token });
@@ -32,9 +33,12 @@ export default async function (conn, setState, state, Rotur) {
       src.includes("://") ? src : `https://${src}`
     ).hostname;
   };
+  setLoadingProgress(50);
   await tempState.rotur.connectSocket();
+  setLoadingProgress(80);
 
   await tempState.rotur.socket.join(
     state.servers.map(({ src }) => `originChats:${getHostname(src)}`)
   );
+  setLoadingProgress(100);
 }

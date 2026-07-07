@@ -49,6 +49,15 @@
     "price": 0
   },
   {
+    "id": "miniwindow",
+    "name": "Mini window",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Put the app in a nice mini-window",
+    "file": "miniwindow.css",
+    "price": 0
+  },
+  {
     "id": "dracula",
     "name": "Dracula",
     "author": "darkdot",

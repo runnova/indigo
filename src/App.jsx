@@ -180,12 +180,13 @@ function preloadChannelMessages(channelName) {
 
 function App() {
   conn = useServerConnection();
+  const [loadingProgress, setLoadingProgress] = createSignal(0);
   const currentChannel = createMemo(() =>
     conn
       .channels()
       .find(channel => channel.name === state.current.channel)
   );
-  useAppInitialization(conn, setState, state, Rotur);
+  useAppInitialization(conn, setState, state, Rotur, setLoadingProgress);
   function getPersistedState() {
     return {
       servers: state.servers,
@@ -218,7 +219,10 @@ function App() {
       }
     );
   });
+  let restoreTimeout;
+
   createEffect(() => {
+    clearTimeout(restoreTimeout);
     // open default or persisted channel
     if (conn.status() !== "ready") return;
 
@@ -235,8 +239,8 @@ function App() {
       state.current.channel !== savedChannel &&
       channels.some(c => c.name === savedChannel)
     ) {
-      setTimeout(() => {
-        setState("current", "channel", savedChannel)
+      restoreTimeout = setTimeout(() => {
+        setState("current", "channel", savedChannel);
       }, 500);
     }
   });
@@ -383,8 +387,21 @@ function App() {
       <div class="server_content x fill">
         <Show when={showLoader()}>
           <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>
-            <div className="logoLoader">
-              <img src={appIcon} alt="Indigo" className="logo" />
+            <div class="logoLoader">
+              <img src={appIcon} alt="Indigo" class="logo" />
+
+              <div class="loaderProgress">
+                <div
+                  class="loaderProgressFill"
+                  style={{
+                    width: `${loadingProgress()}%`
+                  }}
+                />
+              </div>
+
+              <span class="loaderText">
+                {loadingProgress()}%
+              </span>
             </div>
           </div>
         </Show>

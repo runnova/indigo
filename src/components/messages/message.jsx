@@ -243,7 +243,7 @@ export function Message(props) {
                   const isCustom = emoji.startsWith("originChats://");
 
                   return (
-                    <div class="reaction_single">
+                    <div class="reaction_single" title={users.join(", ")}>
                       {isCustom ? (
                         <img
                           class="inline_emoji"
