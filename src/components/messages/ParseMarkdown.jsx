@@ -46,6 +46,7 @@ function readMaskedLink(text, start) {
 export function Embed(props) {
   const embed = props.embed;
   console.log(embed)
+  if (embed.type == "image") return;
 
   return (
     <a

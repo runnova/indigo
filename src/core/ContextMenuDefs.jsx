@@ -40,6 +40,11 @@ SystemContextMenu.init([
         icon: HiOutlineArrowPath,
         fn: (el) => console.log('reset cache', el),
       },
+      {
+        label: 'Reconnect',
+        icon: HiOutlineArrowPath,
+        fn: (el) => console.log('reset cache', el),
+      },
     ],
   },
   {

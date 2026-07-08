@@ -3,12 +3,15 @@ import {
   createMemo,
   For,
   Show,
-  createEffect
+  createEffect,
+  onMount
 } from "solid-js";
 import './emojiPicker.css'
 
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
 import { tempState } from "../../App.jsx";
+
+let searchInput;
 
 const GROUP_ICONS = {
   0: "😎",
@@ -50,6 +53,9 @@ export default function EmojiPicker(props) {
     const data = await res.json();
 
     setTags(data.tags ?? []);
+  });
+  onMount(() => {
+    searchInput?.focus();
   });
 
   createEffect(async () => {
@@ -172,6 +178,7 @@ export default function EmojiPicker(props) {
       </div>
 
       <input
+        ref={searchInput}
         type="text"
         placeholder={
           tab() === "emoji"
@@ -186,38 +193,38 @@ export default function EmojiPicker(props) {
         fallback={
           <>
             <Show when={tab() === "gif"}>
-                <div class="gif_toolbar x">
-                  <div class="gif_tags">
-                    <button
-                      classList={{ active: selectedTag() === "" }}
-                      onClick={() => setSelectedTag("")}
-                    >
-                      All
-                    </button>
-
-                    <For each={tags()}>
-                      {(tag) => (
-                        <button
-                          classList={{
-                            active: selectedTag() === tag.tag
-                          }}
-                          onClick={() => setSelectedTag(tag.tag)}
-                        >
-                          {tag.tag}
-                        </button>
-                      )}
-                    </For>
-                  </div>
-
-                  <select
-                    value={sort()}
-                    onInput={(e) => setSort(e.currentTarget.value)}
+              <div class="gif_toolbar x">
+                <div class="gif_tags">
+                  <button
+                    classList={{ active: selectedTag() === "" }}
+                    onClick={() => setSelectedTag("")}
                   >
-                    <option value="newest">Newest</option>
-                    <option value="views">Most Viewed</option>
-                    <option value="likes">Most Liked</option>
-                  </select>
+                    All
+                  </button>
+
+                  <For each={tags()}>
+                    {(tag) => (
+                      <button
+                        classList={{
+                          active: selectedTag() === tag.tag
+                        }}
+                        onClick={() => setSelectedTag(tag.tag)}
+                      >
+                        {tag.tag}
+                      </button>
+                    )}
+                  </For>
                 </div>
+
+                <select
+                  value={sort()}
+                  onInput={(e) => setSort(e.currentTarget.value)}
+                >
+                  <option value="newest">Newest</option>
+                  <option value="views">Most Viewed</option>
+                  <option value="likes">Most Liked</option>
+                </select>
+              </div>
 
             </Show>
             <div class="gif_grid">

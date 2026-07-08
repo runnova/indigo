@@ -52,7 +52,12 @@ addTheme("/themes/fun.css");
 import ContextMenu from './components/Contextmenu.jsx';
 
 import "./core/ContextMenuDefs.jsx"
-
+export const [emojiPicker, setEmojiPicker] = createStore({
+  open: false,
+  x: 0,
+  y: 0,
+  onSelect: null
+});
 
 
 const defaultState = {

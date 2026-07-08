@@ -130,6 +130,35 @@ export async function authenticate({
     validator,
   };
 }
+export function reconnectServer(src) {
+  const connection = connections.get(src);
+
+  if (!connection) return false;
+
+  if (connection.reconnectTimer) {
+    clearTimeout(connection.reconnectTimer);
+    connection.reconnectTimer = null;
+  }
+
+  connection.reconnectAttempts = 0;
+  connection.state.status = "connecting";
+  connection.state.error = null;
+
+  syncActive(connection);
+
+  if (
+    connection.ws &&
+    connection.ws.readyState !== WebSocket.CLOSED &&
+    connection.ws.readyState !== WebSocket.CLOSING
+  ) {
+    connection.ws.close();
+  } else {
+    openSocket(connection);
+  }
+
+  return true;
+}
+
 export function ensureConnected(
   server,
   {
@@ -147,6 +176,84 @@ export function ensureConnected(
     crackedUser
   );
 }
+function openSocket(connection) {
+  let ws;
+
+  try {
+    ws = new WebSocket(`wss://${connection.src}`);
+  } catch {
+    return;
+  }
+
+  connection.ws = ws;
+  if (connection.mode === "active") {
+    connection.ui?.setSocket?.(ws);
+  }
+
+  ws.onopen = () => {
+    connection.reconnectAttempts = 0;
+    connection.state.status = "handshake";
+  };
+
+  ws.onmessage = ev => {
+    const packet = JSON.parse(ev.data);
+
+    handlePacket(connection, packet);
+  };
+
+  ws.onerror = () => {
+    connection.state.error =
+      "Failed to connect to " + connection.src + ". It may be down.";
+
+    connection.state.status = "error";
+
+    syncActive(connection);
+  };
+
+  ws.onclose = () => {
+    handleDisconnect(connection);
+  };
+}
+function handleDisconnect(connection) {
+  setUnreads(
+    "servers",
+    connection.src,
+    "online",
+    false
+  );
+
+  if (
+    connection.state.status === "error" &&
+    connection.reconnectAttempts >= connection.maxReconnectAttempts
+  ) {
+    syncActive(connection);
+    return;
+  }
+
+  if (
+    connection.mode === "active" &&
+    connection.reconnectAttempts < connection.maxReconnectAttempts
+  ) {
+    connection.reconnectAttempts++;
+
+    connection.state.status = "connecting";
+    connection.state.error = null;
+
+    syncActive(connection);
+
+    connection.reconnectTimer = setTimeout(() => {
+      openSocket(connection);
+    }, 2000);
+
+    return;
+  }
+
+  if (connection.state.status !== "error") {
+    connection.state.status = "closed";
+  }
+
+  syncActive(connection);
+}
 function createConnection(server, roturToken, crackedUser) {
   const connection = {
     src: server.src,
@@ -155,6 +262,9 @@ function createConnection(server, roturToken, crackedUser) {
     ws: null,
     mode: "idle",
     pending: [],
+    reconnectAttempts: 0,
+    maxReconnectAttempts: 2,
+    reconnectTimer: null,
     state: {
       status: "connecting",
       error: null,
@@ -183,59 +293,9 @@ function createConnection(server, roturToken, crackedUser) {
     "online",
     false
   );
-
-  let ws;
-  try {
-
-    ws = new WebSocket(`wss://${server.src}`);
-  } catch (e) { }
-
-  connection.ws = ws;
-
-  ws.onopen = () => {
-    connection.state.status = "handshake";
-  };
-
-  ws.onmessage = ev => {
-    const packet = JSON.parse(ev.data);
-
-    handlePacket(
-      connection,
-      packet,
-      roturToken,
-      crackedUser
-    );
-  };
-  ws.onerror = () => {
-    connection.state.error = "Failed to connect to " + connection.src + ". It may be down.";
-    connection.state.status = "error";
-
-    syncActive(connection);
-
-    setUnreads(
-      "servers",
-      connection.src,
-      "online",
-      false
-    );
-  };
-
-  ws.onclose = () => {
-    if (connection.state.status !== "error") {
-      connection.state.status = "closed";
-    }
-
-    syncActive(connection);
-
-    setUnreads(
-      "servers",
-      connection.src,
-      "online",
-      false
-    );
-  };
-
   connections.set(server.src, connection);
+
+  openSocket(connection);
 
   return connection;
 }
@@ -438,10 +498,14 @@ export function useServerConnection() {
   let _roturToken = null;
   let _crackedUser = null;
   let _currentSrc = null;
+  let activeConnection = null;
 
 
   function attachConnection(connection) {
     connection.ui = {
+      setSocket(socket) {
+        ws = socket;
+      },
       setStatus,
       setServerInfo,
       setMe,
@@ -498,18 +562,15 @@ export function useServerConnection() {
   function connect(server, roturToken) {
     disconnect();
 
-    let connection =
-      connections.get(server.src);
+    let connection = connections.get(server.src);
 
     if (!connection) {
-      connection = createConnection(
-        server,
-        roturToken,
-        null
-      );
+      connection = createConnection(server, roturToken, null);
     }
 
     connection.mode = "active";
+    activeConnection = connection;
+
     setLastEvent(null);
     attachConnection(connection);
 
@@ -530,6 +591,7 @@ export function useServerConnection() {
 
     connection.mode = "active";
 
+    activeConnection = connection;
     ws = connection.ws;
     attachConnection(connection);
 
@@ -544,16 +606,17 @@ export function useServerConnection() {
   }
 
   function send(payload) {
-    const connection =
-      [...connections.values()]
-        .find(c => c.ws === ws);
+    const connection = activeConnection;
+
+    if (!connection) return;
+
+    const ws = connection.ws;
 
     if (
-      !ws ||
       ws.readyState !== WebSocket.OPEN ||
       status() !== "ready"
     ) {
-      connection?.pending.push(payload);
+      connection.pending.push(payload);
       return;
     }
 
@@ -561,16 +624,16 @@ export function useServerConnection() {
   }
 
   function disconnect() {
-    if (!ws) return;
+    if (activeConnection) {
+      activeConnection.mode = "idle";
 
-    const connection =
-      [...connections.values()]
-        .find(c => c.ws === ws);
-
-    if (connection) {
-      connection.mode = "idle";
+      if (activeConnection.reconnectTimer) {
+        clearTimeout(activeConnection.reconnectTimer);
+        activeConnection.reconnectTimer = null;
+      }
     }
 
+    activeConnection = null;
     ws = null;
 
     setStatus("idle");

@@ -23,7 +23,9 @@ import {
 import {
     tempState,
     state,
-    setState
+    setState,
+    setEmojiPicker,
+    emojiPicker
 } from "./App.jsx";
 
 const [fakeMessages, setFakeMessages] = createSignal([]);
@@ -487,10 +489,29 @@ export function VirtualMessageList(props) {
               "id": hoveredMessage().id,
               "channel": state.current.channel,
             })}
-            onReact={() => console.log("react", hoveredMessage())}
+           onReact={(e) => {
+            console.log("send??", hoveredMessage());
+            const rect = hoverRect();
+
+            const messageId = hoveredMessage().id;
+
+           setEmojiPicker({
+            open: true,
+            onSelect: (emoji) => {
+                tempState.conn.send({
+                cmd: "message_react_add",
+                channel: state.current.channel,
+                id: messageId,
+                emoji
+                });
+            }
+            });
+            }
+        }
           />
         </div>
       </Show>
+      
       </div>
     </>
     );

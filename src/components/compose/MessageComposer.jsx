@@ -1,7 +1,7 @@
 import { Show, For, createSignal, createEffect, onMount, on } from "solid-js";
 import { createStore } from "solid-js/store";
 import EmojiPicker from "./EmojiPicker"
-import { state, setState, tempState } from "../../App"
+import { state, setState, tempState, emojiPicker, setEmojiPicker } from "../../App"
 import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
 import { fetchRoturValidator } from "../../core/server_connection";
 import Typing from "./Typing";
@@ -235,8 +235,6 @@ export default function MessageComposer(props) {
 
     uploadAttachment(id, file);
   }
-
-  const [pickerOpen, setPickerOpen] = createSignal(false);
 
   const insertEmoji = (emoji) => {
     const start = textarea.selectionStart;
@@ -480,22 +478,24 @@ export default function MessageComposer(props) {
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"
-              onClick={() => setPickerOpen(!pickerOpen())}
+              onClick={() =>
+                setEmojiPicker("open", open => !open)
+              }
             >
               <HiOutlineFaceSmile />
             </button>
 
-            <Show when={pickerOpen()}>
+            <Show when={emojiPicker.open}>
               <div class="emoji_popup">
                 <EmojiPicker
                   src={state.current.server?.src}
                   onSelect={(emoji) => {
-                    console.log(emoji)
-                    if (emoji.url) {
-                      insertEmoji(`:${emoji.name}:`);
-                    } else {
-                      insertEmoji(emoji);
-                    }
+                    emojiPicker.onSelect?.(emoji);
+
+                    setEmojiPicker({
+                      open: false,
+                      onSelect: null
+                    });
                   }}
                 />
               </div>

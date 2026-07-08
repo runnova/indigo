@@ -243,7 +243,16 @@ export function Message(props) {
                   const isCustom = emoji.startsWith("originChats://");
 
                   return (
-                    <div class="reaction_single" title={users.join(", ")}>
+                    <div class="reaction_single" title={users.join(", ")}
+                      onClick={() => {
+                        tempState.conn.send({
+                          cmd: "message_react_add",
+                          channel: state.current.channel,
+                          id: props.id,
+                          emoji: emoji
+                        });
+                      }}
+                    >
                       {isCustom ? (
                         <img
                           class="inline_emoji"
