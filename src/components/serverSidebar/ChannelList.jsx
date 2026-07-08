@@ -125,6 +125,9 @@ export default function ChannelList(props) {
                 ? " channel_item--active"
                 : ""
                 }`}
+              channelType={ch.type}
+              data-context={ch.type === "chat" ? "type_chat" : undefined}
+              data-name={ch.name}
               onClick={() => handleSelect(ch.name)}
               onMouseEnter={hover.onMouseEnter}
               onMouseLeave={hover.onMouseLeave}

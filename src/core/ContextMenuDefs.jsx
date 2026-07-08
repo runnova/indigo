@@ -7,11 +7,14 @@ import {
   HiOutlineChatBubbleLeftRight,
   HiOutlineCommandLine,
   HiOutlineDocumentText,
-  HiOutlineChatBubbleBottomCenterText
+  HiOutlineChatBubbleBottomCenterText,
+  HiOutlineMapPin,
+  HiOutlineXMark
 } from "solid-icons/hi";
 import SystemContextMenu from '../components/Systemcontextmenu.js';
 import { setState } from "../App.jsx";
 import { getMessageById, addFakeMessage } from "../scrolling.jsx"
+import { reconnectServer } from "./server_connection.jsx";
 
 const removeServer = (src) => {
   setState("servers", servers =>
@@ -36,15 +39,54 @@ SystemContextMenu.init([
         },
       },
       {
-        label: 'Reset cache',
+        label: 'Reload icon',
         icon: HiOutlineArrowPath,
-        fn: (el) => console.log('reset cache', el),
+        fn: (el) => {
+          const img = el.closest('.server_icon');
+          if (!img) return;
+
+          const url = new URL(img.src);
+          url.searchParams.set('_', Date.now());
+
+          img.src = url.toString();
+        },
       },
       {
         label: 'Reconnect',
         icon: HiOutlineArrowPath,
-        fn: (el) => console.log('reset cache', el),
+        fn: (el) => reconnectServer(el.dataset.src),
       },
+    ],
+  },
+  {
+    'data-context': 'type_chat',
+    actions: [
+      {
+        label: 'Pin DM',
+        icon: HiOutlineMapPin,
+        fn: (el) => {
+          console.log(el.dataset.name)
+        },
+      },
+      {
+        label: 'Remove',
+        icon: HiOutlineTrash,
+        fn: (el) => {
+          // 
+        },
+      }
+    ],
+  },
+  {
+    'data-context': 'dm_pinned',
+    actions: [
+      {
+        label: 'Unpin DM',
+        icon: HiOutlineXMark,
+        fn: (el) => {
+          // 
+        },
+      }
     ],
   },
   {

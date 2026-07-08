@@ -1,0 +1,48 @@
+.server_bar {
+  padding-left: .7em;
+
+  &>.server_single>.unread_badge {
+    left: -8px;
+    padding: 2px;
+    height: 2px;
+    top: 27px;
+  }
+
+  & .server_single--active::after {
+    content: "";
+    left: -8px;
+    padding: 2px;
+    height: 30px;
+    border-radius: .5em;
+    top: 13px;
+    position: absolute;
+    background: var(--fg-three);
+  }
+}
+
+.channel_item--active:after {
+  content: "";
+  left: 5px;
+  padding: 2px;
+  height: 30px;
+  border-radius: .5em;
+  top: 4px;
+  position: absolute;
+  background: var(--fg-three);
+}
+
+.inpgrp>button.active {
+  position: relative;
+
+  &:after {
+    content: "";
+    left: 5px;
+    padding: 2px;
+    height: 0px;
+    border-radius: .5em;
+    bottom: -3px;
+    width: 18px;
+    position: absolute;
+    background: var(--fg-three);
+  }
+}

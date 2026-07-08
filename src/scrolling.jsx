@@ -336,7 +336,6 @@ export function VirtualMessageList(props) {
         })
     );
     const renderOverlay = state.settings.profileOverlays;
-
     return (
         <>
                 <div className="realchannelcontent">
@@ -363,6 +362,11 @@ export function VirtualMessageList(props) {
           <div class="vml-beginning">You've reached the beginning.</div>
         </Show>
         <div class="vml-inner">
+        <Show when={messages().length === 0}>
+            <div class="vml-empty">
+            There's nothing here. Send a message?
+            </div>
+        </Show>
           <div style={{ height: `${topSpacerHeight()}px` }} />
           <For each={sections().slice(visibleStart(), visibleEnd() + 1)}>
             {(section) => (
@@ -373,6 +377,9 @@ export function VirtualMessageList(props) {
                 <For each={section.messages}>
                   {(message, index) => {
                     const msg = () => message;
+                    console.log(44, msg())
+                    const ts = Number(msg()?.timestamp);
+                    const timestamp = ts > 1e12 ? ts : ts * 1000;
                     const previous = index() > 0 ? section.messages[index() - 1] : null;
                     const interaction = msg()?.interaction;
                     const grouped = previous && previous.user === message.user;
@@ -406,37 +413,33 @@ export function VirtualMessageList(props) {
                         }}
                       >
                         <Message
-  username={msg()?.user}
-  avatar={msg()?.avatar ?? `https://avatars.rotur.dev/${msg()?.user}`}
-  time={
-    msg()?.time ??
-    new Date(
-      typeof msg()?.timestamp === "number"
-        ? msg().timestamp * 1000
-        : Number(msg()?.timestamp) * 1000
-    ).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-  content={msg()?.content}
-  id={msg().id}
-  renderOverlay={renderOverlay}
-  reactions={msg().reactions}
-  attachments={msg()?.attachments}
-  embeds={msg().embeds}
-  grouped={grouped && !replyMessage && !interaction}
-  interaction={interaction}
-  reply={replyMessage}
-  fake={msg().__fake}
-  deleted={msg()?.deleted}
-  editing={state.editing?.id === msg()?.id}
-  onDismiss={() =>
-    setFakeMessages(messages =>
-      messages.filter(m => m.id !== msg().id)
-    )
-  }
-/>
+                            username={msg()?.user}
+                            avatar={msg()?.avatar ?? `https://avatars.rotur.dev/${msg()?.user}`}
+                           time={
+                            msg()?.time ??
+                            new Date(timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })
+                            }
+                            content={msg()?.content}
+                            id={msg().id}
+                            renderOverlay={renderOverlay}
+                            reactions={msg().reactions}
+                            attachments={msg()?.attachments}
+                            embeds={msg().embeds}
+                            grouped={grouped && !replyMessage && !interaction}
+                            interaction={interaction}
+                            reply={replyMessage}
+                            fake={msg().__fake}
+                            deleted={msg()?.deleted}
+                            editing={state.editing?.id === msg()?.id}
+                            onDismiss={() =>
+                                setFakeMessages(messages =>
+                                messages.filter(m => m.id !== msg().id)
+                                )
+                            }
+                        />
                       </div>
                     );
                   }}

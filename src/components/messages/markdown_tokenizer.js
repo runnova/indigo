@@ -26,6 +26,12 @@ function parseInlineContent(text, start = 0, endMarker = null) {
   while (i < text.length && iterations < MAX_ITERATIONS) {
     iterations++;
     const char = text[i];
+    if (char === '\n') {
+      tokens.push({ type: 'newline' });
+      i++;
+      continue;
+    }
+
 
     if (endMarker && text.slice(i, i + endMarker.length) === endMarker) {
       break;
@@ -151,6 +157,7 @@ function isSpecialChar(text, i) {
   if (char === 'h' && (text.slice(i, i + 7) === 'http://' || text.slice(i, i + 8) === 'https://')) return true;
   if (char === 'o' && text.slice(i, i + 11) === 'originChats:') return true;
   if (char === '@') return true;
+  if (char === '\n') return true;
 
   return false;
 }
@@ -423,8 +430,32 @@ function parseMarkdown(input) {
     }
 
     if (line.trim()) {
-      const { tokens: inlineTokens } = parseInlineContent(line);
-      tokens.push({ type: 'paragraph', children: inlineTokens });
+      const paragraph = [line];
+      i++;
+
+      while (
+        i < lines.length &&
+        lines[i].trim() &&
+        !lines[i].startsWith("```") &&
+        !lines[i].startsWith("#") &&
+        !lines[i].startsWith("> ") &&
+        !lines[i].match(/^[-*] /) &&
+        !lines[i].startsWith("-# ")
+      ) {
+        paragraph.push(lines[i]);
+        i++;
+      }
+
+      const { tokens: inlineTokens } = parseInlineContent(
+        paragraph.join("\n")
+      );
+
+      tokens.push({
+        type: "paragraph",
+        children: inlineTokens
+      });
+
+      continue;
     }
 
     i++;

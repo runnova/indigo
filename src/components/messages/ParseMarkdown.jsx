@@ -254,7 +254,8 @@ function renderToken(token, depth = 0) {
           alt=""
         />
       );
-
+    case "newline":
+      return <br key={key} />;
     case 'sticker':
       return (
         <img

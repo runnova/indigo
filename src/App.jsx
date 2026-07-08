@@ -69,6 +69,7 @@ const defaultState = {
     channel: null,
     server: null,
     thread: null,
+    channel_type: ""
   },
   serverChannels: {},
   replying: null,
@@ -181,6 +182,49 @@ function preloadChannelMessages(channelName) {
       if (!resolved) resolve([]);
     }, 5000);
   });
+}
+
+export async function switchToChannel(server, channel) {
+  if (!server.src && server.url) server.src = server.url;
+
+  const currentServer = state.current.server?.src;
+
+  if (currentServer !== server.src || conn.status() !== "ready") {
+    setState("current", {
+      server,
+      channel: null
+    });
+
+    const settings = JSON.parse(localStorage.getItem("settings") || "{}");
+
+    if (settings.type === "token" && settings.token) {
+      conn.connect(server, settings.token);
+    } else {
+      conn.connectCracked(server, {
+        username: "guest",
+        password: "guest"
+      });
+    }
+
+    await new Promise(resolve => {
+      const check = () => {
+        if (conn.status() === "ready") {
+          clearInterval(interval);
+          resolve();
+        }
+      };
+
+      check();
+      const interval = setInterval(check, 50);
+    });
+  }
+
+  setState("current", "channel", channel);
+
+  const serverSrc = server.src;
+  if (serverSrc) {
+    setState("serverChannels", serverSrc, channel);
+  }
 }
 
 function App() {
@@ -336,7 +380,8 @@ function App() {
     ) return;
     setState("current", {
       server,
-      channel: null
+      channel: null,
+      channel_type: ""
     });
 
     const settings = JSON.parse(localStorage.getItem("settings") || "{}");
@@ -353,6 +398,7 @@ function App() {
 
   function selectChannel(channelName) {
     setState("current", "channel", channelName);
+    setState("current", "channel_type", "");
 
     const serverSrc = state.current.server?.src;
     if (serverSrc) {
@@ -452,148 +498,184 @@ function App() {
           }}
         />
         <div class="fill y">
-          <div class="topbar">
-            <div class="channelbar x">
-              <Show when={state.current.channel} fallback={currentServerName()}>
-                <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} /> <span>{currentChannel()?.display_name || currentChannel()?.name}</span>
-                &bull;
-                <div className="channel_desc">
-                  {currentChannel()?.description || state.current?.thread?.name || ""}
+          <div className="actual_real_servercontent fill y" style={{ height: "0" }}>
+            <Show when={(state.current?.channel_type === "dms_home")}>
+              <div class="topbar">
+                <div class="channelbar x">
+                  <Show when={state.current.channel} fallback={currentServerName()}>
+                    <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} />
+                    <span>Home</span>
+                    <div class="inpgrp x fill">
+                      <div class="searchbox fill">
+                        <input
+                          type="text"
+                          class="message_search_input"
+                          placeholder="Search friends..."
+                        />
+                        <HiOutlineMagnifyingGlass />
+                      </div>
+                    </div>
+                  </Show>
                 </div>
-              </Show>
-              <div class="inpgrp x">
-                <button
-                  className={state.thirdBarContext === "selfroles" ? "active" : ""}
-                  onClick={() => setState("thirdBarContext", "selfroles")}
-                >
-                  <HiOutlineUserCircle />
-                </button>
-
-                <button
-                  className={state.thirdBarContext === "inbox" ? "active" : ""}
-                  onClick={() => setState("thirdBarContext", "inbox")}
-                >
-                  <HiOutlineInbox />
-                </button>
-
-                <button
-                  className={state.thirdBarContext === "pinned" ? "active" : ""}
-                  onClick={() => setState("thirdBarContext", "pinned")}
-                >
-                  <HiOutlineMapPin />
-                </button>
-
-                <button
-                  className={state.thirdBarContext === "members" ? "active" : ""}
-                  onClick={() => setState("thirdBarContext", "members")}
-                >
-                  <HiOutlineUsers />
-                </button>
-
-                <div class="searchbox">
-                  <input
-                    type="text"
-                    class="message_search_input"
-                    placeholder="Search messages..."
-                    onFocus={() => setState("thirdBarContext", "search")}
-
-                    onKeyDown={(e) => {
-                      if (e.key !== "Enter") return;
-
-                      setState("searchQuery", e.currentTarget.value);
-                      setState("thirdBarContext", "search");
-                    }}
-                  />
-                  <HiOutlineMagnifyingGlass />
-                </div>
-
               </div>
-            </div>
-          </div>
-          <div class="x fill server_content_box">
-            <div class="interactive_section y fill">
-              <Show
-                when={conn.status() === "ready" && state.current.channel}
-                fallback={
-                  <div class="empty_state fill y">
-                    <Show when={!state.current.server}>
-                      <p>Select a server to get started.</p>
-                    </Show>
-                    <Show when={state.current.server && conn.status() !== "ready"}>
-                      <p>{statusLabel() || "Connecting…"}</p>
-                    </Show>
-                    <Show when={conn.status() === "ready" && !state.current.channel}>
-                      <p>Pick a channel from the sidebar.</p>
-                    </Show>
-                  </div>
-                }
-              >
-                {
-                  currentChannel()?.type === "forum"
-                    ? (
-                      <ForumView
-                        channel={state.current.channel}
-                        sendRequest={conn.send}
-                        wsMessages={conn.lastEvent}
-                        onReady={(api) => { tempState.virtMsgList = api; }}
-                      />
-                    )
-                    : (
-                      <VirtualMessageList
-                        channel={state.current.channel}
-                        sendRequest={conn.send}
-                        wsMessages={conn.lastEvent}
-                        onReady={(api) => { tempState.virtMsgList = api; }}
-                      />
-                    )
-                }
-                <MessageComposer
-                  channel={state.current.channel}
-                  onSend={(content, attachments) => {
-                    conn.send({
-                      cmd: "message_new",
-                      channel: state.current.channel,
-                      content,
-                      attachments,
-                      ...(state.replying && {
-                        reply_to: state.replying.id
-                      })
-                    });
+              <div class="x fill server_content_box dmshome">
 
-                    if (state.replying) {
-                      setState("replying", null);
+                <RightSidebar
+                  state={state}
+                  conn={conn}
+                  type="fill"
+                />
+              </div>
+            </Show>
+
+            <Show when={state.current?.channel_type !== "dms_home"}>
+              <div class="topbar">
+                <div class="channelbar x">
+                  <Show when={state.current.channel} fallback={currentServerName()}>
+                    <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} /> <span>{currentChannel()?.display_name || currentChannel()?.name}</span>
+                    &bull;
+                    <div className="channel_desc">
+                      {currentChannel()?.description || state.current?.thread?.name || ""}
+                    </div>
+                  </Show>
+                  <div class="inpgrp x">
+                    <button
+                      className={state.thirdBarContext === "selfroles" ? "active" : ""}
+                      onClick={() => setState("thirdBarContext", "selfroles")}
+                    >
+                      <HiOutlineUserCircle />
+                    </button>
+
+                    <button
+                      className={state.thirdBarContext === "inbox" ? "active" : ""}
+                      onClick={() => setState("thirdBarContext", "inbox")}
+                    >
+                      <HiOutlineInbox />
+                    </button>
+
+                    <button
+                      className={state.thirdBarContext === "pinned" ? "active" : ""}
+                      onClick={() => setState("thirdBarContext", "pinned")}
+                    >
+                      <HiOutlineMapPin />
+                    </button>
+
+                    <button
+                      className={state.thirdBarContext === "members" ? "active" : ""}
+                      onClick={() => setState("thirdBarContext", "members")}
+                    >
+                      <HiOutlineUsers />
+                    </button>
+
+                    <div class="searchbox">
+                      <input
+                        type="text"
+                        class="message_search_input"
+                        placeholder="Search messages..."
+                        onFocus={() => setState("thirdBarContext", "search")}
+
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter") return;
+
+                          setState("searchQuery", e.currentTarget.value);
+                          setState("thirdBarContext", "search");
+                        }}
+                      />
+                      <HiOutlineMagnifyingGlass />
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <div class="x fill server_content_box">
+                <div class="interactive_section y fill">
+                  <Show
+                    when={conn.status() === "ready" && state.current.channel}
+                    fallback={
+                      <div class="empty_state fill y">
+                        <Show when={!state.current.server}>
+                          <p>Select a server to get started.</p>
+                        </Show>
+                        <Show when={state.current.server && conn.status() !== "ready"}>
+                          <p>{statusLabel() || "Connecting…"}</p>
+                        </Show>
+                        <Show when={conn.status() === "ready" && !state.current.channel}>
+                          <p>Pick a channel from the sidebar.</p>
+                        </Show>
+                      </div>
                     }
+                  >
+                    {
+                      currentChannel()?.type === "forum"
+                        ? (
+                          <ForumView
+                            channel={state.current.channel}
+                            sendRequest={conn.send}
+                            wsMessages={conn.lastEvent}
+                            onReady={(api) => { tempState.virtMsgList = api; }}
+                          />
+                        )
+                        : (
+                          <VirtualMessageList
+                            channel={state.current.channel}
+                            sendRequest={conn.send}
+                            wsMessages={conn.lastEvent}
+                            onReady={(api) => { tempState.virtMsgList = api; }}
+                          />
+                        )
+                    }
+                    <MessageComposer
+                      channel={state.current.channel}
+                      onSend={(content, attachments) => {
+                        conn.send({
+                          cmd: "message_new",
+                          channel: state.current.channel,
+                          content,
+                          attachments,
+                          ...(state.replying && {
+                            reply_to: state.replying.id
+                          })
+                        });
+
+                        if (state.replying) {
+                          setState("replying", null);
+                        }
+                      }}
+                    />
+                  </Show>
+                </div>
+
+                <div
+                  class="resize_handle left"
+                  onMouseDown={(e) => {
+                    const start = e.clientX;
+                    const startWidth = thirdBarWidth();
+
+                    const move = (ev) => {
+                      setThirdBarWidth(
+                        Math.max(220, Math.min(500, startWidth - (ev.clientX - start)))
+                      );
+                    };
+
+                    const up = () => {
+                      window.removeEventListener("mousemove", move);
+                      window.removeEventListener("mouseup", up);
+                    };
+
+                    window.addEventListener("mousemove", move);
+                    window.addEventListener("mouseup", up);
                   }}
                 />
-              </Show>
-            </div>
-
-            <div
-              class="resize_handle left"
-              onMouseDown={(e) => {
-                const start = e.clientX;
-                const startWidth = thirdBarWidth();
-
-                const move = (ev) => {
-                  setThirdBarWidth(
-                    Math.max(220, Math.min(500, startWidth - (ev.clientX - start)))
-                  );
-                };
-
-                const up = () => {
-                  window.removeEventListener("mousemove", move);
-                  window.removeEventListener("mouseup", up);
-                };
-
-                window.addEventListener("mousemove", move);
-                window.addEventListener("mouseup", up);
-              }}
-            />
-            <RightSidebar
-              state={state}
-              conn={conn}
-            />
+                <RightSidebar
+                  state={state}
+                  conn={conn}
+                  type={(currentChannel()?.type === "chat") ? "chat" : undefined}
+                  username={currentChannel()?.display_name}
+                />
+              </div>
+            </Show>
           </div>
+
         </div>
       </div>
       <MemberPopout />

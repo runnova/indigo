@@ -207,6 +207,23 @@
   opacity: 0.4;
 }
 
+@keyframes slowlyshow {
+  0% {
+    opacity: 0;
+  }
+}
+
+.vml-empty {
+  text-align: center;
+  height: calc(100vh - 150px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  opacity: 0.4;
+  animation: slowlyshow 5s;
+}
+
 .vml-new-indicator {
   position: absolute;
   bottom: 8px;

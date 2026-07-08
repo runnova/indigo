@@ -8,15 +8,22 @@ const LOAD_OLDER_COOLDOWN_MS = 500;
 const MAX_MESSAGES = 200;
 const TRIM_TO = 150;
 
+function normalizeMessage(m) {
+  return {
+    ...m,
+    id: m.id ?? `system-${m.timestamp}-${m.user}`,
+  };
+}
+
 function sortMessages(msgs) {
   return [...(msgs ?? [])]
-    .filter((m) => m && m.id != null)
+    .filter(Boolean)
+    .map(normalizeMessage)
     .sort((a, b) => {
       const ta = Number(a.timestamp);
       const tb = Number(b.timestamp);
 
       if (ta !== tb) return ta - tb;
-
       return String(a.id).localeCompare(String(b.id));
     });
 }

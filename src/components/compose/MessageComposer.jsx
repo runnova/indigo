@@ -490,7 +490,7 @@ export default function MessageComposer(props) {
                 <EmojiPicker
                   src={state.current.server?.src}
                   onSelect={(emoji) => {
-                    emojiPicker.onSelect?.(emoji);
+                    insertEmoji(emoji);
 
                     setEmojiPicker({
                       open: false,

@@ -3,6 +3,7 @@ import MemberList from "./memberList/MemberList.jsx";
 import PinnedList from "./PinnedList.jsx";
 import SelfRoles from "./SelfRoles.jsx";
 import SearchResultsList from "./SearchResultsList.jsx";
+import MemberProfile from "./memberList/MemberPopoutContent.jsx";
 import Inbox from "./Inbox.jsx";
 import { thirdBarWidth } from "../../App.jsx"
 
@@ -15,8 +16,15 @@ const thirdBarViews = {
 };
 
 export default function RightSidebar(props) {
-  const View = () =>
-    thirdBarViews[props.state.thirdBarContext] || MemberList;
+  const View = () => {
+    if (props?.type && props?.type === "fill") {
+      return MemberList;
+    }
+    if (props?.type && props?.type === "chat") {
+      return MemberProfile;
+    }
+    return thirdBarViews[props.state.thirdBarContext] || MemberList
+  };
 
   return (
     <>

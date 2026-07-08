@@ -85,5 +85,15 @@
     "file": "neongirl.css",
     "preview": "#ff74dc",
     "price": 0
+  },
+  {
+    "id": "lines",
+    "name": "Line indicators",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Add line selection indicators",
+    "file": "lines.css",
+    "preview": "#ff74dc",
+    "price": 0
   }
 ]
