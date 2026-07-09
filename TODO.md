@@ -56,9 +56,4 @@
 9. spotlight search
    1. search servers, channels, DM users
 10. DMs server
-   1. Home page
-      - friends
-      - pending
-   2. group handling
-      - group display
-      - group creation 
+   2. ui functionality instead of bot

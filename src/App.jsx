@@ -49,6 +49,9 @@ import {
 } from "./themeManager";
 addTheme("/themes/fun.css");
 
+import { VoiceChannelView } from "./components/VoiceChannelView.jsx";
+import { bindVoiceEvents } from "./core/voiceClient.js";
+
 import ContextMenu from './components/Contextmenu.jsx';
 
 import "./core/ContextMenuDefs.jsx"
@@ -229,6 +232,7 @@ export async function switchToChannel(server, channel) {
 
 function App() {
   conn = useServerConnection();
+  bindVoiceEvents(conn);
   const [loadingProgress, setLoadingProgress] = createSignal(0);
   const currentChannel = createMemo(() =>
     conn
@@ -606,42 +610,47 @@ function App() {
                     }
                   >
                     {
-                      currentChannel()?.type === "forum"
+                      currentChannel()?.type === "voice"
                         ? (
-                          <ForumView
+                          <VoiceChannelView
                             channel={state.current.channel}
-                            sendRequest={conn.send}
-                            wsMessages={conn.lastEvent}
-                            onReady={(api) => { tempState.virtMsgList = api; }}
+                            server={state.current.server}
+                            conn={conn}
                           />
                         )
-                        : (
-                          <VirtualMessageList
-                            channel={state.current.channel}
-                            sendRequest={conn.send}
-                            wsMessages={conn.lastEvent}
-                            onReady={(api) => { tempState.virtMsgList = api; }}
-                          />
-                        )
+                        : currentChannel()?.type === "forum"
+                          ? (
+                            <ForumView
+                              channel={state.current.channel}
+                              sendRequest={conn.send}
+                              wsMessages={conn.lastEvent}
+                              onReady={(api) => { tempState.virtMsgList = api; }}
+                            />
+                          )
+                          : (
+                            <>
+                              <VirtualMessageList
+                                channel={state.current.channel}
+                                sendRequest={conn.send}
+                                wsMessages={conn.lastEvent}
+                                onReady={(api) => { tempState.virtMsgList = api; }}
+                              />
+                              <MessageComposer
+                                channel={state.current.channel}
+                                onSend={(content, attachments) => {
+                                  conn.send({
+                                    cmd: "message_new",
+                                    channel: state.current.channel,
+                                    content,
+                                    attachments,
+                                    ...(state.replying && { reply_to: state.replying.id })
+                                  });
+                                  if (state.replying) setState("replying", null);
+                                }}
+                              />
+                            </>
+                          )
                     }
-                    <MessageComposer
-                      channel={state.current.channel}
-                      onSend={(content, attachments) => {
-                        conn.send({
-                          cmd: "message_new",
-                          channel: state.current.channel,
-                          content,
-                          attachments,
-                          ...(state.replying && {
-                            reply_to: state.replying.id
-                          })
-                        });
-
-                        if (state.replying) {
-                          setState("replying", null);
-                        }
-                      }}
-                    />
                   </Show>
                 </div>
 
