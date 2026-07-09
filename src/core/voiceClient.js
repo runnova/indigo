@@ -1,18 +1,3 @@
-// core/voiceClient.js
-//
-// Persistent, app-wide voice/screen-share client built on PeerJS. Lives for
-// the lifetime of the app (not the component), so a call survives navigating
-// to other channels/servers.
-//
-// P2P layer: PeerJS. `peer_id` from voice_join/voice_user_joined is a PeerJS
-// broker id — offer/answer/ICE are handled entirely by PeerJS's own broker,
-// not relayed over the app's websocket. The chat websocket (`conn`) is only
-// used for the voice_* room-membership commands.
-//
-// Each pair of participants gets one bidirectional audio call, plus a
-// separate one-way call per active screen share (tagged via call metadata
-// so we can tell streams apart on the receiving end). Camera is left out
-// for now — same mechanism, add a "camera" kind alongside "screen" later.
 
 import { createStore, produce } from "solid-js/store";
 import { createSignal, createEffect, on } from "solid-js";
@@ -27,24 +12,22 @@ const RETRY_CAP_MS = 20_000;
 const JOIN_FALLBACK_MS = 1_500;
 const PEER_TIMEOUT_MS = 30_000;
 const MONITOR_INTERVAL_MS = 5_000;
-const SPEAKING_THRESHOLD = 6; // 0-100 scale from analyser average
+const SPEAKING_THRESHOLD = 6;
 
 const STORAGE_VOLUMES = "voice_userVolumes";
 const STORAGE_MUTES = "voice_userMutes";
 
 export const [voice, setVoice] = createStore({
-  channel: null, // string | null
-  server: null, // server src this call belongs to
+  channel: null,
+  server: null, 
   joining: false,
   error: null,
   muted: false,
   deafened: false,
-  speaking: false, // am I speaking
+  speaking: false,
   myPeerId: null,
   isScreenSharing: false,
-  // peer_id -> { username, peerId, muted, speaking, callState, locallyMuted, localVolume }
   participants: {},
-  // peer_id -> MediaStream, for anyone currently sharing their screen
   screenStreams: {},
 });
 
@@ -64,9 +47,8 @@ const audioEls = new Map();
 /** @type {Map<string, object>} */
 const peerEntries = new Map();
 
-let localDetector = null; // { source, analyser, frameId }
-const remoteDetectors = new Map(); // peer_id -> { source, analyser, frameId }
-
+let localDetector = null;
+const remoteDetectors = new Map(); 
 let monitorTimer = null;
 
 let userVolumes = loadMap(STORAGE_VOLUMES);
@@ -83,7 +65,6 @@ function saveMap(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch {
-    /* ignore (private mode, etc.) */
   }
 }
 
@@ -124,7 +105,6 @@ function setParticipant(peerId, patch) {
   );
 }
 
-// ── local audio playback for remote mics ──────────────────────────────────
 
 function playRemoteAudio(peerId, stream) {
   let el = audioEls.get(peerId);
@@ -151,7 +131,7 @@ export function setUserVolume(peerId, volume) {
   userVolumes[peerId] = clamped;
   saveMap(STORAGE_VOLUMES, userVolumes);
   const el = audioEls.get(peerId);
-  if (el) el.volume = Math.min(1, clamped); // <audio>.volume caps at 1; swap in a GainNode if you need boost above unity
+  if (el) el.volume = Math.min(1, clamped);
   setParticipant(peerId, { localVolume: clamped });
 }
 export function getUserVolume(peerId) {
@@ -168,7 +148,6 @@ export function getUserMuted(peerId) {
   return userMutes[peerId] ?? false;
 }
 
-// ── speaking detection ─────────────────────────────────────────────────────
 
 function startLocalSpeakingDetection() {
   if (!localAudioStream) return;
@@ -241,7 +220,6 @@ function stopRemoteSpeakingDetection(peerId) {
   }
 }
 
-// ── retry helpers ──────────────────────────────────────────────────────────
 
 function scheduleRetry(retry, fn, max = AUDIO_RETRY_MAX) {
   if (retry.count >= max) {
@@ -265,9 +243,6 @@ function clearRetry(retry) {
   }
 }
 
-// ── audio mesh ──────────────────────────────────────────────────────────────
-
-/** Lexicographically-smaller peer id initiates, to avoid both sides calling at once. */
 function isAudioInitiator(remotePeerId) {
   return !!peer?.id && peer.id < remotePeerId;
 }
@@ -280,8 +255,6 @@ function ensureAudio(remotePeerId) {
     callPeerAudio(remotePeerId);
     return;
   }
-  // Otherwise wait for their inbound call; fall back to initiating ourselves
-  // if it never arrives (handles their initial attempt getting lost).
   if (entry.joinFallbackTimer !== null) clearTimeout(entry.joinFallbackTimer);
   entry.joinFallbackTimer = setTimeout(() => {
     entry.joinFallbackTimer = null;
@@ -331,8 +304,6 @@ function callPeerAudio(remotePeerId) {
     if (voice.channel) scheduleRetry(entry.audioRetry, () => callPeerAudio(remotePeerId));
   });
 }
-
-// ── screen share mesh ───────────────────────────────────────────────────────
 
 function callPeerScreen(remotePeerId, stream) {
   if (!peer || peer.destroyed) return;
@@ -394,7 +365,6 @@ function closeScreenCalls() {
   }
 }
 
-/** Start/stop sharing your screen with everyone currently in the call. */
 export async function toggleScreenShare() {
   if (localScreenStreamRaw) {
     stopScreenShare();
@@ -406,7 +376,6 @@ export async function toggleScreenShare() {
       audio: true,
     });
   } catch {
-    // cancelled or denied by the browser's picker — not worth surfacing as an error
     return;
   }
   const track = localScreenStreamRaw.getVideoTracks()[0];
@@ -424,8 +393,6 @@ function stopScreenShare() {
   setVoice({ isScreenSharing: false });
   closeScreenCalls();
 }
-
-// ── inbound calls ───────────────────────────────────────────────────────────
 
 function handleInboundCall(call) {
   if (!voice.channel) return;
@@ -472,8 +439,6 @@ function handleInboundCall(call) {
     console.error(`[voice] inbound call error from ${call.peer}`, err);
   });
 }
-
-// ── connection state watcher + monitor ──────────────────────────────────────
 
 function watchConnectionState(call, remotePeerId, entry, attempt = 0) {
   const pc = call.peerConnection;
@@ -558,15 +523,13 @@ function detachPeer(peerId) {
   );
 }
 
-// ── peer lifecycle ──────────────────────────────────────────────────────────
-
 function initPeer() {
   if (peer && !peer.destroyed && peerReady) return peerReady;
   peerReady = new Promise((resolve, reject) => {
     const p = new Peer({
       debug: 0,
       config: { iceServers: ICE_SERVERS, iceCandidatePoolSize: 4 },
-    }); // pass {host, port, path, secure} here for a self-hosted PeerServer
+    });
     p.on("open", () => { peer = p; resolve(p); });
     p.on("error", (err) => { if (!peer) reject(err); else console.error("[voice] peer error", err); });
     p.on("disconnected", () => {
@@ -577,7 +540,6 @@ function initPeer() {
   return peerReady;
 }
 
-// ── public API ───────────────────────────────────────────────────────────────
 
 export async function joinVoiceChannel(conn, channel, serverSrc) {
   if (voice.channel) leaveVoiceChannel();
@@ -645,11 +607,9 @@ export function toggleVoiceDeafen() {
   for (const [peerId, el] of audioEls) {
     el.muted = nextDeafened || !!userMutes[peerId];
   }
-  // Deafening implies muting yourself too, same convention as Discord.
   if (nextDeafened && !voice.muted) toggleVoiceMute();
 }
 
-// ── incoming websocket events ────────────────────────────────────────────────
 
 function handleVoiceEvent(event) {
   if (!event?.cmd?.startsWith("voice_")) return;
@@ -710,8 +670,6 @@ function handleVoiceEvent(event) {
       break;
     }
     case "voice_mute": {
-      // Assumed shape: { cmd: "voice_mute", channel, peer_id, muted }.
-      // Adjust if your voice_mute.md doc specifies something different.
       if (event.channel !== voice.channel) break;
       setParticipant(event.peer_id, { muted: !!event.muted });
       break;
@@ -721,17 +679,9 @@ function handleVoiceEvent(event) {
   }
 }
 
-/**
- * Call once per active `conn` — e.g. right after `useServerConnection()` in
- * App.jsx — so voice broadcasts get processed regardless of which
- * channel/server is currently on screen. Must be called inside a component
- * or other reactive root (uses createEffect).
- */
 export function bindVoiceEvents(conn) {
   createEffect(
     on(conn.lastEvent, (event) => {
-      // Only react to the connection our active call belongs to (or any
-      // connection before we've joined, so we can catch the join response).
       if (voice.channel && activeConn && conn !== activeConn) return;
       handleVoiceEvent(event);
     })
