@@ -69,6 +69,7 @@
     gap: .3em;
     align-items: center;
     color: var(--fg-dim);
+    user-select: text;
   }
 
   & .message_content {
@@ -78,11 +79,13 @@
 
   & .time {
     opacity: .5;
+    user-select: text;
     font-family: monospace;
     font-size: 9px;
   }
 
   & .reply_preview {
+    user-select: text;
     margin: .3em 0;
     font-size: small;
     margin-left: 53px;

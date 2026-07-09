@@ -20,7 +20,7 @@ export default function RightSidebar(props) {
     if (props?.type && props?.type === "fill") {
       return MemberList;
     }
-    if (props?.type && props?.type === "chat") {
+    if (props?.type && props?.type === "chat" && props.state.thirdBarContext == "members") {
       return MemberProfile;
     }
     return thirdBarViews[props.state.thirdBarContext] || MemberList
