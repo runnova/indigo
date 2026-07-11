@@ -104,12 +104,6 @@ export function VirtualMessageList(props) {
         });
         return true;
     }
-
-    props.onReady?.({
-        scrollToMessage,
-        scrollToBottom,
-    });
-
     function isNearBottom() {
         if (!scrollEl) return true;
         return (
@@ -119,18 +113,24 @@ export function VirtualMessageList(props) {
     }
 
     const {
-        messages: realMessages,
-        loadingOlder,
-        hasOlderMessages,
-        lastUpdate,
-        loadOlder,
-    } = createChannelMessages({
+    messages: realMessages,
+    loadingOlder,
+    hasOlderMessages,
+    lastUpdate,
+    loadOlder,
+    jumpToMessage,
+} = createChannelMessages({
         channel: () => props.channel,
         wsEvent: () => props.wsMessages?.(),
         sendRequest: props.sendRequest,
         getScrollElement: () => scrollEl,
         isNearBottom,
         threadId: () => props.threadId,
+    });
+    props.onReady?.({
+        scrollToMessage,
+        scrollToBottom,
+        jumpToMessage,
     });
 
     const messages = createMemo(() => [

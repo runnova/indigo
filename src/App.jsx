@@ -188,7 +188,12 @@ function preloadChannelMessages(channelName) {
 }
 
 export async function switchToChannel(server, channel) {
-  if (!server.src && server.url) server.src = server.url;
+  const normalizedServer = {
+    ...server,
+    src: server.src ?? server.url
+  };
+
+  setState("current", "server", normalizedServer);
 
   const currentServer = state.current.server?.src;
 
@@ -336,6 +341,9 @@ function App() {
       channel,
       0
     );
+  });
+  createEffect(() => {
+    console.log("current.server =", state.current.server);
   });
 
   createEffect(() => {
@@ -507,6 +515,7 @@ function App() {
               <div class="topbar">
                 <div class="channelbar x">
                   <Show when={state.current.channel} fallback={currentServerName()}>
+
                     <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} />
                     <span>Home</span>
                     <div class="inpgrp x fill">

@@ -35,6 +35,10 @@ export default function SearchResultsList(props) {
       <For each={messages()}>
         {(msg, i) => (
           <Message
+            onClick={() => {
+              console.log(32, msg)
+              tempState.virtMsgList.jumpToMessage(msg.id)
+            }}
             username={msg.user}
             content={msg.content}
             attachments={msg.attachments}

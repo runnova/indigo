@@ -187,6 +187,9 @@ export function createChannelMessages({
     const anchor = newestId();
     if (!anchor) return;
 
+    pendingDirection = "newer";
+    pendingAnchorId = anchor;
+
     request({
       cmd: "messages_around",
       around: anchor,
@@ -208,6 +211,36 @@ export function createChannelMessages({
     });
   }
 
+  function captureAnchorPosition(id) {
+    const el = getScrollElement?.()?.querySelector(`[data-id="${id}"]`);
+    if (!el) return null;
+
+    const container = getScrollElement();
+    return {
+      id,
+      offset: el.getBoundingClientRect().top - container.getBoundingClientRect().top,
+    };
+  }
+
+  function restoreAnchorPosition(anchor) {
+    if (!anchor) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = getScrollElement?.();
+        const el = container?.querySelector(`[data-id="${anchor.id}"]`);
+
+        if (!el || !container) return;
+
+        const newOffset =
+          el.getBoundingClientRect().top -
+          container.getBoundingClientRect().top;
+
+        container.scrollTop += newOffset - anchor.offset;
+      });
+    });
+  }
+
   function handleMessagesGet(event) {
     const sorted = sortMessages(event.messages);
     setMessages(sorted);
@@ -220,14 +253,18 @@ export function createChannelMessages({
     const direction = pendingDirection;
     const targetId = pendingAnchorId;
 
+    const anchor =
+      targetId ? captureAnchorPosition(targetId) : null;
+
     pendingDirection = null;
     pendingAnchorId = null;
 
-    const scrollEl = direction === "older" ? getScrollElement?.() : null;
-    const heightBefore = scrollEl?.scrollHeight ?? null;
-
     batch(() => {
       setMessages((prev) => {
+        if (direction === "jump") {
+          return incoming;
+        }
+
         const map = new Map(prev.map((m) => [m.id, m]));
 
         for (const m of incoming) {
@@ -248,6 +285,22 @@ export function createChannelMessages({
         setLoadingOlder(false);
       }
     });
+
+    loadingOlderLock = false;
+
+    restoreAnchorPosition(anchor);
+
+    if (direction === "jump") {
+      setLastUpdate({
+        type: "jump",
+        targetId,
+      });
+    } else if (direction === "older") {
+      setLastUpdate({
+        type: "prepend",
+      });
+    }
+
 
     loadingOlderLock = false;
 

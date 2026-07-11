@@ -72,6 +72,13 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
+    const timestampMatch = tryParseTimestamp(text, i);
+    if (timestampMatch) {
+      tokens.push(timestampMatch.token);
+      i = timestampMatch.end;
+      continue;
+    }
+
     const urlMatch = tryParseUrl(text, i);
     if (urlMatch) {
       tokens.push(urlMatch.token);
@@ -155,9 +162,11 @@ function isSpecialChar(text, i) {
   if (char === '`') return true;
   if (char === '[') return true;
   if (char === 'h' && (text.slice(i, i + 7) === 'http://' || text.slice(i, i + 8) === 'https://')) return true;
-  if (char === 'o' && text.slice(i, i + 11) === 'originChats:') return true;
+  if (text.startsWith("originChats:", i)) return true;
   if (char === '@') return true;
   if (char === '\n') return true;
+  if (char === "<" && text.startsWith("<t:", i)) return true;
+  if (char === "#") return true;
 
   return false;
 }
@@ -261,6 +270,42 @@ function tryParseUrl(text, i) {
     return parseHttpUrl(text, i, 8);
   }
   return null;
+}
+
+function tryParseTimestamp(text, i) {
+  const match = text
+    .slice(i)
+    .match(/^<t:(\d+)(?::([tTdDfFR]))?>/);
+
+  if (!match) return null;
+
+  return {
+    token: {
+      type: "timestamp",
+      unix: Number(match[1]),
+      style: match[2] || "f"
+    },
+    end: i + match[0].length
+  };
+}
+
+function tryParseChannelLink(text, i) {
+  if (text[i] !== "#") return null;
+
+  const match = text
+    .slice(i)
+    .match(/^#([a-zA-Z0-9.-]+)\/([a-zA-Z0-9_-]+)/);
+
+  if (!match) return null;
+
+  return {
+    token: {
+      type: "channel",
+      host: match[1],
+      name: match[2]
+    },
+    end: i + match[0].length
+  };
 }
 
 function parseHttpUrl(text, i, protocolLen) {

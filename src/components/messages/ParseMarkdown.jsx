@@ -265,9 +265,82 @@ function renderToken(token, depth = 0) {
           alt=""
         />
       );
+    case "timestamp": {
+      const date = new Date(token.unix * 1000);
 
-    case 'channel':
-      const available = tempState.conn.channels?.()?.some(
+      switch (token.style) {
+        case "R": {
+          const diff = token.unix - Math.floor(Date.now() / 1000);
+          const abs = Math.abs(diff);
+
+          let value;
+          if (abs < 60) value = `${abs} second${abs !== 1 ? "s" : ""}`;
+          else if (abs < 3600) {
+            const m = Math.floor(abs / 60);
+            value = `${m} minute${m !== 1 ? "s" : ""}`;
+          } else if (abs < 86400) {
+            const h = Math.floor(abs / 3600);
+            value = `${h} hour${h !== 1 ? "s" : ""}`;
+          } else {
+            const d = Math.floor(abs / 86400);
+            value = `${d} day${d !== 1 ? "s" : ""}`;
+          }
+
+          return diff >= 0 ? `in ${value}` : `${value} ago`;
+        }
+
+        case "t":
+          return date.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+          });
+
+        case "T":
+          return date.toLocaleTimeString();
+
+        case "d":
+          return date.toLocaleDateString();
+
+        case "D":
+          return date.toLocaleDateString([], {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          });
+
+        case "f":
+          return date.toLocaleString([], {
+            dateStyle: "medium",
+            timeStyle: "short"
+          });
+
+        case "F":
+          return date.toLocaleString([], {
+            dateStyle: "full",
+            timeStyle: "long"
+          });
+
+        default:
+          return date.toLocaleString();
+      }
+    }
+
+    case "channel":
+      if (token.host) {
+        return (
+          <a
+            key={key}
+            href={`https://${token.host}/${token.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="channel_link"
+          >
+            #{token.host}/{token.name}
+          </a>
+        );
+      }
+
+      const available = tempState.conn?.channels?.()?.some(
         (x) => x.name === token.name
       );
 
@@ -280,6 +353,7 @@ function renderToken(token, depth = 0) {
             onClick={(e) => {
               e.preventDefault();
               setState("current", "channel", token.name);
+
               const serverSrc = state.current.server?.src;
               if (serverSrc) {
                 setState("serverChannels", serverSrc, token.name);
@@ -290,6 +364,7 @@ function renderToken(token, depth = 0) {
           </a>
         );
       }
+
       return `#${token.name}`;
 
     case 'mention':
@@ -307,7 +382,7 @@ function renderToken(token, depth = 0) {
       );
 
     case 'roleMention':
-      const entry = Object.entries(tempState.conn.roles?.() ?? {})
+      const entry = Object.entries(tempState.conn?.roles?.() ?? {})
         .find(([, role]) => role.id === token.id);
 
       if (entry) {

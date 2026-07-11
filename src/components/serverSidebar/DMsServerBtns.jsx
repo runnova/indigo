@@ -1,14 +1,16 @@
 import { HiOutlineHome } from "solid-icons/hi"
-import { setState } from "../../App"
+import { setState, state } from "../../App"
 
 export default function DMsServerBtns() {
   return (
     <>
-      <div className="channelList_button" onClick={() => { setState("current", "channel_type", "dms_home"); }}>
-        <HiOutlineHome />
-        Home
-      </div>
-      <hr className="channelPageList" />
+      <Show when={(state.settings.dmsServer == state.current.server.src)}>
+        <div className="channelList_button" onClick={() => { setState("current", "channel_type", "dms_home"); }}>
+          <HiOutlineHome />
+          Home
+        </div>
+        <hr className="channelPageList" />
+      </Show>
     </>
   )
 }

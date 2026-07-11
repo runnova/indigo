@@ -25,6 +25,7 @@ export function Message(props) {
   return (
     <div
       class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
+      onClick={props.onClick}
     >
       {(props.reply || props.interaction) && (
         <div class="reply_preview x">
