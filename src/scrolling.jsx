@@ -82,7 +82,6 @@ const SCROLL_NEAR_BOTTOM = 80;
 
 export function VirtualMessageList(props) {
     let scrollEl;
-    let innerEl;
     let resizeObserver;
 
     function attachResizeObserver(el) {
@@ -119,6 +118,7 @@ export function VirtualMessageList(props) {
     lastUpdate,
     loadOlder,
     jumpToMessage,
+    reload
 } = createChannelMessages({
         channel: () => props.channel,
         wsEvent: () => props.wsMessages?.(),
@@ -140,105 +140,67 @@ export function VirtualMessageList(props) {
 
     createMessageLookup(messages);
 
-    const SECTION_SIZE = 30;
-    const WINDOW_RADIUS = 2;
+    const SECTION_SIZE = 15;
+    const MAX_SECTIONS = 4;
 
-    const [visibleStart, setVisibleStart] = createSignal(0);
-    const [visibleEnd, setVisibleEnd] = createSignal(0);
     const [scrollLocked, setScrollLocked] = createSignal(true);
+let sectionCache = new Map();
+let sectionCacheChannel = null;
 
-    const sectionHeights = new Map();
-
-    let anchorId = null;
-    let anchorOffset = 0;
-
-    const sections = createMemo(() => {
-        const result = [];
-        const msgs = messages();
-        for (let i = 0; i < msgs.length; i += SECTION_SIZE) {
-            const chunk = msgs.slice(i, i + SECTION_SIZE);
-            result.push({
-                id: chunk[0]?.id,
-                messages: chunk
-            });
-        }
-        return result;
-    });
-
-    function estimateSectionHeight(sectionId) {
-        return sectionHeights.get(sectionId) ?? 1800;
+const sections = createMemo(() => {
+    const msgs = messages();
+    if (sectionCacheChannel !== props.channel) {
+        sectionCache = new Map();
+        sectionCacheChannel = props.channel;
     }
 
-    const topSpacerHeight = createMemo(() => {
-        let total = 0;
-        const s = sections();
-        for (let i = 0; i < visibleStart(); i++) {
-            total += estimateSectionHeight(s[i]?.id);
-        }
-        return total;
-    });
+    const totalCap = SECTION_SIZE * MAX_SECTIONS;
+    let alignedStart;
 
-    const bottomSpacerHeight = createMemo(() => {
-        let total = 0;
-        const s = sections();
-        for (let i = visibleEnd() + 1; i < s.length; i++) {
-            total += estimateSectionHeight(s[i]?.id);
-        }
-        return total;
-    });
+    if (msgs.length <= totalCap) {
+        alignedStart = 0;
+    } else if (scrollLocked()) {
+        const overflow = msgs.length - totalCap;
+        alignedStart = Math.ceil(overflow / SECTION_SIZE) * SECTION_SIZE;
+    } else {
+        const anchorId = oldestVisibleId();
+        const anchorIdx = anchorId ? msgs.findIndex(m => m.id === anchorId) : -1;
 
-    function captureAnchor() {
-        if (!scrollEl) return;
-        const containerRect = scrollEl.getBoundingClientRect();
-        const centerY = containerRect.top + scrollEl.clientHeight / 2;
-        let best = null;
-        let bestDist = Infinity;
-        scrollEl.querySelectorAll(".vml-item").forEach((el) => {
-            const rect = el.getBoundingClientRect();
-            const itemCenter = rect.top + rect.height / 2;
-            const dist = Math.abs(itemCenter - centerY);
-            if (dist < bestDist) {
-                best = el;
-                bestDist = dist;
-            }
-        });
-        if (!best) return;
-        anchorId = best.dataset.id;
-        anchorOffset = best.getBoundingClientRect().top - containerRect.top;
+        if (anchorIdx === -1) {
+            const overflow = msgs.length - totalCap;
+            alignedStart = Math.ceil(overflow / SECTION_SIZE) * SECTION_SIZE;
+        } else {
+            const raw = anchorIdx - SECTION_SIZE;
+            const maxStart = msgs.length - totalCap;
+            alignedStart = Math.min(
+                Math.max(0, Math.floor(raw / SECTION_SIZE) * SECTION_SIZE),
+                Math.ceil(maxStart / SECTION_SIZE) * SECTION_SIZE
+            );
+        }
     }
 
-    function restoreAnchor() {
-        if (!anchorId || !scrollEl) return;
-        requestAnimationFrame(() => {
-            const anchor = scrollEl.querySelector(`[data-id="${anchorId}"]`);
-            if (!anchor) return;
-            const containerRect = scrollEl.getBoundingClientRect();
-            const newOffset = anchor.getBoundingClientRect().top - containerRect.top;
-            scrollEl.scrollTop += newOffset - anchorOffset;
-        });
+    const windowed = msgs.slice(alignedStart);
+    const result = [];
+    const nextCache = new Map();
+    let i = 0;
+
+    while (i < windowed.length && result.length < MAX_SECTIONS) {
+        const chunk = windowed.slice(i, i + SECTION_SIZE);
+        const firstId = chunk[0]?.id;
+        const lastId = chunk[chunk.length - 1]?.id;
+        const key = `${firstId}:${lastId}:${chunk.length}`;
+
+        const cached = sectionCache.get(key);
+        const section = cached ?? { id: firstId, messages: chunk };
+
+        nextCache.set(key, section);
+        result.push(section);
+        i += SECTION_SIZE;
     }
 
-    function updateVirtualWindow() {
-        if (!scrollEl) return;
-        const centerY = scrollEl.scrollTop + scrollEl.clientHeight / 2;
-        let accumulated = 0;
-        let centerSection = 0;
-        const s = sections();
-        for (let i = 0; i < s.length; i++) {
-            accumulated += estimateSectionHeight(s[i].id);
-            if (accumulated >= centerY) {
-                centerSection = i;
-                break;
-            }
-        }
-        const start = Math.max(0, centerSection - WINDOW_RADIUS);
-        const end = Math.min(sections().length - 1, centerSection + WINDOW_RADIUS);
-        if (start === visibleStart() && end === visibleEnd()) return;
-        captureAnchor();
-        setVisibleStart(start);
-        setVisibleEnd(end);
-        queueMicrotask(restoreAnchor);
-    }
+    sectionCache = nextCache;
+    return result;
+});
 
     const [showNewIndicator, setShowNewIndicator] = createSignal(false);
     const [hoveredMessage, setHoveredMessage] = createSignal(null);
@@ -255,25 +217,21 @@ export function VirtualMessageList(props) {
             behavior: instant ? "instant" : "smooth",
         });
     }
-    let wasNearBottom = true;
+    const [oldestVisibleId, setOldestVisibleId] = createSignal(null);
 
-    function onScroll() {
-        if (!scrollEl) return;
+function onScroll() {
+    if (!scrollEl) return;
 
-        const nearBottom = isNearBottom();
+    const nearBottom = isNearBottom();
+    setScrollLocked(nearBottom);
+    setShowScrollButton(!nearBottom);
+    if (nearBottom) setUnreadCount(0);
 
-        setScrollLocked(nearBottom);
-        setShowScrollButton(!nearBottom);
+    const firstItem = scrollEl.querySelector('[data-context="message"]');
+    if (firstItem) setOldestVisibleId(firstItem.getAttribute("data-id"));
 
-        if (nearBottom) {
-            setUnreadCount(0);
-        }
-
-        if (scrollEl.scrollTop < SCROLL_NEAR_TOP)
-            loadOlder();
-
-        updateVirtualWindow();
-    }
+    if (scrollEl.scrollTop < SCROLL_NEAR_TOP) loadOlder();
+}
 
     function onVisibilityChange() {
         if (!document.hidden && scrollLocked()) {
@@ -289,37 +247,26 @@ export function VirtualMessageList(props) {
         document.removeEventListener("visibilitychange", onVisibilityChange);
     });
     createEffect(
-        on(sections, () => {
-            queueMicrotask(updateVirtualWindow);
-        }, {
-            defer: true
-        })
-    );
-
-    createEffect(
         on(lastUpdate, (update) => {
             if (!update) return;
 
-            if (update.type === "initial") {
-                setShowNewIndicator(false);
-                const total = sections().length;
-                setVisibleStart(Math.max(0, total - 5));
-                setVisibleEnd(total - 1);
-                requestAnimationFrame(() => {
-                    scrollToBottom(true);
-                    updateVirtualWindow();
-                });
-                return;
+          if (update.type === "initial") {
+    setShowNewIndicator(false);
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            scrollToBottom(true);
+        });
+    });
+    return;
+}
+           if (update.type === "append") {
+            if (scrollLocked()) {
+                scrollToBottom(false);
+            } else {
+                setShowScrollButton(true);
+                setUnreadCount(c => c + 1);
             }
-
-            if (update.type === "append") {
-                if (scrollLocked()) {
-                    scrollToBottom(false);
-                } else {
-                    setShowScrollButton(true);
-                    setUnreadCount(c => c + 1);
-                }
-            }
+        }
             if (update.type === "jump") {
                 requestAnimationFrame(() => {
                     const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
@@ -348,7 +295,7 @@ export function VirtualMessageList(props) {
       </Show>
        <Show when={showScrollButton()}>
         <button class="scroll-to-bottom-btn" onClick={() => {
-            scrollToBottom();
+            reload()
           }}> 
         <HiOutlineChevronDown/>
         <Show when={unreadCount() > 0}>
@@ -367,15 +314,11 @@ export function VirtualMessageList(props) {
             There's nothing here. Send a message?
             </div>
         </Show>
-          <div style={{ height: `${topSpacerHeight()}px` }} />
-          <For each={sections().slice(visibleStart(), visibleEnd() + 1)}>
-            {(section) => (
-              <div ref={(el) => { new ResizeObserver(() => {
-                sectionHeights.set(section.id, el.offsetHeight);
-                updateVirtualWindow();
-              });}}>
-                <For each={section.messages}>
-                  {(message, index) => {
+        <For each={sections()}>
+    {(section) => (
+      <div>
+        <For each={section.messages}>
+          {(message, index) => {
                     const msg = () => message;
                     console.log(44, msg())
                     const ts = Number(msg()?.timestamp);
@@ -447,7 +390,6 @@ export function VirtualMessageList(props) {
               </div>
             )}
           </For>
-          <div style={{ height: `${bottomSpacerHeight()}px` }} />
         </div>
       </div>
       <Show when={hoveredMessage() && hoverRect()}>

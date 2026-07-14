@@ -153,6 +153,22 @@ export function createChannelMessages({
     request({ cmd: "messages_get", limit: PAGE_SIZE });
   }
 
+  function reload() {
+    loadingOlderLock = false;
+    lastLoadTime = 0;
+    pendingDirection = null;
+    pendingAnchorId = null;
+
+    batch(() => {
+      setMessages([]);
+      setHasOlderMessages(true);
+      setLoadingOlder(false);
+      setLastUpdate(null);
+    });
+
+    fetchInitial();
+  }
+
   function loadOlder() {
     const now = Date.now();
 
@@ -248,7 +264,7 @@ export function createChannelMessages({
     setLastUpdate({ type: "initial" });
   }
 
-  function handleMessagesAround(event) {
+function handleMessagesAround(event) {
     const incoming = sortMessages(event.messages);
     const direction = pendingDirection;
     const targetId = pendingAnchorId;
@@ -300,28 +316,7 @@ export function createChannelMessages({
         type: "prepend",
       });
     }
-
-
-    loadingOlderLock = false;
-
-    if (direction === "older" && scrollEl && heightBefore != null) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const delta = scrollEl.scrollHeight - heightBefore;
-          scrollEl.scrollTop += delta;
-        });
-      });
-
-      setLastUpdate({ type: "prepend" });
-    }
-
-    if (direction === "jump") {
-      setLastUpdate({
-        type: "jump",
-        targetId,
-      });
-    }
-  }
+}
 
   function handleMessageNew(event) {
     const incomingMessage = event.message ?? event.val ?? event.data ?? null;
@@ -500,5 +495,6 @@ export function createChannelMessages({
     lastUpdate,
     loadOlder,
     jumpToMessage,
+    reload,
   };
 }
