@@ -85,12 +85,12 @@ export function VirtualMessageList(props) {
     let resizeObserver;
 
     function attachResizeObserver(el) {
-        resizeObserver?.disconnect();
-        resizeObserver = new ResizeObserver(() => {
-            scrollToBottom(false);
-        });
-        resizeObserver.observe(el);
-    }
+    resizeObserver?.disconnect();
+    resizeObserver = new ResizeObserver(() => {
+        if (scrollLocked()) scrollToBottom(false);
+    });
+    resizeObserver.observe(el);
+}
 
     onCleanup(() => resizeObserver?.disconnect());
 
@@ -140,20 +140,33 @@ export function VirtualMessageList(props) {
 
     createMessageLookup(messages);
 
+    function stickToBottomThroughMediaLoad() {
+    if (!scrollEl) return;
+    const media = scrollEl.querySelectorAll('img, video');
+    let pending = 0;
+
+    media.forEach(el => {
+        const notReady = el.tagName === "IMG" ? !el.complete : el.readyState < 1;
+        if (!notReady) return;
+        pending++;
+        const onLoad = () => {
+            pending--;
+            if (scrollLocked()) scrollToBottom(false);
+            el.removeEventListener("load", onLoad);
+            el.removeEventListener("loadeddata", onLoad);
+        };
+        el.addEventListener("load", onLoad);
+        el.addEventListener("loadeddata", onLoad);
+    });
+}
+
     const SECTION_SIZE = 15;
     const MAX_SECTIONS = 4;
 
     const [scrollLocked, setScrollLocked] = createSignal(true);
-let sectionCache = new Map();
-let sectionCacheChannel = null;
-
-const sections = createMemo(() => {
+const [sectionList, setSectionList] = createSignal([]);
+function rebuildSectionsFromMessages() {
     const msgs = messages();
-    if (sectionCacheChannel !== props.channel) {
-        sectionCache = new Map();
-        sectionCacheChannel = props.channel;
-    }
-
     const totalCap = SECTION_SIZE * MAX_SECTIONS;
     let alignedStart;
 
@@ -180,27 +193,44 @@ const sections = createMemo(() => {
     }
 
     const windowed = msgs.slice(alignedStart);
+    const prev = sectionList();
     const result = [];
-    const nextCache = new Map();
     let i = 0;
 
     while (i < windowed.length && result.length < MAX_SECTIONS) {
         const chunk = windowed.slice(i, i + SECTION_SIZE);
         const firstId = chunk[0]?.id;
         const lastId = chunk[chunk.length - 1]?.id;
-        const key = `${firstId}:${lastId}:${chunk.length}`;
 
-        const cached = sectionCache.get(key);
-        const section = cached ?? { id: firstId, messages: chunk };
+        const existing = prev[result.length];
+        const sameShape =
+            existing &&
+            existing.id === firstId &&
+            existing.messages.length === chunk.length &&
+            existing.messages[existing.messages.length - 1]?.id === lastId;
 
-        nextCache.set(key, section);
-        result.push(section);
+        result.push(sameShape ? existing : { id: firstId, messages: chunk });
         i += SECTION_SIZE;
     }
 
-    sectionCache = nextCache;
-    return result;
-});
+    setSectionList(result);
+}
+
+function appendMessageToSections(msg) {
+    setSectionList(prev => {
+        const last = prev[prev.length - 1];
+
+        if (last && last.messages.length < SECTION_SIZE) {
+            const updatedLast = { ...last, messages: [...last.messages, msg] };
+            return [...prev.slice(0, -1), updatedLast];
+        }
+
+        const next = [...prev, { id: msg.id, messages: [msg] }];
+        return next.length > MAX_SECTIONS
+            ? next.slice(next.length - MAX_SECTIONS)
+            : next;
+    });
+}
 
     const [showNewIndicator, setShowNewIndicator] = createSignal(false);
     const [hoveredMessage, setHoveredMessage] = createSignal(null);
@@ -236,7 +266,7 @@ function onScroll() {
     function onVisibilityChange() {
         if (!document.hidden && scrollLocked()) {
             requestAnimationFrame(() => {
-                scrollToBottom(true);
+                scrollToBottom(false);
             });
         }
     }
@@ -246,42 +276,50 @@ function onScroll() {
     onCleanup(() => {
         document.removeEventListener("visibilitychange", onVisibilityChange);
     });
-    createEffect(
-        on(lastUpdate, (update) => {
-            if (!update) return;
+   createEffect(
+    on(lastUpdate, (update) => {
+        if (!update) return;
 
-          if (update.type === "initial") {
+    if (update.type === "initial") {
     setShowNewIndicator(false);
+    rebuildSectionsFromMessages();
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            scrollToBottom(true);
+            scrollToBottom(false);
         });
     });
     return;
 }
-           if (update.type === "append") {
-            if (scrollLocked()) {
-                scrollToBottom(false);
-            } else {
-                setShowScrollButton(true);
-                setUnreadCount(c => c + 1);
-            }
-        }
-            if (update.type === "jump") {
-                requestAnimationFrame(() => {
-                    const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
-                    if (el) el.scrollIntoView({
-                        block: "center",
-                        behavior: "auto"
-                    });
-                });
-            }
 
-            if (update.type === "reset") {
-                requestAnimationFrame(() => scrollToBottom(true));
-            }
-        })
-    );
+      if (update.type === "append") {
+    appendMessageToSections(update.message);
+    if (scrollLocked()) {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                scrollToBottom(false);
+                stickToBottomThroughMediaLoad();
+            });
+        });
+    } else {
+        setShowScrollButton(true);
+        setUnreadCount(c => c + 1);
+    }
+    return;
+}
+        rebuildSectionsFromMessages();
+
+        if (update.type === "jump") {
+            requestAnimationFrame(() => {
+                const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
+                if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
+            });
+        }
+
+        if (update.type === "reset") {
+            requestAnimationFrame(() => scrollToBottom(true));
+        }
+    })
+);
     const renderOverlay = state.settings.profileOverlays;
     return (
         <>
@@ -303,7 +341,7 @@ function onScroll() {
         </Show>
        </button>
       </Show>
-      <div ref={(el) => { scrollEl = el; }} class="vml-scroll" onScroll={onScroll}>
+     <div ref={(el) => { scrollEl = el; attachResizeObserver(el); }} class="vml-scroll" onScroll={onScroll}>
      
         <Show when={!hasOlderMessages() && messages().length}>
           <div class="vml-beginning">You've reached the beginning.</div>
@@ -314,7 +352,7 @@ function onScroll() {
             There's nothing here. Send a message?
             </div>
         </Show>
-        <For each={sections()}>
+    <For each={sectionList()}>
     {(section) => (
       <div>
         <For each={section.messages}>
