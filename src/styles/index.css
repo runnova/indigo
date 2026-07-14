@@ -494,11 +494,18 @@ span.channel_badge {
     gap: .5em;
     box-shadow: 0 3px 1em #00000069, var(--border);
 
-    & input {
-      background-color: var(--bg-one);
-      padding: .5em;
-      border-radius: .5em;
-      border: 1px solid var(--diff-three);
+    & .searchbox {
+      margin: 0;
+      max-width: none;
+      width: auto;
+      gap: .2em;
+      & svg {
+        padding: .2em;
+        border-radius: .2em;
+        &:hover {
+          background-color: var(--diff-one);
+        }
+      }
     }
 
     & .emoji_grid {

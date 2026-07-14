@@ -7,6 +7,7 @@ import {
   onMount
 } from "solid-js";
 import './emojiPicker.css'
+import { HiOutlineMagnifyingGlass, HiOutlineSparkles } from "solid-icons/hi";
 
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
 import { tempState } from "../../App.jsx";
@@ -177,17 +178,38 @@ export default function EmojiPicker(props) {
         </button>
       </div>
 
-      <input
-        ref={searchInput}
-        type="text"
-        placeholder={
-          tab() === "emoji"
-            ? "Search emojis..."
-            : "Search GIFs..."
-        }
-        value={query()}
-        onInput={(e) => setQuery(e.currentTarget.value)}
-      />
+      <div className="searchbox">
+        <input
+          ref={searchInput}
+          type="text"
+          placeholder={
+            tab() === "emoji"
+              ? "Search emojis..."
+              : "Search GIFs..."
+          }
+          value={query()}
+          onInput={(e) => setQuery(e.currentTarget.value)}
+        />
+        <Show when={tab() === "gif"}>
+          <HiOutlineSparkles
+            title="I'm feeling lucky"
+            onClick={async () => {
+              try {
+                const res = await fetch("https://gifs.originchats.com/api/gifs/random");
+                const { gif } = await res.json();
+
+                if (gif?.url) {
+                  props.onSelect("https://gifs.originchats.com" + gif.url);
+                }
+              } catch (err) {
+                console.error(err);
+              }
+            }}
+          />
+        </Show>
+        <HiOutlineMagnifyingGlass />
+      </div>
+
       <Show
         when={tab() === "emoji"}
         fallback={
