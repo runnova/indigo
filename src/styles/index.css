@@ -190,7 +190,16 @@ nav button.active {
     opacity: .8;
     box-shadow: 0 0 0;
     cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    &>* {
+      flex: 1;
+    text-overflow: ellipsis;
+    }
 
+    &>span {
+      flex: 0;
+    }
     &:hover {
       background-color: var(--diff-two);
       opacity: 1;
@@ -499,9 +508,11 @@ span.channel_badge {
       max-width: none;
       width: auto;
       gap: .2em;
+
       & svg {
         padding: .2em;
         border-radius: .2em;
+
         &:hover {
           background-color: var(--diff-one);
         }
@@ -580,6 +591,16 @@ img.channel_icon_image {
 .channelbar {
   gap: .5em;
   align-items: center;
+
+  &>* {
+    white-space: nowrap;
+  }
+
+  &>span {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   &>.channel_desc {
     opacity: .5;
