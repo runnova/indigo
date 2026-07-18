@@ -342,7 +342,7 @@ iframe#rotur-auth {
   background-color: var(--bg-two);
   padding: .5em;
   border-radius: .5em;
-  z-index: 100;
+  z-index: 300;
   width: 300px;
   gap: .3em;
   position: relative;

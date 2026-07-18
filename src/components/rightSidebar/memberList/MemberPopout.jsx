@@ -20,7 +20,7 @@ export default function MemberPopout() {
       const height = popupRef.offsetHeight;
 
       const padding = 12;
-      const minRightGap = 250;
+      const minRightGap = state.settings.thirdBarWidth + 20;
 
       let left = current.x + padding;
       const maxLeft = window.innerWidth - width - minRightGap;
@@ -49,7 +49,7 @@ export default function MemberPopout() {
       const height = popupRef.offsetHeight;
 
       const padding = 12;
-      const minRightGap = 250;
+      const minRightGap = state.settings.thirdBarWidth + 20;
 
       let left = current.x + padding;
       const maxLeft = window.innerWidth - width - minRightGap;
