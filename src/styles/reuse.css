@@ -47,10 +47,23 @@
     &>svg {
       font-size: 1.3em;
     }
+
+    &>img {
+      height: 1.3em;
+      width: 1.3em;
+      filter: grayscale(1);
+    }
   }
 
   &:hover {
     background-color: var(--bg-three);
+  }
+
+  &:hover,
+  &.active {
+    & img {
+      filter: grayscale(0);
+    }
   }
 }
 
@@ -68,6 +81,7 @@
     transform: rotate(360deg);
   }
 }
+
 @keyframes wave {
   to {
     background-position: 200% center;

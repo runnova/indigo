@@ -96,6 +96,7 @@ const defaultState = {
     messageLogger: false,
     firstBarWidth: 260,
     thirdBarWidth: 320,
+    displayChannelName: true
   }
 };
 export const [unreads, setUnreads] = createStore({

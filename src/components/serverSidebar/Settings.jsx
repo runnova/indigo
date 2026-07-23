@@ -11,6 +11,11 @@ import {
 } from "solid-icons/hi";
 
 import ThemeSettings from "./settings/Theme"
+import appIcon from "/icon_small.svg"
+
+function AppIcon(props) {
+  return <img src={appIcon} alt="" {...props} />;
+}
 
 function GeneralSettings() {
   function SettingInput(props) {
@@ -126,6 +131,23 @@ function GeneralSettings() {
         <div class="settings_section_label">Owner crown</div>
         <SettingCheckbox setting="ownerCrown" />
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">Display channel name above display name</div>
+        <SettingCheckbox setting="displayChannelName" />
+      </div>
+    </>
+  );
+}
+
+function AboutSettings() {
+  return (
+    <>
+      <h2>Indigo Client</h2>
+      <p>
+        The cooler <a href="https://originchats.com">OriginChats</a> client. Currently under development.
+
+
+      </p><p>Licensed under MPL 3.0. You can <a href="https://github.com/runnova/indigo/pulls">contribute</a>  too! issues go <a href="https://github.com/runnova/indigo/issues">here</a>.</p>
     </>
   );
 }
@@ -143,12 +165,12 @@ const tabs = [
     icon: HiOutlinePaintBrush,
     component: ThemeSettings,
   },
-  // {
-  //   id: "notifications",
-  //   title: "Notifications",
-  //   icon: HiOutlineBell,
-  //   component: NotificationsSettings,
-  // },
+  {
+    id: "about",
+    title: "About",
+    icon: AppIcon,
+    component: AboutSettings,
+  },
   // {
   //   id: "appearance",
   //   title: "Appearance",

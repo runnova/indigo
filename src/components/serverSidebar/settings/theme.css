@@ -2,8 +2,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: .5em;
-  --green:rgb(0, 148, 0);
+  --green: rgb(0, 148, 0);
   --tgreen: rgb(155, 255, 155);
+
   &>.theme-card {
     background-color: var(--bg-two);
     border-radius: .5em;
@@ -11,42 +12,56 @@
     align-items: justify;
     text-align: left;
     cursor: pointer;
+
     &:hover {
       background-color: var(--diff-two);
     }
+
     & .theme-color {
       background-color: var(--bg-three);
       height: 3em;
       border-radius: .5em .5em 0 0;
     }
-    & h3, p {
+
+    & h3,
+    p {
       margin: 0;
     }
+
     & .author {
       opacity: .5;
       font-size: small;
       margin-bottom: .5em;
     }
+
     & .data {
       padding: 1em;
+
+      &>.cols.x {
+        align-items: flex-start;
+      }
     }
+
     & .getbtn {
       background-color: var(--green);
       color: white;
       border-radius: .5em;
       padding: .3em 1em;
-      font-size:medium;
+      font-size: medium;
+
       &[value="Disable"] {
         background-color: var(--diff-three);
       }
     }
+
     & .buyCont {
       margin-left: auto;
       align-items: center;
       gap: .5em;
-      color :var(--tgreen);
+      color: var(--tgreen);
       font-size: large;
-      & *{
+
+      & * {
         white-space: nowrap;
       }
     }
@@ -54,11 +69,11 @@
 }
 
 .quickcss {
-    box-shadow: var(--border);
-    border-radius: .5em;
-    width: calc(100% - 1.4em);
-    background-color: var(--bg-two);
-    padding: .7em;
+  box-shadow: var(--border);
+  border-radius: .5em;
+  width: calc(100% - 1.4em);
+  background-color: var(--bg-two);
+  padding: .7em;
 }
 
 .theme-actions {
@@ -66,13 +81,58 @@
   gap: .2em;
   flex-direction: row;
   margin-bottom: .5em;
+
   & button {
     background-color: var(--bg-two);
     padding: .5em .8em;
     border-radius: .5em;
     cursor: pointer;
+
     &.hl {
       background-color: var(--hl-four);
     }
   }
+}
+
+.theme-sections {
+  display: flex;
+  gap: 8px;
+  margin-bottom: .5em;
+}
+
+.theme-sections button {
+  appearance: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--fg-two);
+  cursor: pointer;
+  font: inherit;
+}
+
+.theme-sections button:hover {
+  color: var(--fg-one);
+  border-bottom-color: var(--diff-one);
+}
+
+.theme-sections button.active {
+  color: var(--fg-one);
+  border-bottom-color: var(--hl-one);
+}
+
+.theme-sections button.active:hover {
+  border-bottom-color: var(--hl-three);
+}
+
+.unreaddot {
+  background-color: var(--hl-three);
+  color: var(--fg);
+  border-radius: 2em;
+  display: inline-flex;
+  padding: 11px;
+  height: 5px;
+  width: 5px;
+  align-items: center;
+  justify-content: center;
+  transform: scale(.8);
 }

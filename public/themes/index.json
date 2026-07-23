@@ -7,7 +7,8 @@
     "description": "A clean dark theme.",
     "file": "official.css",
     "preview": "#bd93f9",
-    "price": 0
+    "price": 0,
+    "type": "theme"
   },
   {
     "id": "light",
@@ -17,7 +18,8 @@
     "description": "A clean light theme.",
     "file": "light.css",
     "preview": "#ffffff",
-    "price": 0
+    "price": 0,
+    "type": "theme"
   },
   {
     "id": "aqua",
@@ -27,7 +29,8 @@
     "description": "Glowy.",
     "file": "aqua.css",
     "preview": "#BA06F8",
-    "price": 0
+    "price": 0,
+    "type": "theme"
   },
   {
     "id": "pride",
@@ -37,7 +40,8 @@
     "description": "POC Inclusive topbar",
     "file": "pride.css",
     "preview": "#F6CF2A",
-    "price": 0
+    "price": 0,
+    "type": "mod"
   },
   {
     "id": "centeredserverbar",
@@ -46,7 +50,18 @@
     "version": "1.0.0",
     "description": "Apply and get a nice centered server bar.",
     "file": "centeredserverbar.css",
-    "price": 0
+    "price": 0,
+    "type": "mod"
+  },
+  {
+    "id": "compactchat",
+    "name": "compact chat layout",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "IRC style compact messages list",
+    "file": "compact.css",
+    "price": 0,
+    "type": "mod"
   },
   {
     "id": "miniwindow",
@@ -55,7 +70,8 @@
     "version": "1.0.0",
     "description": "Put the app in a nice mini-window",
     "file": "miniwindow.css",
-    "price": 0
+    "price": 0,
+    "type": "mod"
   },
   {
     "id": "dracula",
@@ -65,7 +81,8 @@
     "description": "Reddish dark theme",
     "file": "dracula.css",
     "preview": "#bd0101",
-    "price": 0
+    "price": 0,
+    "type": "theme"
   },
   {
     "id": "imagebg",
@@ -74,7 +91,8 @@
     "version": "1.0.0",
     "description": "Use this theme for themes with images",
     "file": "imagebg.css",
-    "price": 0
+    "price": 0,
+    "type": "mod"
   },
   {
     "id": "neongirl",
@@ -84,7 +102,8 @@
     "description": "Use wallpaper theme. Neon theme",
     "file": "neongirl.css",
     "preview": "#ff74dc",
-    "price": 0
+    "price": 0,
+    "type": "theme"
   },
   {
     "id": "lines",
@@ -93,7 +112,7 @@
     "version": "1.0.0",
     "description": "Add line selection indicators",
     "file": "lines.css",
-    "preview": "#ff74dc",
-    "price": 0
+    "price": 0,
+    "type": "mod"
   }
 ]

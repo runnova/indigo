@@ -1,0 +1,39 @@
+.message_single {
+
+  .reply_preview {
+    margin-left: 60px;
+  }
+
+  & .pfpWO {
+    height: 20px;
+    width: 20px;
+    margin-left: 1.3em;
+  }
+
+  & .message_content {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: .5em;
+
+    & .message_text {
+      margin: 0;
+    }
+
+    & .message_embeds,
+    .attachments {
+      width: 500px;
+      display: flex;
+    }
+  }
+
+  & .time {
+    display: none;
+  }
+}
+
+.is-grouped {
+  & .time {
+    display: flex;
+  }
+}

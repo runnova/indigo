@@ -10,7 +10,7 @@ export default function Typing() {
     const event = tempState?.conn.lastEvent();
 
     if (!event || event.cmd !== "typing") return;
-    if (event.channel !=state.current.channel) return;
+    if (event.channel != state.current.channel) return;
 
     const { user, duration } = event;
 
@@ -34,7 +34,8 @@ export default function Typing() {
   });
 
   const text = createMemo(() => {
-    const users = typingUsers();
+    const me = tempState?.conn.me()?.username;
+    const users = typingUsers().filter(user => user !== me);
 
     if (users.length === 0) return "";
 

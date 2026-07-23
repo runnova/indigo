@@ -26,6 +26,7 @@ import {
 
 import { preloadChannel, markActive, markBackground } from "../channelCache";
 import { createHoverPreloadHandlers } from "../useHoverPreload";
+import { state, conn } from "../../App"
 
 const channelIcons = {
   text: HiOutlineHashtag,
@@ -145,7 +146,11 @@ export default function ChannelList(props) {
                 </Show>
               </span>
 
-              {ch.display_name || ch.name}
+              <div class="y">
+                {(ch.display_name && state.settings.displayChannelName && ch.display_name != ch.name) ? (<small style={{ "opacity": ".5" }}>{ch.name}</small>) : (<></>)}
+                {ch.display_name || ch.name}
+
+              </div>
 
               <Show when={unread?.unread_count > 0}>
                 <span class="channel_badge">
