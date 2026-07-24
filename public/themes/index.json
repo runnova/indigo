@@ -7,7 +7,6 @@
     "description": "A clean dark theme.",
     "file": "official.css",
     "preview": "#bd93f9",
-    "price": 0,
     "type": "theme"
   },
   {
@@ -18,7 +17,6 @@
     "description": "A clean light theme.",
     "file": "light.css",
     "preview": "#ffffff",
-    "price": 0,
     "type": "theme"
   },
   {
@@ -29,7 +27,6 @@
     "description": "Glowy.",
     "file": "aqua.css",
     "preview": "#BA06F8",
-    "price": 0,
     "type": "theme"
   },
   {
@@ -39,8 +36,6 @@
     "version": "1.0.0",
     "description": "POC Inclusive topbar",
     "file": "pride.css",
-    "preview": "#F6CF2A",
-    "price": 0,
     "type": "mod"
   },
   {
@@ -50,7 +45,6 @@
     "version": "1.0.0",
     "description": "Apply and get a nice centered server bar.",
     "file": "centeredserverbar.css",
-    "price": 0,
     "type": "mod"
   },
   {
@@ -60,7 +54,6 @@
     "version": "1.0.0",
     "description": "IRC style compact messages list",
     "file": "compact.css",
-    "price": 0,
     "type": "mod"
   },
   {
@@ -70,7 +63,6 @@
     "version": "1.0.0",
     "description": "Put the app in a nice mini-window",
     "file": "miniwindow.css",
-    "price": 0,
     "type": "mod"
   },
   {
@@ -81,7 +73,6 @@
     "description": "Reddish dark theme",
     "file": "dracula.css",
     "preview": "#bd0101",
-    "price": 0,
     "type": "theme"
   },
   {
@@ -91,7 +82,6 @@
     "version": "1.0.0",
     "description": "Use this theme for themes with images",
     "file": "imagebg.css",
-    "price": 0,
     "type": "mod"
   },
   {
@@ -102,7 +92,6 @@
     "description": "Use wallpaper theme. Neon theme",
     "file": "neongirl.css",
     "preview": "#ff74dc",
-    "price": 0,
     "type": "theme"
   },
   {
@@ -112,7 +101,15 @@
     "version": "1.0.0",
     "description": "Add line selection indicators",
     "file": "lines.css",
-    "price": 0,
+    "type": "mod"
+  },
+  {
+    "id": "circlepfp",
+    "name": "Circle pfps",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "circle shaped pfps",
+    "file": "circlepfps.css",
     "type": "mod"
   }
 ]

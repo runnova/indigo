@@ -125,7 +125,6 @@ function renderICN(code, canvas) {
 }
 
 export default function MemberProfile(props) {
-  console.log(props)
   const [loading, setLoading] = createSignal(false);
   const [profile, setProfile] = createSignal(null);
   const [showAllRoles, setShowAllRoles] = createSignal(false);
@@ -151,7 +150,14 @@ export default function MemberProfile(props) {
       setLoading(false);
     }
   });
+  createEffect(() => {
+    const username = props.username;
+    if (!username) return;
 
+    queueMicrotask(() => {
+      window.roturEmbed.scan();
+    });
+  });
   return (
     <>
       <div className="member_popout y">
@@ -288,6 +294,12 @@ export default function MemberProfile(props) {
                         </button>
                       </Show>
                     </div>
+                  </Show>
+
+                  <Show when={props.username} keyed>
+                    {(username) => (
+                      <div data-rotur-followers={username}></div>
+                    )}
                   </Show>
 
                   <div className="boxes x">

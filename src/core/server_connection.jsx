@@ -38,6 +38,7 @@ function saveToken(token) {
     "settings",
     JSON.stringify(settings)
   );
+  localStorage.setItem("rotur_embed_token", token);
   location.reload();
 }
 

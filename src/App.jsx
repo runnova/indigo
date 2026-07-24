@@ -49,6 +49,7 @@ import {
 } from "./themeManager";
 addTheme("/themes/fun.css");
 
+import "https://embed.rotur.dev/embed.js";
 import { VoiceChannelView } from "./components/VoiceChannelView.jsx";
 import { bindVoiceEvents } from "./core/voiceClient.js";
 

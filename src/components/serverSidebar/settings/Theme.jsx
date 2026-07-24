@@ -10,6 +10,17 @@ import {
   quickCss,
   setQuickCss
 } from "../../../themeManager";
+import ThemeCustomizer from "./customizer/ThemeCustomizer";
+
+const afterLastDot = (str) => str.split(".").pop().toUpperCase();
+
+const extensionColors = {
+  JS: "#fff07c",
+  CSS: "#8dafff"
+};
+
+const extensionColor = (file) =>
+  extensionColors[afterLastDot(file)] ?? "#888";
 
 export default function ThemeSettings() {
   const [themes, setThemes] = createSignal([]);
@@ -104,55 +115,98 @@ export default function ThemeSettings() {
           Mods <span class="unreaddot">{modCount()}</span>
         </button>
       </div>
-      <div class="theme-grid">
-        <For each={filteredThemes()}>
-          {(theme) => (
-            <button class="theme-card y">
-              <div
-                class="theme-color"
-                style={{
-                  "background-color": theme.preview
-                }}
-              />
+      {section() === "mods" ? (
+        <div class="mod-list">
+          <For each={filteredThemes()}>
+            {(theme) => (
+              <div class="mod-item x">
+                <div class="mod-meta">
+                  <h3>{theme.name}</h3>
 
-              <div class="data">
-                <div class="cols x">
-                  <div class="col y">
-                    <h3>{theme.name}</h3>
+                  {theme.author && (
+                    <p class="author">
+                      by {theme.author} &bull;{" "}
+                      <span
+                        style={{
+                          color: extensionColor(theme.file)
+                        }}
+                      >
+                        {afterLastDot(theme.file)}
+                      </span>
+                    </p>
+                  )}
 
-                    {theme.author && (
-                      <p class="author">
-                        by {theme.author}
-                      </p>
-                    )}
-                  </div>
-
-                  <div class="col x buyCont">
-                    <div class="price">
-                      {isEnabled(theme) && <HiOutlineCheck />}
-                    </div>
-
-                    <input
-                      type="button"
-                      class="getbtn"
-                      value={isEnabled(theme) ? "Disable" : "Apply"}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleTheme(theme);
-                      }}
-                    />
-                  </div>
+                  {theme.description && (
+                    <p>{theme.description}</p>
+                  )}
                 </div>
 
-                {theme.description && (
-                  <p>{theme.description}</p>
-                )}
-              </div>
-            </button>
-          )}
-        </For>
-      </div>
+                <div class="mod-action x">
+                  <div class="price">
+                    {isEnabled(theme) && <HiOutlineCheck />}
+                  </div>
 
+                  <input
+                    type="button"
+                    class="getbtn"
+                    value={isEnabled(theme) ? "Disable" : "Apply"}
+                    onClick={() => toggleTheme(theme)}
+                  />
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
+      ) : (
+        <div class="theme-grid">
+          <For each={filteredThemes()}>
+            {(theme) => (
+              <button class="theme-card y">
+                <div
+                  class="theme-color"
+                  style={{
+                    "background-color": theme.preview
+                  }}
+                />
+
+                <div class="data">
+                  <div class="cols x">
+                    <div class="col y">
+                      <h3>{theme.name}</h3>
+
+                      {theme.author && (
+                        <p class="author">
+                          by {theme.author}
+                        </p>
+                      )}
+                    </div>
+
+                    <div class="col x buyCont">
+                      <div class="price">
+                        {isEnabled(theme) && <HiOutlineCheck />}
+                      </div>
+
+                      <input
+                        type="button"
+                        class="getbtn"
+                        value={isEnabled(theme) ? "Disable" : "Apply"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleTheme(theme);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {theme.description && (
+                    <p>{theme.description}</p>
+                  )}
+                </div>
+              </button>
+            )}
+          </For>
+        </div>
+      )}
       <h2 class="settings_title">
         Quick CSS
       </h2>
@@ -176,6 +230,7 @@ export default function ThemeSettings() {
           Reset
         </button>
       </div>
+      <ThemeCustomizer></ThemeCustomizer>
     </>
   );
 }

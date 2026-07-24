@@ -12,7 +12,7 @@ export default async function (conn, setState, state, Rotur, setLoadingProgress)
 
   if (!server) return;
   setState("current", "server", server);
-setLoadingProgress(20);
+  setLoadingProgress(20);
   // get auth settings
   const settings = JSON.parse(
     localStorage.getItem("settings") || "{}"
@@ -20,6 +20,7 @@ setLoadingProgress(20);
   setLoadingProgress(35);
 
   if (settings.type === "token" && settings.token) {
+    localStorage.setItem("rotur_embed_token", settings.token);
     tempState.rotur = new Rotur({ token: settings.token });
     conn.connect(server, settings.token);
   } else {

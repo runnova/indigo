@@ -1,0 +1,6 @@
+.pfpWO img {
+  border-radius: 50% !important;
+  &.overlay {
+    border-radius: 0 !important;
+  }
+}

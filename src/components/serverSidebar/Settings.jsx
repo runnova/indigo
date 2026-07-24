@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, onMount } from "solid-js";
 import { Dynamic } from "solid-js/web";
 import { setState, state } from "../../App";
 
@@ -140,6 +140,8 @@ function GeneralSettings() {
 }
 
 function AboutSettings() {
+  onMount(
+    window.roturEmbed.scan);
   return (
     <>
       <h2>Indigo Client</h2>
@@ -148,6 +150,7 @@ function AboutSettings() {
 
 
       </p><p>Licensed under MPL 3.0. You can <a href="https://github.com/runnova/indigo/pulls">contribute</a>  too! issues go <a href="https://github.com/runnova/indigo/issues">here</a>.</p>
+      <div data-rotur-tip="darkdot" data-amount="1"></div>
     </>
   );
 }

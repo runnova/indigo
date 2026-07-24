@@ -29,7 +29,7 @@
     }
 
     & .author {
-      opacity: .5;
+      color: var(--fg-two);
       font-size: small;
       margin-bottom: .5em;
     }
@@ -63,6 +63,67 @@
 
       & * {
         white-space: nowrap;
+      }
+    }
+  }
+}
+
+.mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+
+  --green: rgb(0, 148, 0);
+  --tgreen: rgb(155, 255, 155);
+
+  &>.mod-item {
+    background-color: var(--bg-two);
+    border-radius: .5em;
+    padding: 1em;
+    align-items: flex-start;
+
+    &:hover {
+      background-color: var(--diff-two);
+    }
+
+    & h3,
+    p {
+      margin: 0;
+    }
+
+    & .author {
+      color: var(--fg-two);
+      font-size: small;
+      margin-bottom: .5em;
+    }
+
+    & .mod-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    & .mod-action {
+      margin-left: auto;
+      align-items: center;
+      flex-direction: row;
+      gap: .5em;
+      color: var(--tgreen);
+      font-size: large;
+
+      & * {
+        white-space: nowrap;
+      }
+    }
+
+    & .getbtn {
+      background-color: var(--green);
+      color: white;
+      border-radius: .5em;
+      padding: .3em 1em;
+      font-size: medium;
+
+      &[value="Disable"] {
+        background-color: var(--diff-three);
       }
     }
   }

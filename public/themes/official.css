@@ -1,6 +1,6 @@
 :root {
   --bg-one: #050505;
-  --bg-two: #050505;
+  --bg-two: #080808;
   --bg-three: #141419;
   --bg-four: #3a3a3a;
   --hl-one: #0085cd;
@@ -47,12 +47,5 @@
 
   & .dropdown.x {
     background: transparent;
-  }
-}
-
-.message_single {
-  margin-top: .5em;
-  &.grouped {
-    margin-top: 0;
   }
 }
