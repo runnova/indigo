@@ -43,8 +43,17 @@
     "name": "Centered Server Bar",
     "author": "darkdot",
     "version": "1.0.0",
-    "description": "Apply and get a nice centered server bar.",
+    "description": "Apply and get a nice centered server bar",
     "file": "centeredserverbar.css",
+    "type": "mod"
+  },
+  {
+    "id": "horizserverbar",
+    "name": "Horizontal Server Bar",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Narrow screen? put the server bar on top",
+    "file": "horizserverbar.css",
     "type": "mod"
   },
   {

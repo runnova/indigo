@@ -165,7 +165,7 @@ export function VirtualMessageList(props) {
 
     const [scrollLocked, setScrollLocked] = createSignal(true);
 const [sectionList, setSectionList] = createSignal([]);
-function rebuildSectionsFromMessages() {
+function rebuildSectionsFromMessages(forceFresh = false) {
     const msgs = messages();
     const totalCap = SECTION_SIZE * MAX_SECTIONS;
     let alignedStart;
@@ -204,6 +204,7 @@ function rebuildSectionsFromMessages() {
 
         const existing = prev[result.length];
         const sameShape =
+            !forceFresh &&
             existing &&
             existing.id === firstId &&
             existing.messages.length === chunk.length &&
@@ -215,7 +216,6 @@ function rebuildSectionsFromMessages() {
 
     setSectionList(result);
 }
-
 function appendMessageToSections(msg) {
     setSectionList(prev => {
         const last = prev[prev.length - 1];
@@ -280,33 +280,34 @@ function onScroll() {
     on(lastUpdate, (update) => {
         if (!update) return;
 
-    if (update.type === "initial") {
-    setShowNewIndicator(false);
-    rebuildSectionsFromMessages();
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            scrollToBottom(false);
-        });
-    });
-    return;
-}
-
-      if (update.type === "append") {
-    appendMessageToSections(update.message);
-    if (scrollLocked()) {
-        requestAnimationFrame(() => {
+        if (update.type === "initial") {
+            setShowNewIndicator(false);
+            rebuildSectionsFromMessages(true);
             requestAnimationFrame(() => {
-                scrollToBottom(false);
-                stickToBottomThroughMediaLoad();
+                requestAnimationFrame(() => {
+                    scrollToBottom(false);
+                });
             });
-        });
-    } else {
-        setShowScrollButton(true);
-        setUnreadCount(c => c + 1);
-    }
-    return;
-}
-        rebuildSectionsFromMessages();
+            return;
+        }
+
+        if (update.type === "append") {
+            appendMessageToSections(update.message);
+            if (scrollLocked()) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        scrollToBottom(false);
+                        stickToBottomThroughMediaLoad();
+                    });
+                });
+            } else {
+                setShowScrollButton(true);
+                setUnreadCount(c => c + 1);
+            }
+            return;
+        }
+
+        rebuildSectionsFromMessages(true);
 
         if (update.type === "jump") {
             requestAnimationFrame(() => {

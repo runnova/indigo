@@ -3,9 +3,8 @@
 }
 
 .server_single {
-  &:has(.add_server) {
+  &:last-child {
     margin-top: 0 !important;
     position: absolute;
-    bottom: 0.7em;
   }
 }

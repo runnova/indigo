@@ -8,8 +8,6 @@
    - create, send message & more.
 2. context menu
    1. server bar
-      - reload icon
-      - reset cache
       - better dms server icon
    2. user
       - block user
@@ -23,15 +21,13 @@
    3. virtual scrolling
       - downward virtual scrolling
 4. user list
-   1. real time status (8.1)
+   1. real time status (8.1) and RPC
 5. user popup
    1. dms from input
    2. single source of truth for data
 6. settings
    1. general
       - toggles
-         - profile overlays
-         - send typing
          - owner crown
          - edited messages
       - methods
@@ -40,7 +36,6 @@
          - show nicknames
          - blocked user messages
    2. themes
-      - color theme generation
       - background wallpaper setting
    3. JS plugins
 7. message compose box
