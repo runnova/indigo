@@ -15,6 +15,8 @@ import SystemContextMenu from '../components/Systemcontextmenu.js';
 import { setState } from "../App.jsx";
 import { getMessageById, addFakeMessage } from "../scrolling.jsx"
 import { reconnectServer } from "./server_connection.jsx";
+import { generateQuoteImage, canvasToBlob } from '../components/utility/quote-maker.js';
+import { addAttachment } from '../components/compose/MessageComposer.jsx';
 
 const removeServer = (src) => {
   setState("servers", servers =>
@@ -124,20 +126,41 @@ SystemContextMenu.init([
                 user: "Indigo",
                 avatar: "/icon_small.svg",
                 content: `\`\`\`json
-${JSON.stringify(msg, null, 2)}
-\`\`\``,
+                ${JSON.stringify(msg, null, 2)}
+                \`\`\``,
               });
+            },
+          },
+          {
+            label: 'Quote message',
+            icon: HiOutlineChatBubbleBottomCenterText,
+            fn: async (el) => {
+              const msg = getMessageById(el.dataset.id);
+              if (!msg) return;
+
+              try {
+                const canvas = await generateQuoteImage({
+                  pfpUrl: `https://proxy.corsfix.com/?https://avatars.rotur.dev/${msg.user}`,
+                  content: msg.content,
+                  author: msg.user,
+                  watermarkText: 'Indigo client',
+                  watermarkIconUrl: '/icon_small.svg',
+                });
+
+                const blob = await canvasToBlob(canvas);
+                const file = new File([blob], `quote-${msg.id}.png`, { type: 'image/png' });
+                window.open(URL.createObjectURL(blob), "_blank")
+
+                addAttachment(file);
+              } catch (err) {
+                console.error('Failed to generate quote image:', err);
+              }
             },
           },
           {
             label: 'Copy text',
             icon: HiOutlineDocumentText,
             fn: (el) => console.log('copy text', el),
-          },
-          {
-            label: 'Quote',
-            icon: HiOutlineChatBubbleBottomCenterText,
-            fn: (el) => console.log('quote', el),
           },
         ],
       },

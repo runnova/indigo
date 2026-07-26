@@ -359,7 +359,6 @@ function onScroll() {
         <For each={section.messages}>
           {(message, index) => {
                     const msg = () => message;
-                    console.log(44, msg())
                     const ts = Number(msg()?.timestamp);
                     const timestamp = ts > 1e12 ? ts : ts * 1000;
                     const previous = index() > 0 ? section.messages[index() - 1] : null;

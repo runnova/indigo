@@ -10,6 +10,7 @@ import {
   quickCss,
   setQuickCss
 } from "../../../themeManager";
+import { mountDomSelector } from "../../utility/Dom-selector.jsx";
 import ThemeCustomizer from "./customizer/ThemeCustomizer";
 
 const afterLastDot = (str) => str.split(".").pop().toUpperCase();
@@ -213,9 +214,11 @@ export default function ThemeSettings() {
 
       <p class="settings_subt">
         Use CSS to restyle Indigo into looking however you want it to.
-      </p>
+      </p >
+
 
       <textarea
+        style={{ "font-family": "monospace" }}
         class="quickcss"
         value={css()}
         onInput={(e) => setCss(e.currentTarget.value)}
@@ -225,7 +228,17 @@ export default function ThemeSettings() {
         <button class="hl" onClick={saveQuickCss}>
           Save
         </button>
-
+        <button onClick={() => {
+          mountDomSelector({
+            onSelect: (selector, el) => {
+              console.log("Selected:", selector, el);
+              setCss((prev) => `${prev}\n${selector} {\n  \n}\n`);
+            },
+            onCancel: () => {
+              console.log("Selection cancelled");
+            },
+          });
+        }}>Select element</button>
         <button onClick={resetQuickCss}>
           Reset
         </button>

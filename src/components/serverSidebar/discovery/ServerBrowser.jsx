@@ -9,33 +9,35 @@ export default function ServerBrowser(props) {
   let serverInput;
   return (
     <div class="server_browser">
-      <div class="browser_tabs">
-        <button
-          class="icon_button text"
-          classList={{ active: tab() === "explore" }}
-          onClick={() => setTab("explore")}
-        >
-          <HiOutlineGlobeEuropeAfrica />
-          Explore
-        </button>
+      <div class=" dialog_header x">
+        <div class="browser_tabs">
+          <button
+            class="icon_button text"
+            classList={{ active: tab() === "explore" }}
+            onClick={() => setTab("explore")}
+          >
+            <HiOutlineGlobeEuropeAfrica />
+            Explore
+          </button>
 
-        <button
-          class="icon_button text"
-          classList={{ active: tab() === "url" }}
-          onClick={() => setTab("url")}
-        >
-          <HiOutlineLink />
-          By URL
-        </button>
+          <button
+            class="icon_button text"
+            classList={{ active: tab() === "url" }}
+            onClick={() => setTab("url")}
+          >
+            <HiOutlineLink />
+            By URL
+          </button>
 
-        <button
-          class="icon_button text"
-          classList={{ active: tab() === "host" }}
-          onClick={() => setTab("host")}
-        >
-          <HiOutlineServerStack />
-          Host your own
-        </button>
+          <button
+            class="icon_button text"
+            classList={{ active: tab() === "host" }}
+            onClick={() => setTab("host")}
+          >
+            <HiOutlineServerStack />
+            Host your own
+          </button>
+        </div>
       </div>
 
       <div class="browser_content">
@@ -111,7 +113,7 @@ export default function ServerBrowser(props) {
                   Make sure your server meets all the requirements above.
                 </li>
                 <li>
-                  Open a pull request on the 
+                  Open a pull request on the
                   <a href="https://git.rotur.dev/originChats/client">originChats-client</a> repository adding your server to
                   <code>discovery.json</code>.
                 </li>

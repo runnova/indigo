@@ -6,6 +6,23 @@ import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquar
 import { fetchRoturValidator } from "../../core/server_connection";
 import Typing from "./Typing";
 
+export async function fileFromDataURI(dataURI, filename = `image-${Date.now()}.png`) {
+  const res = await fetch(dataURI);
+  const blob = await res.blob();
+  return new File([blob], filename, {
+    type: blob.type
+  });
+}
+
+export async function addAttachment(fileOrDataURI) {
+  const file =
+    typeof fileOrDataURI === "string"
+      ? await fileFromDataURI(fileOrDataURI)
+      : fileOrDataURI;
+
+  queueAttachment(file);
+}
+
 export default function MessageComposer(props) {
   let textarea;
   let fileInput;
@@ -122,10 +139,8 @@ export default function MessageComposer(props) {
   }
 
   async function handleFiles(e) {
-    const files = [...e.target.files];
-
-    for (const file of files) {
-      queueAttachment(file);
+    for (const file of e.target.files) {
+      await addAttachment(file);
     }
 
     e.target.value = "";
@@ -403,21 +418,19 @@ export default function MessageComposer(props) {
             rows={1}
             placeholder={`Message #${props.channel}`}
             class="fill"
-            onPaste={async (e) => {
+            onPaste={async e => {
               const items = [...(e.clipboardData?.items || [])];
 
-              const imageItems = items.filter(
-                item => item.kind === "file" &&
+              for (const item of items) {
+                if (
+                  item.kind === "file" &&
                   item.type.startsWith("image/")
-              );
-
-              if (imageItems.length === 0) return;
-
-              e.preventDefault();
-
-              for (const item of imageItems) {
-                const file = item.getAsFile();
-                if (file) queueAttachment(file);
+                ) {
+                  const file = item.getAsFile();
+                  if (file) {
+                    await addAttachment(file);
+                  }
+                }
               }
             }}
             onInput={(e) => {

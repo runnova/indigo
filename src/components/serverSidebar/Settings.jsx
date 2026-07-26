@@ -195,30 +195,37 @@ export default function SettingsPage() {
     tabs.find((tab) => tab.id === activeTab());
 
   return (
-    <div class="fill x" style={{ "height": "100%" }}>
-      <nav class="y" style={{ "gap": ".3em", "padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
-        <For each={tabs}>
-          {(tab) => {
-            const Icon = tab.icon;
+    <>
+      <div className="dialog_header">
+        <div className="x" style={{gap: ".3em", "align-items": "center"}}>
+          <HiOutlineCog6Tooth />
+          <span>Settings</span>
+        </div>
+      </div>
+      <div class="fill x" style={{ "height": "100%" }}>
+        <nav class="y" style={{ "gap": ".3em", "padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
+          <For each={tabs}>
+            {(tab) => {
+              const Icon = tab.icon;
 
-            return (
-              <button
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                class={`icon_button text ${activeTab() === tab.id ? "active" : ""
-                  }`}
-              >
-                <Icon class="tab-icon" />
-                <span>{tab.title}</span>
-              </button>
-            );
-          }}
-        </For>
-      </nav>
+              return (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  class={`icon_button text ${activeTab() === tab.id ? "active" : ""
+                    }`}
+                >
+                  <Icon class="tab-icon" />
+                  <span>{tab.title}</span>
+                </button>
+              );
+            }}
+          </For>
+        </nav>
 
-      <main class="fill settings_content" style={{ "padding": "0 2em" }}>
-        <Dynamic component={currentTab()?.component} />
-      </main>
-    </div>
+        <main class="fill settings_content" style={{ "padding": "0 2em" }}>
+          <Dynamic component={currentTab()?.component} />
+        </main>
+      </div></>
   );
 }
