@@ -57,7 +57,7 @@ nav button.active {
 
   &>.channel_item {
     padding: .7em 1em;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     min-width: 150px;
     background-color: var(--bg-two);
     transition: opacity .5s cubic-bezier(0.42, 1.67, 0.21, 0.90);

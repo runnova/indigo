@@ -197,7 +197,7 @@ export default function SettingsPage() {
   return (
     <>
       <div className="dialog_header">
-        <div className="x" style={{gap: ".3em", "align-items": "center"}}>
+        <div className="x" style={{gap: ".3em", "align-items": "center", "padding-left": ".5em"}}>
           <HiOutlineCog6Tooth />
           <span>Settings</span>
         </div>

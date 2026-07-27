@@ -1,4 +1,7 @@
-import { Show, createSignal, createEffect, onMount } from "solid-js";
+import { Show, createSignal, createEffect, onMount, onCleanup, createResource, For } from "solid-js";
+import "./popout.css"
+import { parseMarkdown } from "../../messages/ParseMarkdown"
+import { HiOutlineBanknotes, HiOutlineCalendar, HiOutlineUser } from "solid-icons/hi";
 
 function renderICN(code, canvas) {
   const ctx = canvas.getContext('2d');
@@ -124,6 +127,132 @@ function renderICN(code, canvas) {
   ctx.restore();
 }
 
+function formatTime(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function formatMonthYear(utcMs) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(utcMs));
+}
+
+function ActivityCard(props) {
+  const activity = () => props.activity;
+  const media = () => activity()?.media;
+
+  const [now, setNow] = createSignal(Date.now());
+  let interval;
+  onMount(() => {
+    interval = setInterval(() => setNow(Date.now()), 1000);
+  });
+  onCleanup(() => clearInterval(interval));
+
+  const hasProgress = () => {
+    const m = media();
+    return m && typeof m.start === "number" && typeof m.end === "number" && m.end > m.start;
+  };
+
+  const progressPct = () => {
+    if (!hasProgress()) return 0;
+    const m = media();
+    const pct = ((now() - m.start) / (m.end - m.start)) * 100;
+    return Math.min(100, Math.max(0, pct));
+  };
+
+  const elapsedLabel = () => {
+    const m = media();
+    if (!m) return null;
+    const cur = Math.min(now(), m.end ?? now()) - m.start;
+    return formatTime(cur);
+  };
+
+  const totalLabel = () => {
+    const m = media();
+    if (!m || !m.end) return null;
+    return formatTime(m.end - m.start);
+  };
+
+  function elapsedSince(startTime) {
+    const diffMs = now() - startTime;
+    const mins = Math.floor(diffMs / 60000);
+    const hrs = Math.floor(mins / 60);
+    const remMins = mins % 60;
+
+    if (hrs > 0) {
+      return `for ${hrs} hour${hrs !== 1 ? "s" : ""}${remMins > 0 ? ` ${remMins}m` : ""}`;
+    }
+    if (mins == 0) {
+      return "started just now"
+    }
+    return `for ${mins} minute${mins !== 1 ? "s" : ""}`;
+  }
+
+  return (
+    <div class="activity_card x">
+      <div class="activity_img_col">
+        <Show when={activity().image} fallback={
+          <div class="activity_img activity_img_placeholder" />
+        }>
+          <img
+            src={activity().image}
+            alt=""
+            class="activity_img"
+          />
+        </Show>
+      </div>
+
+      <div class="activity_text_col y">
+        <div className="x" style={{ "align-items": "flex-start", "justify-content": "space-between", "flex-wrap": "wrap" }}>
+          <div class="activity_title" style={{ "margin-right": "1em" }}>{activity().title}</div>
+
+          <Show when={activity().application?.name}>
+            <small class="activity_app">{activity().application.name}</small>
+          </Show>
+
+        </div>
+
+        <Show when={media()?.title}>
+          <div class="activity_media_title">{media().title}</div>
+        </Show>
+
+        <Show when={media()?.artist}>
+          <small class="activity_media_artist">{media().artist}</small>
+        </Show>
+
+        <Show
+          when={hasProgress()}
+          fallback={
+            <Show when={activity().start_time}>
+              <small class="activity_time">
+                {elapsedSince(activity().start_time)}
+              </small>
+            </Show>
+          }
+        >
+          <div class="activity_progress_wrap">
+            <div class="activity_progress_track">
+              <div
+                class="activity_progress_fill"
+                style={{ width: `${progressPct()}%` }}
+              />
+            </div>
+            <div class="activity_progress_labels x">
+              <small>{elapsedLabel()}</small>
+              <small>{totalLabel()}</small>
+            </div>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
+}
+
 export default function MemberProfile(props) {
   const [loading, setLoading] = createSignal(false);
   const [profile, setProfile] = createSignal(null);
@@ -146,21 +275,32 @@ export default function MemberProfile(props) {
 
       const data = await res.json();
       setProfile(data);
+
+      console.log(83, data)
     } finally {
       setLoading(false);
     }
   });
-  createEffect(() => {
-    const username = props.username;
-    if (!username) return;
 
-    queueMicrotask(() => {
-      window.roturEmbed.scan();
-    });
-  });
+  const [status] = createResource(
+    () => props.username,
+    async username => {
+      if (!username) return null;
+      try {
+        return await tempState.rotur.status.get(username);
+      } catch {
+        return null;
+      }
+    }
+  );
   return (
     <>
-      <div className="member_popout y">
+      <div
+        className="member_popout y"
+        style={{
+          "--accent": profile()?.theme?.accent || "transparent"
+        }}
+      >
         <Show when={loading()}>
           <div class="popup_loader">
             <div class="spinner" />
@@ -173,10 +313,10 @@ export default function MemberProfile(props) {
             alt=""
             class="banner"
           />
-          <Show when={props.status}>
+          <Show when={status()?.status}>
             <div className="status">
               <div className="status_text">
-                {props.status}
+                {status().status}
               </div>
             </div>
           </Show>
@@ -209,7 +349,7 @@ export default function MemberProfile(props) {
                 </small>
               </div>
 
-              <div class="data_buttons x">
+              <div class="data_buttons x" style={{"font-size": "small"}}>
                 {profile()?.group_tag ? (<button onClick={() => { window.open(`https://rotur.dev/groups/${profile()?.group_tag}`) }}>
                   <img
                     src={`https://api.rotur.dev/groups/${profile()?.group_tag}/icon.jpg`}
@@ -251,6 +391,7 @@ export default function MemberProfile(props) {
               {(p) => (
                 <>
                   <div>
+                      <div class="roles_title">About Me</div>
                     <div
                       style={{
                         "white-space": "pre-wrap",
@@ -258,9 +399,18 @@ export default function MemberProfile(props) {
                         overflow: "hidden"
                       }}
                     >
-                      {p().bio}
+                      {parseMarkdown(p().bio)}
                     </div>
                   </div>
+                  <Show when={status()?.activities?.length}>
+                    <div class="activities_section">
+                      <div class="x activities_list">
+                        <For each={status().activities}>
+                          {(activity) => <ActivityCard activity={activity} />}
+                        </For>
+                      </div>
+                    </div>
+                  </Show>
 
                   <Show when={props.roles?.length}>
                     <div class="roles_section">
@@ -281,44 +431,42 @@ export default function MemberProfile(props) {
                             {role}
                           </div>
                         ))}
+                        <Show when={props.roles.length > 5}>
+                          <button
+                            class="roles_toggle"
+                            onClick={() => setShowAllRoles(v => !v)}
+                          >
+                            {showAllRoles()
+                              ? "Show less"
+                              : `+${props.roles.length - 5} more`}
+                          </button>
+                        </Show>
                       </div>
 
-                      <Show when={props.roles.length > 5}>
-                        <button
-                          class="roles_toggle"
-                          onClick={() => setShowAllRoles(v => !v)}
-                        >
-                          {showAllRoles()
-                            ? "Show less"
-                            : `+${props.roles.length - 5} more`}
-                        </button>
-                      </Show>
                     </div>
                   </Show>
 
-                  <Show when={props.username} keyed>
-                    {(username) => (
-                      <div data-rotur-followers={username}></div>
-                    )}
-                  </Show>
+                  <small style={{ "margin-top": "1em", "align-items": "center", "gap": ".8em" }} class="x">
+                    <div class="x" style={{"align-items": "center", "gap": ".3em", "opacity": ".8"  }}>
+                      <HiOutlineCalendar />
+                      {formatMonthYear(p().created)}
 
-                  <div className="boxes x">
-                    <div className="box">
-                      {p().currency}
-                      <small>Credits</small>
                     </div>
-
-                    <div className="box">
+                    <div class="x" style={{"align-items": "center", "gap": ".3em", "opacity": ".5" }}>
+                      <HiOutlineUser />
                       #{p().index}
-                      <small>User</small>
+
                     </div>
-                  </div>
+
+                    <div class="x" style={{"align-items": "center", "gap": ".3em", "opacity": ".5" }}>
+                      <HiOutlineBanknotes />
+                      {p().currency} RC
+                    </div>
+                  </small>
                 </>
               )}
             </Show>
           </div>
-
-          <input type="text" placeholder="Send a DM..." className="dmInput" />
         </div>
       </div>
 

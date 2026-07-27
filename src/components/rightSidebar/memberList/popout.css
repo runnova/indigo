@@ -1,0 +1,73 @@
+.activities_list {
+  margin-top: .5em;
+}
+
+.activity_card {
+  width: 100%;
+  align-items: stretch;
+  padding: .5em;
+}
+
+.activity_text_col {
+  flex-grow: 1;
+}
+
+.activity_media_title {
+  font-weight: 600;
+  font-size: .95em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity_img_col {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.activity_img,
+.activity_img_placeholder {
+  border-radius: 4px;
+  object-fit: cover;
+  height: 5em;
+  width: 5em;
+}
+
+.activity_media_artist {
+  opacity: .7;
+}
+
+.activity_app,
+.activity_title {
+  opacity: .6;
+  text-transform: uppercase;
+  font-size: .7em;
+  letter-spacing: .04em;
+}
+
+.activity_progress_wrap {
+  margin-top: .25em;
+}
+
+.activity_progress_track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .15);
+  overflow: hidden;
+  width: 100%;
+}
+
+.activity_progress_fill {
+  height: 100%;
+  background: currentColor;
+  border-radius: 2px;
+  transition: width .5s linear;
+}
+
+.activity_progress_labels {
+  justify-content: space-between;
+  margin-top: 2px;
+  opacity: .6;
+  font-size: .7em;
+}

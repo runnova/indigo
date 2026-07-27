@@ -7,7 +7,7 @@
 
   &>.theme-card {
     background-color: var(--bg-two);
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     padding: 0;
     align-items: justify;
     text-align: left;
@@ -45,7 +45,7 @@
     & .getbtn {
       background-color: var(--green);
       color: white;
-      border-radius: .5em;
+      border-radius: var(--br-mid);
       padding: .3em 1em;
       font-size: medium;
 
@@ -78,7 +78,7 @@
 
   &>.mod-item {
     background-color: var(--bg-two);
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     padding: 1em;
     align-items: flex-start;
 
@@ -118,7 +118,7 @@
     & .getbtn {
       background-color: var(--green);
       color: white;
-      border-radius: .5em;
+      border-radius: var(--br-mid);
       padding: .3em 1em;
       font-size: medium;
 
@@ -131,7 +131,7 @@
 
 .quickcss {
   box-shadow: var(--border);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   width: calc(100% - 1.4em);
   background-color: var(--bg-two);
   padding: .7em;
@@ -146,7 +146,7 @@
   & button {
     background-color: var(--bg-two);
     padding: .5em .8em;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     cursor: pointer;
 
     &.hl {

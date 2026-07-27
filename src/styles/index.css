@@ -22,7 +22,7 @@
   height: 3em;
   aspect-ratio: 1/1;
   padding: .3em;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   position: relative;
 
   &>.unread_badge {
@@ -32,7 +32,7 @@
     background-color: var(--hl-two);
     padding: 4px;
     font-size: small;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -46,7 +46,7 @@
   &>svg {
     width: 100%;
     height: 100%;
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
 
     &.add_server {
       transform: scale(.5);
@@ -111,7 +111,7 @@ nav button.active {
 
 .text_box {
   background-color: var(--bg-three);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   padding: .5em;
   align-items: center;
   gap: .5em;
@@ -181,7 +181,7 @@ nav button.active {
 
   &>.channel_item {
     padding: .7em 1em;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     min-width: 150px;
     background-color: var(--bg-two);
     transition: opacity .5s cubic-bezier(0.42, 1.67, 0.21, 0.90);
@@ -192,14 +192,16 @@ nav button.active {
     cursor: pointer;
     white-space: nowrap;
     text-overflow: ellipsis;
+
     &>* {
       flex: 1;
-    text-overflow: ellipsis;
+      text-overflow: ellipsis;
     }
 
     &>span {
       flex: 0;
     }
+
     &:hover {
       background-color: var(--diff-two);
       opacity: 1;
@@ -262,11 +264,11 @@ iframe#rotur-auth {
   background-color: var(--bg-two);
   z-index: 55;
   box-shadow: 0 -12px 10px 1em var(--bg-two);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
 
   & img.banner {
     width: 100%;
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
   }
 
   & .dropdown {
@@ -310,7 +312,7 @@ iframe#rotur-auth {
     gap: .5em;
     align-items: center;
     padding: .2em;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     cursor: pointer;
     content-visibility: auto;
     contain-intrinsic-size: 41.38px;
@@ -330,6 +332,9 @@ iframe#rotur-auth {
 
     & small {
       opacity: .5;
+      align-items: center;
+      display: flex;
+      gap: .2em;
     }
 
     &:hover {
@@ -338,10 +343,76 @@ iframe#rotur-auth {
   }
 }
 
+.activities_list {
+  flex-wrap: wrap;
+  gap: .4em;
+}
+
+.activity_card {
+  gap: .5em;
+  align-items: center;
+  padding: .4em;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  min-width: 140px;
+}
+
+.activity_img_col {
+  flex-shrink: 0;
+}
+
+.activity_img,
+.activity_img_placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.activity_img_placeholder {
+  background: #444;
+}
+
+.activity_text_col {
+  gap: .1em;
+  overflow: hidden;
+}
+
+.activity_title {
+  font-size: .9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity_time {
+  opacity: .7;
+}
+
+.member_popout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    to top,
+    var(--accent),
+    transparent 70%
+  );
+  pointer-events: none;
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
 .member_popout {
   background-color: var(--bg-two);
   padding: .5em;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   z-index: 300;
   width: 300px;
   gap: .3em;
@@ -368,7 +439,7 @@ iframe#rotur-auth {
       flex-direction: column;
       width: fit-content;
       background-color: var(--bg-three);
-      border-radius: .5em;
+      border-radius: var(--br-mid);
     }
   }
 
@@ -387,7 +458,7 @@ iframe#rotur-auth {
 
     & button {
       background-color: var(--bg-three);
-      border-radius: .5em;
+      border-radius: var(--br-mid);
       max-width: 80px;
       overflow: hidden;
       white-space: nowrap;
@@ -421,7 +492,7 @@ iframe#rotur-auth {
   & .dmInput {
     padding: .7em;
     background-color: var(--bg-one);
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     margin-top: .5em;
     width: calc(100% - 1.35em);
     border: 1px solid var(--diff-three);
@@ -444,7 +515,7 @@ span.channel_badge {
 .reply_bar {
   justify-content: space-between;
   background-color: var(--bg-three);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   align-items: center;
   animation: appear .2s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 1em 0 var(--bg-three);
@@ -496,7 +567,7 @@ span.channel_badge {
     max-height: 600px;
     background-color: var(--bg-two);
     padding: .5em;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     display: flex;
     animation: appear .3s cubic-bezier(0.34, 1.56, 0.64, 1);
     flex-direction: column;
@@ -511,7 +582,7 @@ span.channel_badge {
 
       & svg {
         padding: .2em;
-        border-radius: .2em;
+        border-radius: var(--br-min);
 
         &:hover {
           background-color: var(--diff-one);
@@ -540,7 +611,7 @@ span.channel_badge {
     & .emoji_category {
       padding: .2em .3em;
       margin-bottom: .2em;
-      border-radius: .5em;
+      border-radius: var(--br-mid);
       aspect-ratio: 1 / 1;
       font-size: 20px;
     }
@@ -553,7 +624,7 @@ span.channel_badge {
   width: fit-content;
   justify-content: center;
   background-color: var(--bg-three);
-  border-radius: 1em;
+  border-radius: var(--br-big);
   padding: .3em .8em;
   margin: .5em 0;
   cursor: pointer;
@@ -562,7 +633,7 @@ span.channel_badge {
 img.channel_icon_image {
   width: 1em;
   transform: scale(1.5);
-  border-radius: .2em;
+  border-radius: var(--br-min);
   margin-right: .3em;
 }
 
@@ -619,7 +690,7 @@ img.channel_icon_image {
 
   & button {
     padding: .5em;
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
     height: fit-content;
     cursor: pointer;
     display: flex;
@@ -637,7 +708,7 @@ img.channel_icon_image {
 
 .searchbox {
   background-color: var(--bg-one);
-  border-radius: .3em;
+  border-radius: var(--br-tiny);
   padding: .3em .5em;
   display: flex;
   margin-left: .5em;
@@ -664,7 +735,7 @@ img.channel_icon_image {
   align-items: flex-start;
 
   & button {
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     padding: .5em .7em;
     width: 100%;
     background-color: var(--diff-one);
@@ -686,7 +757,7 @@ img.channel_icon_image {
       align-items: center;
       justify-content: center;
       color: var(--hl-three);
-      border-radius: .2em;
+      border-radius: var(--br-min);
       background-color: var(--hl-four);
     }
 
@@ -702,7 +773,7 @@ img.channel_icon_image {
         align-items: center;
         justify-content: center;
         color: var(--hl-three);
-        border-radius: .2em;
+        border-radius: var(--br-min);
         background-color: var(--hl-two);
       }
     }
@@ -713,26 +784,21 @@ img.channel_icon_image {
   overflow: auto;
   position: absolute;
   z-index: 200;
-  bottom: 4.5em;
-  left: 4.9em;
-  width: fit-content;
-  height: fit-content;
-  padding: .5em;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .dialog {
-  width: min(800px, 95vw);
-  height: min(800px, 90vh);
   overflow: hidden;
   background-color: var(--bg-one);
   box-shadow: var(--border), 0 0 1em #000000e8;
-  border-radius: .5em;
-  position: relative;
-  margin: auto;
+  border-radius: var(--br-mid);
+  position: absolute;
   animation: appear .3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   & .dialog_close {
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     padding: .5em;
     display: flex;
     width: fit-content;
@@ -766,6 +832,89 @@ img.channel_icon_image {
   }
 }
 
+
+.dialog_header {
+  cursor: move;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--bg-two);
+  padding: .2em;
+  border-bottom: 1px solid var(--diff-three);
+}
+
+.resize {
+  position: absolute;
+}
+
+.n,
+.s {
+  left: 8px;
+  right: 8px;
+  height: 8px;
+}
+
+.n {
+  top: -4px;
+  cursor: n-resize;
+}
+
+.s {
+  bottom: -4px;
+  cursor: s-resize;
+}
+
+.e,
+.w {
+  top: 8px;
+  bottom: 8px;
+  width: 8px;
+}
+
+.e {
+  right: -4px;
+  cursor: e-resize;
+}
+
+.w {
+  left: -4px;
+  cursor: w-resize;
+}
+
+.ne,
+.nw,
+.se,
+.sw {
+  width: 12px;
+  height: 12px;
+}
+
+.ne {
+  top: -6px;
+  right: -6px;
+  cursor: ne-resize;
+}
+
+.nw {
+  top: -6px;
+  left: -6px;
+  cursor: nw-resize;
+}
+
+.se {
+  bottom: -6px;
+  right: -6px;
+  cursor: se-resize;
+}
+
+.sw {
+  bottom: -6px;
+  left: -6px;
+  cursor: sw-resize;
+}
+
 .discovery {
   overflow-y: auto;
 }
@@ -778,7 +927,7 @@ img.channel_icon_image {
 
 .discovery_card {
   background: var(--bg-two);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   overflow: hidden;
   display: flex;
   flex-direction: row;
@@ -789,7 +938,7 @@ img.channel_icon_image {
   width: fit-content;
   aspect-ratio: 1/1;
   object-fit: cover;
-  border-radius: .3em;
+  border-radius: var(--br-tiny);
   object-fit: scale-down;
   margin: 1em;
   margin-right: 0;
@@ -830,7 +979,7 @@ img.channel_icon_image {
   width: calc(100% - 3.5em);
   overflow-x: auto;
   padding-bottom: 5px;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   position: relative;
 
   &::after {
@@ -859,7 +1008,7 @@ img.channel_icon_image {
   bottom: 0em;
   right: 0em;
   background-color: var(--hl-four);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
 }
 
 .server_browser {
@@ -878,7 +1027,7 @@ img.channel_icon_image {
   padding: 10px 18px;
   border: none;
   background: transparent;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   cursor: pointer;
 }
 
@@ -903,7 +1052,7 @@ img.channel_icon_image {
     display: none;
     flex-direction: column;
     background-color: var(--bg-two);
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     z-index: 3;
     animation: appear .3s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 3px 1em #00000069, var(--border);
@@ -969,7 +1118,7 @@ img.channel_icon_image {
     max-height: 200px;
     background-color: var(--bg-three);
     padding: .5em;
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -990,7 +1139,7 @@ img.channel_icon_image {
       position: absolute;
       top: -4px;
       right: -.5em;
-      border-radius: .3em;
+      border-radius: var(--br-tiny);
       overflow: hidden;
       background: var(--bg-three);
       box-shadow: 0 5px 10px #00000069;
@@ -1033,9 +1182,8 @@ img.channel_icon_image {
   bottom: 0;
   background: var(--bg-three);
   padding: .4em;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   align-items: center;
-  gap: .5em;
 
   & .data {
     width: 0;
@@ -1051,6 +1199,7 @@ img.channel_icon_image {
 
   & .header.x {
     align-items: center;
+    gap: .3em;
     padding-right: .5em;
   }
 
@@ -1085,7 +1234,7 @@ img.channel_icon_image {
 .settings_input {
   background-color: var(--bg-two);
   padding: .3em .5em;
-  border-radius: .3em;
+  border-radius: var(--br-tiny);
   border: 1px solid var(--diff-three);
   color: inherit;
 
@@ -1118,7 +1267,7 @@ input[type="file"].settings_input {
   &::file-selector-button {
     background-color: var(--bg-three);
     border: none;
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
     color: inherit;
     padding: .4em .8em;
     margin-right: .6em;
@@ -1266,7 +1415,7 @@ img.big_emoji {
   overflow-y: scroll;
   background-color: var(--bg-two);
   align-items: flex-start;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   box-shadow: 0 1em 0 var(--bg-two);
 
   &>button {
@@ -1307,7 +1456,7 @@ img.big_emoji {
     background-color: var(--bg-three);
     margin: 0 5px;
     align-items: center;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     padding: 3px;
 
     &>* {
@@ -1319,7 +1468,7 @@ img.big_emoji {
     min-width: 0;
     width: 6em;
     background-color: var(--bg-one);
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
   }
 }
 
@@ -1329,9 +1478,9 @@ img.big_emoji {
   & .status_text {
     background-color: var(--bg-three);
     padding: .5em;
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     width: fit-content;
-    margin-left: 1.5em;
+    margin-left: 1.6em;
     position: absolute;
     bottom: 0;
     max-width: calc(100% - 3em);
@@ -1340,6 +1489,7 @@ img.big_emoji {
     height: 1.2em;
     transition: .3s cubic-bezier(0.42, 1.67, 0.21, 0.90);
     text-wrap: nowrap;
+    border: 1px solid var(--diff-three);
 
     &:hover {
       height: 55px;
@@ -1362,6 +1512,7 @@ img.big_emoji {
     bottom: 16px;
     left: 12px;
     border-radius: 50%;
+    border: 1px solid var(--diff-three);
   }
 
   &::before {
@@ -1373,6 +1524,7 @@ img.big_emoji {
     bottom: 8px;
     left: 8px;
     border-radius: 50%;
+    border: 1px solid var(--diff-three);
   }
 }
 
@@ -1384,7 +1536,7 @@ img.big_emoji {
   & .presence {
     position: relative;
     display: flex;
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
     margin-bottom: .3em;
     justify-content: stretch;
     padding: 0;
@@ -1405,7 +1557,7 @@ img.big_emoji {
 
   & input {
     background-color: var(--bg-two);
-    border-radius: .3em;
+    border-radius: var(--br-tiny);
     margin-bottom: 1em;
   }
 
@@ -1418,7 +1570,7 @@ img.big_emoji {
     min-width: 160px;
     max-width: fit-content;
     background-color: var(--bg-three);
-    border-radius: .5em;
+    border-radius: var(--br-mid);
     align-items: stretch;
     box-shadow: var(--border);
 
@@ -1563,7 +1715,8 @@ img.big_emoji {
 .forum-thread-item {
   padding: .5em;
   background-color: var(--bg-two);
-  border-radius: .5em;
+  border: 1px solid var(--diff-three);
+  border-radius: var(--br-mid);
   gap: .5em;
   position: relative;
 
@@ -1623,7 +1776,7 @@ img.big_emoji {
   z-index: 99;
   padding: .5em;
   background-color: var(--bg-three);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   display: flex;
   gap: .5em;
 
@@ -1633,7 +1786,7 @@ img.big_emoji {
     right: -7px;
     background-color: var(--hl-one);
     padding: 4px;
-    border-radius: 1em;
+    border-radius: var(--br-big);
     display: flex;
     height: 1em;
     width: 1em;
@@ -1661,7 +1814,7 @@ img.big_emoji {
   text-align: left;
   padding: .3em .5em;
   cursor: pointer;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   width: 100%;
   color: inherit;
   font: inherit;
@@ -1756,7 +1909,7 @@ img.big_emoji {
   align-items: center;
   gap: .5em;
   background-color: var(--diff-two);
-  border-radius: 1em;
+  border-radius: var(--br-big);
   padding: 1px 8px;
   color: var(--hl-two);
   padding-left: 13px;
@@ -1785,7 +1938,7 @@ img.big_emoji {
   padding: .7em;
   background-color: var(--hl-four);
   box-shadow: var(--border);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   margin-top: 4em;
 }
 
@@ -1817,7 +1970,7 @@ img.big_emoji {
   padding: .5em;
   background-color: var(--diff-one);
   border: 1px solid var(--diff-three);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
 }
 
 .edit_instruct {
@@ -1863,7 +2016,7 @@ img.big_emoji {
   gap: .3em;
   display: flex;
   flex-direction: row;
-  border-radius: .5em;
+  border-radius: var(--br-mid);
 
   &:hover {
     background-color: var(--bg-three);
@@ -1872,94 +2025,4 @@ img.big_emoji {
 
 hr.channelPageList {
   margin: 0 auto;
-}
-
-.dialog {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  width: 500px;
-  height: 700px;
-}
-
-.dialog_header {
-  cursor: move;
-  user-select: none;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-  align-items: center;
-  background-color: var(--bg-two);
-  padding: .2em;
-  border-bottom: 1px solid var(--diff-three);
-}
-
-.resize {
-  position: absolute;
-}
-
-.n,
-.s {
-  left: 8px;
-  right: 8px;
-  height: 8px;
-}
-
-.n {
-  top: -4px;
-  cursor: n-resize;
-}
-
-.s {
-  bottom: -4px;
-  cursor: s-resize;
-}
-
-.e,
-.w {
-  top: 8px;
-  bottom: 8px;
-  width: 8px;
-}
-
-.e {
-  right: -4px;
-  cursor: e-resize;
-}
-
-.w {
-  left: -4px;
-  cursor: w-resize;
-}
-
-.ne,
-.nw,
-.se,
-.sw {
-  width: 12px;
-  height: 12px;
-}
-
-.ne {
-  top: -6px;
-  right: -6px;
-  cursor: ne-resize;
-}
-
-.nw {
-  top: -6px;
-  left: -6px;
-  cursor: nw-resize;
-}
-
-.se {
-  bottom: -6px;
-  right: -6px;
-  cursor: se-resize;
-}
-
-.sw {
-  bottom: -6px;
-  left: -6px;
-  cursor: sw-resize;
 }

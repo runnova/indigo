@@ -27,7 +27,7 @@
 }
 
 .icon_button {
-  border-radius: .3em;
+  border-radius: var(--br-tiny);
   padding: .5em;
   font-size: 1.3em;
   display: flex;

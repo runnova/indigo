@@ -5,28 +5,16 @@ import { state, setState, tempState, emojiPicker, setEmojiPicker } from "../../A
 import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
 import { fetchRoturValidator } from "../../core/server_connection";
 import Typing from "./Typing";
-
-export async function fileFromDataURI(dataURI, filename = `image-${Date.now()}.png`) {
-  const res = await fetch(dataURI);
-  const blob = await res.blob();
-  return new File([blob], filename, {
-    type: blob.type
-  });
-}
-
-export async function addAttachment(fileOrDataURI) {
-  const file =
-    typeof fileOrDataURI === "string"
-      ? await fileFromDataURI(fileOrDataURI)
-      : fileOrDataURI;
-
-  queueAttachment(file);
-}
+import {
+  attachments,
+  setAttachments,
+  addAttachment,
+  removeAttachment
+} from "./attachmentStore.js";
 
 export default function MessageComposer(props) {
   let textarea;
   let fileInput;
-  const [attachments, setAttachments] = createStore([]);
   const [slashCommands, setSlashCommands] = createSignal([]);
   const [slashState, setSlashState] = createStore({
     active: false,
@@ -156,100 +144,6 @@ export default function MessageComposer(props) {
       })
     );
   }
-  async function uploadAttachment(id, file) {
-    const settings = JSON.parse(
-      localStorage.getItem("settings") || "{}"
-    );
-
-    const validator = await fetchRoturValidator(
-      props.validatorKey,
-      settings.token
-    );
-
-    const xhr = new XMLHttpRequest();
-
-    const form = new FormData();
-
-    form.append(
-      "validator_key",
-      props.validatorKey
-    );
-
-    form.append(
-      "validator",
-      validator
-    );
-
-    form.append("file", file);
-    form.append("name", file.name);
-    form.append("mime_type", file.type);
-    form.append(
-      "channel",
-      state.current.channel
-    );
-
-    xhr.open(
-      "POST",
-      `https://${state.current.server.src}/attachments/upload`
-    );
-
-    xhr.send(form);
-
-    xhr.upload.onprogress = e => {
-      if (!e.lengthComputable) return;
-
-      updateAttachment(id, {
-        progress: Math.round(
-          (e.loaded / e.total) * 100
-        )
-      });
-    };
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        const response = JSON.parse(xhr.responseText);
-
-        updateAttachment(id, {
-          uploaded: true,
-          progress: 100,
-          serverAttachment: response.attachment
-        });
-      } else {
-        updateAttachment(id, {
-          error: `Upload failed (${xhr.status})`
-        });
-      }
-    };
-
-    xhr.onerror = () => {
-      updateAttachment(id, {
-        error: "Upload failed"
-      });
-    };
-  }
-  function queueAttachment(file) {
-    const id = crypto.randomUUID();
-
-    setAttachments(a => [
-      ...a,
-      {
-        id,
-        file,
-        name:
-          file.name ||
-          `pasted-image-${Date.now()}.png`,
-        mimeType: file.type,
-        preview: file.type.startsWith("image/")
-          ? URL.createObjectURL(file)
-          : null,
-        progress: 0,
-        uploaded: false,
-        error: null
-      }
-    ]);
-
-    uploadAttachment(id, file);
-  }
 
   const insertEmoji = (emoji) => {
     const start = textarea.selectionStart;
@@ -297,13 +191,7 @@ export default function MessageComposer(props) {
                     </button>
 
                     <button
-                      onClick={() =>
-                        setAttachments(
-                          attachments.filter(
-                            a => a.id !== attachment.id
-                          )
-                        )
-                      }
+                      onClick={() => removeAttachment(attachment.id)}
                     >
                       <HiOutlineXMark />
                     </button>

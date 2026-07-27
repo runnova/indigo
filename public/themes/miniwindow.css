@@ -11,6 +11,6 @@
   height: calc(100% - 10.6px);
   width: calc(100% - 10.6px);
   border: 1px solid var(--diff-three);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
   overflow: hidden;
 }

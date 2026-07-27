@@ -16,7 +16,7 @@ import { setState } from "../App.jsx";
 import { getMessageById, addFakeMessage } from "../scrolling.jsx"
 import { reconnectServer } from "./server_connection.jsx";
 import { generateQuoteImage, canvasToBlob } from '../components/utility/quote-maker.js';
-import { addAttachment } from '../components/compose/MessageComposer.jsx';
+import { addAttachment } from '../components/compose/attachmentStore.js';
 
 const removeServer = (src) => {
   setState("servers", servers =>
@@ -149,8 +149,6 @@ SystemContextMenu.init([
 
                 const blob = await canvasToBlob(canvas);
                 const file = new File([blob], `quote-${msg.id}.png`, { type: 'image/png' });
-                window.open(URL.createObjectURL(blob), "_blank")
-
                 addAttachment(file);
               } catch (err) {
                 console.error('Failed to generate quote image:', err);

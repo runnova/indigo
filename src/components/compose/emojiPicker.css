@@ -38,7 +38,7 @@
 
 .load_more {
   background-color: var(--bg-three);
-  border-radius: .5em;
+  border-radius: var(--br-mid);
 }
 
 .gif_toolbar {

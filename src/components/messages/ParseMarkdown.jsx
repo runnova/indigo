@@ -507,7 +507,8 @@ export function parseMarkdown(input) {
       parts.push(rendered);
     }
 
-    if (token.type === 'paragraph' && i !== tokens.length - 1) {
+    if (token.type === "paragraph" && i !== tokens.length - 1) {
+      parts.push(<br key={getKey()} />);
       parts.push(<br key={getKey()} />);
     }
   });
