@@ -1,0 +1,47 @@
+:root {
+  --bg-one: #0c0e13;
+  --bg-two: #191c20;
+  --bg-three: #2C2E32;
+  --bg-four: #3a3a3a;
+
+  --hl-one: #429aff;
+  --hl-two: #A3C7FC;
+  --hl-three: #45475A;
+  --hl-four: #244A76;
+
+  --br-big: 3em;
+  --br-mid: 2em;
+  --br-tiny: 1.5em;
+  --br-min: 1em
+}
+
+.resize_handle {
+  opacity: 1;
+  width: 1px;
+  position: relative;
+
+  &::after {
+    content: "";
+    display: flex;
+    position: absolute;
+    width: 4px;
+    height: 100%;
+    top: 0;
+    right: -2px;
+    z-index: 99;
+  }
+}
+
+.pfpWO {
+  & .overlay {
+    border-radius: 0;
+  }
+}
+
+.popup_content {
+    padding: .5em;
+}
+
+.dialog_header {
+  padding: .2em 1em;
+}

@@ -7,9 +7,7 @@
 1. thread interactions
    - create, send message & more.
 2. context menu
-   1. server bar
-      - better dms server icon
-   2. user
+   1. user
       - block user
       - add/remove friend
 3. message list
@@ -28,7 +26,6 @@
 6. settings
    1. general
       - toggles
-         - owner crown
          - edited messages
       - methods
          - idle connection
@@ -51,4 +48,5 @@
 9. spotlight search
    1. search servers, channels, DM users
 10. DMs server
-   2. ui functionality instead of bot
+   1. ui functionality instead of bot
+   2. better dms server icon

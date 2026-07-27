@@ -10,6 +10,16 @@
     "type": "theme"
   },
   {
+    "id": "material",
+    "name": "Material Dark",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Dark theme based on material design",
+    "file": "material.css",
+    "preview": "#244A76",
+    "type": "theme"
+  },
+  {
     "id": "light",
     "name": "Clean light",
     "author": "darkdot",
