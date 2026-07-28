@@ -140,7 +140,7 @@ SystemContextMenu.init([
 
               try {
                 const canvas = await generateQuoteImage({
-                  pfpUrl: `https://proxy.corsfix.com/?https://avatars.rotur.dev/${msg.user}`,
+                  pfpUrl: `https://wsrv.nl/?url=https://avatars.rotur.dev/${msg.user}`,
                   content: msg.content,
                   author: msg.user,
                   watermarkText: 'Indigo client',

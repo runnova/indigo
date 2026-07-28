@@ -14,15 +14,12 @@
    1. individual message
       - edited label
       - clicking mentions opens user popup
-   2. actions
-      - quote message
    3. virtual scrolling
       - downward virtual scrolling
 4. user list
    1. real time status (8.1) and RPC
 5. user popup
-   1. dms from input
-   2. single source of truth for data
+   1. dms shortcut
 6. settings
    1. general
       - toggles
