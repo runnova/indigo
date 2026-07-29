@@ -146,7 +146,7 @@ function AboutSettings() {
     <>
       <h2>Indigo Client</h2>
       <p>
-        The cooler <a href="https://originchats.com">OriginChats</a> client. Currently under development.
+        The cooler <a href="https://originchats.com?ref=runnova">OriginChats</a> client. Currently under development.
 
 
       </p><p>Licensed under MPL 3.0. You can <a href="https://github.com/runnova/indigo/pulls">contribute</a>  too! issues go <a href="https://github.com/runnova/indigo/issues">here</a>.</p>

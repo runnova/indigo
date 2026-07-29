@@ -70,7 +70,7 @@ export default function ServerBrowser(props) {
         {tab() === "host" && (
           <div class="host_tab">
             <h1>Host your own</h1>
-            <p><a href="https://git.rotur.dev/originChats/server">Create a server</a> and publish it to discovery.</p>
+            <p><a href="https://git.rotur.dev/originChats/server?ref=runnova">Create a server</a> and publish it to discovery.</p>
             <section class="requirements">
               <h2>Requirements</h2>
               <p>
@@ -114,7 +114,7 @@ export default function ServerBrowser(props) {
                 </li>
                 <li>
                   Open a pull request on the
-                  <a href="https://git.rotur.dev/originChats/client">originChats-client</a> repository adding your server to
+                  <a href="https://git.rotur.dev/originChats/client?ref=runnova">originChats-client</a> repository adding your server to
                   <code>discovery.json</code>.
                 </li>
                 <li>
