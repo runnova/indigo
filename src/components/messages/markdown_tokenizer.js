@@ -425,7 +425,7 @@ function parseMarkdown(input) {
   while (i < lines.length) {
     const line = lines[i];
 
-    if (line.startsWith('```')) {
+    if (line.trim().startsWith('```')) {
       const codeBlock = parseCodeBlock(lines, i);
       tokens.push(codeBlock.token);
       i = codeBlock.end;
@@ -515,7 +515,7 @@ function parseCodeBlock(lines, startLine) {
   const code = [];
 
   let i = startLine + 1;
-  while (i < lines.length && !lines[i].startsWith('```')) {
+  while (i < lines.length && !lines[i].trim().startsWith('```')) {
     code.push(lines[i]);
     i++;
   }

@@ -218,9 +218,10 @@ export default function ThemeSettings() {
 
 
       <textarea
-        style={{ "font-family": "monospace" }}
+        style={{ "font-family": "monospace", "resize":"vertical" }}
         class="quickcss"
         value={css()}
+        rows={5}
         onInput={(e) => setCss(e.currentTarget.value)}
       />
 

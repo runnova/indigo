@@ -67,12 +67,12 @@ export default function MemberPopout() {
   });
 
   return (
-    <Show when={popout()}>
+    <Show when={popout()} keyed>
       {(data) => {
         const user =
-          typeof data().user === "string"
-            ? { username: data().user, roles: [], theme: {} }
-            : data().user;
+          typeof data.user === "string"
+            ? { username: data.user, roles: [], theme: {} }
+            : data.user;
 
         return (
           <div
@@ -92,7 +92,7 @@ export default function MemberPopout() {
           >
             <MemberProfile
               username={user.username}
-              status={data().status?.()}
+              status={data.status?.()}
               roles={user.roles}
             />
           </div>

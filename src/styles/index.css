@@ -122,9 +122,15 @@ nav button.active {
 .first_bar {
   gap: .5em;
   background-color: var(--bg-two);
-  padding: .5em;
   z-index: 2;
   border-right: 1px solid var(--diff-three);
+
+  &>* {
+    &:last-child {
+      margin-bottom: .5em;
+      width: calc(100% - 1em);
+    }
+  }
 }
 
 .first_bar,
@@ -185,7 +191,7 @@ nav button.active {
     min-width: 150px;
     background-color: var(--bg-two);
     transition: opacity .5s cubic-bezier(0.42, 1.67, 0.21, 0.90);
-    gap: .3em;
+    gap: .75em;
     align-items: center;
     opacity: .8;
     box-shadow: 0 0 0;
@@ -240,11 +246,13 @@ nav button.active {
 }
 
 .bar {
-  height: calc(100% - 1em);
-  padding: .5em;
   overflow-y: auto;
   overflow-x: visible;
   border-left: var(--border);
+
+  &>* {
+    margin: 0 .5em;
+  }
 }
 
 iframe#rotur-auth {
@@ -258,7 +266,6 @@ iframe#rotur-auth {
 }
 
 .server_info {
-  width: 100%;
   position: sticky;
   top: 0;
   background-color: var(--bg-two);
@@ -395,11 +402,9 @@ iframe#rotur-auth {
   inset: 0;
   padding: 2px;
   border-radius: inherit;
-  background: linear-gradient(
-    to top,
-    var(--accent),
-    transparent 70%
-  );
+  background: linear-gradient(to top,
+      var(--accent),
+      transparent 70%);
   pointer-events: none;
 
   -webkit-mask:
@@ -1181,7 +1186,8 @@ img.channel_icon_image {
   position: sticky;
   bottom: 0;
   background: var(--bg-three);
-  padding: .4em;
+  padding: 4.6pt;
+  width: calc(100% - 21pt) !important;
   border-radius: var(--br-mid);
   align-items: center;
 

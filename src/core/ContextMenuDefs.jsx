@@ -125,9 +125,7 @@ SystemContextMenu.init([
               addFakeMessage({
                 user: "Indigo",
                 avatar: "/icon_small.svg",
-                content: `\`\`\`json
-                ${JSON.stringify(msg, null, 2)}
-                \`\`\``,
+                content: `\`\`\`json\n${JSON.stringify(msg, null, 2)}\n\`\`\`\n-# Only you can see this.`,
               });
             },
           },

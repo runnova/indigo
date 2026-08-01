@@ -33,6 +33,7 @@ let fakeId = 0;
 
 export function addFakeMessage(data) {
     const now = Math.floor(Date.now() / 1000);
+    console.log(data)
 
     setFakeMessages(messages => [
         ...messages,
@@ -276,6 +277,19 @@ function onScroll() {
     onCleanup(() => {
         document.removeEventListener("visibilitychange", onVisibilityChange);
     });
+
+    createEffect(
+        on(fakeMessages, (msgs) => {
+            const last = msgs[msgs.length - 1];
+            if (!last) return;
+
+            appendMessageToSections(last);
+
+            if (scrollLocked()) {
+                requestAnimationFrame(() => scrollToBottom(false));
+            }
+        })
+    );
    createEffect(
     on(lastUpdate, (update) => {
         if (!update) return;

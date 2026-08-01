@@ -1,7 +1,3 @@
-/* -----------------------------------------------------------------------
-   Theme Customizer — layout
-   ----------------------------------------------------------------------- */
-
 .tc-group {
   margin-bottom: 20px;
   border-radius: 12px;
@@ -172,13 +168,9 @@
   color: var(--fg-one, #fff);
 }
 
-/* -----------------------------------------------------------------------
-   Footer actions
-   ----------------------------------------------------------------------- */
-
 .tc-actions {
   position: sticky;
-  bottom: 0;
+  bottom: 1em;
   display: flex;
   align-items: center;
   border: 1px solid var(--diff-three);

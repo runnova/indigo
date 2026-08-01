@@ -254,33 +254,25 @@ function ActivityCard(props) {
 }
 
 export default function MemberProfile(props) {
-  const [loading, setLoading] = createSignal(false);
-  const [profile, setProfile] = createSignal(null);
+ const [profile] = createResource(
+  () => props.username,
+  async (username) => {
+    console.log("loading profile:", username);
+
+    if (!username) return null;
+
+    const res = await fetch(
+      `https://api.rotur.dev/profile?name=${username}&include_posts=0`
+    );
+
+    return await res.json();
+  }
+);
+
+createEffect(() => {
+  console.log("username changed:", props.username);
+});
   const [showAllRoles, setShowAllRoles] = createSignal(false);
-
-  createEffect(async () => {
-    const username = props.username;
-
-    if (!username) {
-      setProfile(null);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const res = await fetch(
-        `https://api.rotur.dev/profile?name=${username}&include_posts=0`
-      );
-
-      const data = await res.json();
-      setProfile(data);
-
-      console.log(83, data)
-    } finally {
-      setLoading(false);
-    }
-  });
 
   const [status] = createResource(
     () => props.username,
@@ -301,13 +293,12 @@ export default function MemberProfile(props) {
           "--accent": profile()?.theme?.accent || "transparent"
         }}
       >
-        <Show when={loading()}>
+        <Show when={profile.loading}>
           <div class="popup_loader">
             <div class="spinner" />
           </div>
         </Show>
-
-        <div classList={{ "popup_content": true, loading: loading() }}>
+        <div classList={{ "popup_content": true, loading: profile.loading }}>
           <img
             src={`https://avatars.rotur.dev/.banners/${props.username}`}
             alt=""
@@ -349,7 +340,7 @@ export default function MemberProfile(props) {
                 </small>
               </div>
 
-              <div class="data_buttons x" style={{"font-size": "small"}}>
+              <div class="data_buttons x" style={{ "font-size": "small" }}>
                 {profile()?.group_tag ? (<button onClick={() => { window.open(`https://rotur.dev/groups/${profile()?.group_tag}`) }}>
                   <img
                     src={`https://api.rotur.dev/groups/${profile()?.group_tag}/icon.jpg`}
@@ -391,7 +382,7 @@ export default function MemberProfile(props) {
               {(p) => (
                 <>
                   <div>
-                      <div class="roles_title">About Me</div>
+                    <div class="roles_title">About Me</div>
                     <div
                       style={{
                         "white-space": "pre-wrap",
@@ -447,18 +438,18 @@ export default function MemberProfile(props) {
                   </Show>
 
                   <small style={{ "margin-top": "1em", "align-items": "center", "gap": ".8em" }} class="x">
-                    <div class="x" style={{"align-items": "center", "gap": ".3em", "opacity": ".8"  }}>
+                    <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".8" }}>
                       <HiOutlineCalendar />
                       {formatMonthYear(p().created)}
 
                     </div>
-                    <div class="x" style={{"align-items": "center", "gap": ".3em", "opacity": ".5" }}>
+                    <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".5" }}>
                       <HiOutlineUser />
                       #{p().index}
 
                     </div>
 
-                    <div class="x" style={{"align-items": "center", "gap": ".3em", "opacity": ".5" }}>
+                    <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".5" }}>
                       <HiOutlineBanknotes />
                       {p().currency} RC
                     </div>
