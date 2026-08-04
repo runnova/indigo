@@ -1,7 +1,7 @@
 import { For } from "solid-js";
 import { setState, state, tempState } from "../../App"
 import { setPreview } from "../../App";
-import {openPopout} from "../rightSidebar/memberList/popout.jsx"
+import { openPopout } from "../rightSidebar/memberList/popout.jsx"
 const markdownCache = new Map();
 
 function getParsedMarkdown(id, content) {
@@ -372,14 +372,21 @@ function renderToken(token, depth = 0) {
       return (
         <a
           key={key}
-          href="#"
+          href=""
           class="mention"
           onClick={(e) => {
             e.preventDefault();
             openPopout(token.username, e.currentTarget)
           }}
         >
-          @{token.username}
+          @
+          <img
+            src={`https://avatars.rotur.dev/${token.username}`}
+            alt=""
+            class="pfp"
+            loading="lazy"
+          />
+          {token.username}
         </a>
       );
 

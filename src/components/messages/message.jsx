@@ -22,9 +22,16 @@ export function Message(props) {
       setEditValue(props.content);
     }
   });
+
+  const dismissEphemeral = () => {
+    setState("messages", state.current.channel, msgs =>
+      msgs.filter(m => m.id !== props.id)
+    );
+  };
+
   return (
     <div
-      class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
+      class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
       onClick={props.onClick}
     >
       {(props.reply || props.interaction) && (
@@ -32,7 +39,7 @@ export function Message(props) {
           {props.reply ? (
             <>
               <div
-                class="reply_author x"
+                class="reply_author username x"
                 onClick={(e) => openPopout(props.reply, e.currentTarget)}
               >
                 <img
@@ -128,6 +135,15 @@ export function Message(props) {
                   Dismiss <HiOutlineXMark />
                 </button>
               </Show>
+
+              <Show when={props.ephemeral}>
+                <button
+                  class="fake-dismiss"
+                  onClick={dismissEphemeral}
+                >
+                  Dismiss <HiOutlineXMark />
+                </button>
+              </Show>
             </div>
           )}
 
@@ -164,15 +180,17 @@ export function Message(props) {
                 }
               }}
             />
-            <small class="edit_instruct">ESC to <a
-              href=""
-              onClick={e => {
-                e.preventDefault();
-                setState("editing", null);
-              }}
-            >
-              cancel
-            </a>, ENTER to send</small>
+            <small class="edit_instruct">ESC to
+
+              <a
+                href=""
+                onClick={e => {
+                  e.preventDefault();
+                  setState("editing", null);
+                }}
+              >
+                cancel
+              </a>, ENTER to send</small>
           </Show>
 
           {props.attachments?.length > 0 && (

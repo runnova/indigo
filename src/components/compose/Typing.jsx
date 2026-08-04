@@ -6,27 +6,35 @@ export default function Typing() {
   const [typingUsers, setTypingUsers] = createSignal([]);
   const timers = new Map();
 
+  const removeUser = user => {
+    clearTimeout(timers.get(user));
+    timers.delete(user);
+    setTypingUsers(users => users.filter(u => u !== user));
+  };
+
   createEffect(() => {
     const event = tempState?.conn.lastEvent();
 
-    if (!event || event.cmd !== "typing") return;
-    if (event.channel != state.current.channel) return;
+    if (!event || event.channel !== state.current.channel) return;
 
-    const { user, duration } = event;
+    if (event.cmd === "typing") {
+      const { user, duration } = event;
 
-    setTypingUsers(users =>
-      users.includes(user) ? users : [...users, user]
-    );
+      setTypingUsers(users =>
+        users.includes(user) ? users : [...users, user]
+      );
 
-    clearTimeout(timers.get(user));
+      clearTimeout(timers.get(user));
 
-    timers.set(
-      user,
-      setTimeout(() => {
-        setTypingUsers(users => users.filter(u => u !== user));
-        timers.delete(user);
-      }, duration)
-    );
+      timers.set(
+        user,
+        setTimeout(() => removeUser(user), duration)
+      );
+    }
+
+    if (event.cmd === "message_new") {
+      removeUser(event.message.user);
+    }
   });
 
   onCleanup(() => {
@@ -50,9 +58,11 @@ export default function Typing() {
     return `${users[0]}, ${users[1]} and ${users.length - 2} others are typing`;
   });
 
-  return (<div className="typing_text x">
-    <Show when={typingUsers().length}>
-      <span class="loader"></span> {text()}...
-    </Show></div>
+  return (
+    <div className="typing_text x">
+      <Show when={text()}>
+        <span class="loader"></span> {text()}...
+      </Show>
+    </div>
   );
 }

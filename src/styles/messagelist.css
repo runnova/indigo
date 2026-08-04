@@ -73,6 +73,13 @@
     user-select: text;
   }
 
+  & .username {
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   & .message_content {
     min-width: 0;
     flex: 1;
@@ -81,7 +88,6 @@
   & .time {
     opacity: .5;
     user-select: text;
-    font-family: monospace;
     font-size: 9px;
   }
 
@@ -103,7 +109,7 @@
       border-top-left-radius: .5em;
       position: absolute;
       top: 8px;
-      left: -30px;
+      left: -33px;
     }
 
     &>.reply_text {
@@ -124,7 +130,7 @@
   }
 
   & .message_spacer {
-    width: 45px;
+    width: 42px;
     flex-shrink: 0;
     opacity: 0;
   }
@@ -379,4 +385,16 @@
   background-color: var(--bg-three);
   border-radius: var(--br-mid);
   padding: .2em .5em;
+}
+
+.mention {
+  display: inline-flex;
+  width: fit-content;
+  gap: 3px;
+  align-items: center;
+  flex-direction: row;
+  &>.pfp {
+    height: 1em;
+    display: inline;
+  }
 }

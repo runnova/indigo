@@ -427,6 +427,7 @@ function onScroll() {
                             interaction={interaction}
                             reply={replyMessage}
                             fake={msg().__fake}
+                            ephemeral={msg().ephemeral}
                             deleted={msg()?.deleted}
                             editing={state.editing?.id === msg()?.id}
                             onDismiss={() =>

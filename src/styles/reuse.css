@@ -8,8 +8,8 @@
 .pfpWO {
   display: flex;
   position: relative;
-  height: 45px;
-  width: 45px;
+  height: 32pt;
+  width: 32pt;
   aspect-ratio: 1 / 1;
   align-items: center;
   justify-content: center;

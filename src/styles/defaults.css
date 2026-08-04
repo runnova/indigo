@@ -13,6 +13,9 @@
   --hl-three: rgb(84, 0, 180);
   --hl-four: rgb(45 29 63);
 
+  --danger: red;
+  --peace: green;
+
   --border: 0px 0px 0 1px rgb(255 255 255 / 20%);
 
   --fg-one: #ffffff;

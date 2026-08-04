@@ -117,6 +117,11 @@ nav button.active {
   gap: .5em;
   z-index: 5;
   box-shadow: 0 0 10px var(--bg-one);
+
+  & textarea {
+    height: 100%;
+    resize: none;
+  }
 }
 
 .first_bar {
@@ -449,8 +454,8 @@ iframe#rotur-auth {
   }
 
   & .pfpWO {
-    height: 5em;
-    width: 5em;
+    height: 60pt;
+    width: 60pt;
   }
 
   & .popupMemberHeader {
@@ -1953,6 +1958,10 @@ img.big_emoji {
   color: rgb(255, 200, 0);
   margin-left: 5px;
   width: 14px;
+}
+
+.pfpWO {
+  cursor: pointer;
 }
 
 .pfpWO .overlayless {

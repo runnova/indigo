@@ -1,9 +1,7 @@
 import { Show, For, createSignal, createEffect, onMount, on } from "solid-js";
-import { createStore } from "solid-js/store";
 import EmojiPicker from "./EmojiPicker"
 import { state, setState, tempState, emojiPicker, setEmojiPicker } from "../../App"
-import { HiOutlineXMark, HiOutlinePlus, HiOutlinePencil, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlineFilm } from "solid-icons/hi";
-import { fetchRoturValidator } from "../../core/server_connection";
+import { HiOutlineXMark, HiOutlinePlus, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlinePencil } from "solid-icons/hi";
 import Typing from "./Typing";
 import {
   attachments,
@@ -11,22 +9,34 @@ import {
   addAttachment,
   removeAttachment
 } from "./attachmentStore.js";
+import {
+  createSlashCommands,
+  SlashSuggestions,
+  SlashForm,
+  SlashCloseButton,
+  SlashSendButton
+} from "./SlashComposer";
+
+const MAX_TEXTAREA_HEIGHT = 200;
+const MIN_TEXTAREA_HEIGHT = 26;
 
 export default function MessageComposer(props) {
   let textarea;
   let fileInput;
-  const [slashCommands, setSlashCommands] = createSignal([]);
-  const [slashState, setSlashState] = createStore({
-    active: false,
-    command: null,
-    optionIndex: 0,
-    values: {},
-    suggestions: [],
-    selected: 0
-  });
   let typingTimer;
   let lastTypingSent = 0;
   const sendTypinghuh = state.settings.sendTypingStatus;
+
+  const {
+    slashState,
+    setSlashState,
+    parseSlash,
+    closeSlash,
+    buildContent,
+    sendSlash
+  } = createSlashCommands();
+
+  const handleSlashSend = () => sendSlash(props.channel, textarea);
 
   function sendTyping() {
     if (!sendTypinghuh) return;
@@ -46,20 +56,22 @@ export default function MessageComposer(props) {
       user: tempState?.conn.me().username
     });
   }
-  onMount(() => {
-    tempState?.conn?.send({
-      cmd: "slash_list"
-    });
-  });
 
-  createEffect(() => {
-    const event = tempState?.conn.lastEvent();
-    if (!event) return;
+  function autoResize() {
+    if (!textarea) return;
 
-    if (event.cmd === "slash_list") {
-      setSlashCommands(event.commands);
-    }
-  });
+    textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+
+    const newHeight = Math.min(
+      Math.max(textarea.scrollHeight - 12, MIN_TEXTAREA_HEIGHT),
+      MAX_TEXTAREA_HEIGHT
+    );
+
+    textarea.style.height = `${newHeight}px`;
+    textarea.style.overflowY =
+      textarea.scrollHeight > MAX_TEXTAREA_HEIGHT ? "auto" : "hidden";
+  }
+
   createEffect(
     on(
       () => state.replying?.id,
@@ -76,55 +88,9 @@ export default function MessageComposer(props) {
     )
   );
 
-  function parseSlash(value) {
-    if (!value.startsWith("/")) {
-      setSlashState("active", false);
-      return;
-    }
-
-    const name = value.slice(1).trim();
-
-    const command = slashCommands().find(c => c.name === name);
-
-    if (!command) {
-      setSlashState({
-        active: true,
-        command: null,
-        suggestions: slashCommands().filter(c =>
-          c.name.startsWith(name)
-        )
-      });
-      return;
-    }
-
-    const values = {};
-
-    command.options.forEach(option => {
-      values[option.name] = "";
-    });
-
-    setSlashState({
-      active: true,
-      command,
-      values
-    });
-  }
-
-  function closeSlash() {
-    setSlashState({
-      active: false,
-      command: null,
-      values: {},
-      suggestions: [],
-      optionIndex: 0,
-      selected: 0
-    });
-
-    if (textarea) {
-      textarea.value = "";
-      requestAnimationFrame(() => textarea.focus());
-    }
-  }
+  onMount(() => {
+    autoResize();
+  });
 
   async function handleFiles(e) {
     for (const file of e.target.files) {
@@ -132,17 +98,6 @@ export default function MessageComposer(props) {
     }
 
     e.target.value = "";
-  }
-
-  function updateAttachment(id, patch) {
-    console.log(id, patch)
-    setAttachments(
-      a => a.id === id,
-      attachment => ({
-        ...attachment,
-        ...patch
-      })
-    );
   }
 
   const insertEmoji = (emoji) => {
@@ -157,6 +112,7 @@ export default function MessageComposer(props) {
     const pos = start + emoji?.length;
 
     textarea.focus();
+    autoResize();
 
     requestAnimationFrame(() => {
       textarea.selectionStart = pos;
@@ -216,27 +172,18 @@ export default function MessageComposer(props) {
           </For>
         </div>
       </Show>
-      <Show when={slashState.active && !slashState.command}>
-        <div class="slash_popup y">
-          <For each={slashState.suggestions}>
-            {command => (
-              <button
-                class="x"
-                onClick={() => {
-                  textarea.value = `/${command.name}`;
-                  parseSlash(textarea.value);
-                  textarea.focus();
-                }}
-              >
-                <strong>/{command.name}</strong>
-                <span>{command.description}</span>
-              </button>
-            )}
-          </For>
-        </div>
-      </Show>
 
-      <div class="text_box x">
+      <SlashSuggestions
+        slashState={slashState}
+        onSelect={(command) => {
+          textarea.value = `/${command.name}`;
+          parseSlash(textarea.value);
+          textarea.focus();
+          autoResize();
+        }}
+      />
+
+      <div class="text_box x" style={{ "align-items": "flex-end" }}>
         <div className="dropdown_container">
           <div className="action_buttons">
             <button className="icon_button"><HiOutlinePlus></HiOutlinePlus></button>
@@ -255,50 +202,13 @@ export default function MessageComposer(props) {
             </button>
           </div>
         </div>
-        <Show when={slashState.active && slashState.command}>
-          <div
-            class="slash-form"
-            tabindex="0"
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.preventDefault();
-                closeSlash();
-              }
-            }}
-          >
-            <div class="command">
-              /{slashState.command.name}
-            </div>
 
-            <For each={slashState.command.options}>
-              {(option) => (
-                <label class="slash-option">
-                  <span>{option.name}</span>
-
-                  <input
-                    type="text"
-                    placeholder={option.type}
-                    value={slashState.values[option.name] || ""}
-                    onInput={(e) =>
-                      setSlashState(
-                        "values",
-                        option.name,
-                        e.currentTarget.value
-                      )
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") {
-                        e.preventDefault();
-                        closeSlash();
-                      }
-                    }}
-                  />
-                </label>
-              )}
-            </For>
-          </div>
-
-        </Show>
+        <SlashForm
+          slashState={slashState}
+          setSlashState={setSlashState}
+          onClose={() => closeSlash(textarea)}
+          onSend={handleSlashSend}
+        />
 
         <Show when={!slashState.command}>
           <textarea
@@ -306,6 +216,11 @@ export default function MessageComposer(props) {
             rows={1}
             placeholder={`Message #${props.channel}`}
             class="fill"
+            style={{
+              resize: "none",
+              "min-height": `${MIN_TEXTAREA_HEIGHT}px`,
+              "max-height": `${MAX_TEXTAREA_HEIGHT}px`
+            }}
             onPaste={async e => {
               const items = [...(e.clipboardData?.items || [])];
 
@@ -320,9 +235,13 @@ export default function MessageComposer(props) {
                   }
                 }
               }
+
+              requestAnimationFrame(autoResize);
             }}
             onInput={(e) => {
               parseSlash(e.target.value);
+
+              autoResize();
 
               sendTyping();
 
@@ -335,17 +254,7 @@ export default function MessageComposer(props) {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
 
-                let content = e.currentTarget.value.trim();
-
-                if (slashState.command) {
-                  content =
-                    "/" +
-                    slashState.command.name +
-                    " " +
-                    slashState.command.options
-                      .map(option => slashState.values[option.name] || "")
-                      .join(" ");
-                }
+                const content = buildContent(e.currentTarget.value.trim());
 
                 if (
                   !content &&
@@ -363,19 +272,20 @@ export default function MessageComposer(props) {
 
                 setAttachments([]);
                 e.currentTarget.value = "";
+                autoResize();
               }
             }}
           />
         </Show>
         <div class="action_buttons x">
-          <Show when={slashState.command}>
-            <button
-              class="icon_button"
-              onClick={closeSlash}
-            >
-              <HiOutlineXMark />
-            </button>
-          </Show>
+          <SlashCloseButton
+            slashState={slashState}
+            onClose={() => closeSlash(textarea)}
+          />
+          <SlashSendButton
+            slashState={slashState}
+            onSend={handleSlashSend}
+          />
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"
