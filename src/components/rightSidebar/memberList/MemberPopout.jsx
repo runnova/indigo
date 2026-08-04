@@ -17,13 +17,11 @@ export default function MemberPopout() {
     const padding = 12;
     const minRightGap = (state.settings.thirdBarWidth || 0) + 20;
 
-    // clamp horizontally
     let left = current.x + padding;
     const maxLeft = window.innerWidth - width - minRightGap;
     left = Math.min(left, Math.max(maxLeft, padding));
     left = Math.max(left, padding);
 
-    // clamp vertically
     let top = current.y - 20;
     const maxTop = window.innerHeight - height - padding;
     top = Math.min(top, Math.max(maxTop, padding));
@@ -32,7 +30,6 @@ export default function MemberPopout() {
     setPosition({ left, top });
   }
 
-  // Recalculate whenever popout() changes or the ref's size changes
   createEffect(() => {
     popout();
     popupRef?.offsetWidth;
@@ -40,7 +37,6 @@ export default function MemberPopout() {
     queueMicrotask(recalcPosition);
   });
 
-  // Recalculate on scroll/resize too, since the anchor element can move
   onMount(() => {
     window.addEventListener("resize", recalcPosition);
     window.addEventListener("scroll", recalcPosition, true);

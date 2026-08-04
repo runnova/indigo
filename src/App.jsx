@@ -177,7 +177,7 @@ function preloadChannelMessages(channelName) {
       if (resolved || !packet) return;
       if (packet.cmd === "messages_get" && packet.channel === channelName) {
         resolved = true;
-        resolve(packet.messages ?? []);
+        resolve(packet.val ?? packet.messages ?? []);
       }
     }));
 

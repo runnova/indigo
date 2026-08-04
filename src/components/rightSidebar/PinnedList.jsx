@@ -24,7 +24,7 @@ export default function PinnedList(props) {
     if (!event) return;
 
     if (event.cmd === "messages_pinned") {
-      setMessages(event.messages ?? []);
+      setMessages(event.val ?? event.messages ?? []);
     }
   });
 

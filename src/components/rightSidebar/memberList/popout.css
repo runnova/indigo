@@ -71,3 +71,9 @@
   opacity: .6;
   font-size: .7em;
 }
+
+.activities_section {
+  max-height: 136px;
+  overflow-y: scroll;
+  padding-right: 5px;
+}

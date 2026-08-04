@@ -140,12 +140,6 @@ export async function fileFromDataURI(dataURI, filename = `image-${Date.now()}.p
   return new File([blob], filename, { type: blob.type });
 }
 
-/**
- * Public entry point — call this from anywhere in the app.
- *   addAttachment(file)
- *   addAttachment(dataURI)
- *   addAttachment(file, "some.server.src")   // upload to a non-active server
- */
 export async function addAttachment(fileOrDataURI, serverSrc) {
   const file =
     typeof fileOrDataURI === "string"
@@ -155,11 +149,6 @@ export async function addAttachment(fileOrDataURI, serverSrc) {
   return queueAttachment(file, serverSrc);
 }
 
-/**
- * Optional: attach a document-level paste listener so images can be
- * pasted anywhere in the app, not just while the composer textarea
- * is focused. Call this once, e.g. in App.jsx's top-level effect.
- */
 export function installGlobalPasteListener() {
   const handler = async (e) => {
     const items = [...(e.clipboardData?.items || [])];

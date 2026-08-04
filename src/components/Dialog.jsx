@@ -6,7 +6,6 @@ const MIN_WIDTH = 320;
 const MIN_HEIGHT = 200;
 const SNAP_DISTANCE = 24;
 
-// Module-level counter shared across all Dialog instances
 let topZIndex = 100;
 
 export default function Dialog(props) {
@@ -46,7 +45,6 @@ export default function Dialog(props) {
     });
   });
 
-  // Bring to front whenever the dialog opens
   createEffect(() => {
     if (props.open) bringToFront();
   });

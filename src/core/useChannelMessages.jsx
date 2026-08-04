@@ -15,6 +15,14 @@ function normalizeMessage(m) {
   };
 }
 
+function getMessageList(event) {
+  return event.val ?? event.messages ?? [];
+}
+
+function getThreadList(event) {
+  return event.val ?? event.threads ?? [];
+}
+
 function sortMessages(msgs) {
   return [...(msgs ?? [])]
     .filter(Boolean)
@@ -80,8 +88,10 @@ export function createForumThreads({
   }
 
   function handleThreadsGet(event) {
-    setThreads(event.val ?? event.threads ?? []);
-    setHasMore((event.val?.length ?? event.threads?.length ?? 0) >= 20);
+    const list = getThreadList(event);
+
+    setThreads(list);
+    setHasMore(list.length >= PAGE_SIZE);
     setLoading(false);
   }
 
@@ -258,14 +268,15 @@ export function createChannelMessages({
   }
 
   function handleMessagesGet(event) {
-    const sorted = sortMessages(event.messages);
-    setMessages(sorted);
-    setHasOlderMessages((event.messages?.length ?? 0) >= PAGE_SIZE);
+    const list = getMessageList(event);
+
+    setMessages(sortMessages(list));
+    setHasOlderMessages(list.length >= PAGE_SIZE);
     setLastUpdate({ type: "initial" });
   }
 
-function handleMessagesAround(event) {
-    const incoming = sortMessages(event.messages);
+  function handleMessagesAround(event) {
+    const incoming = sortMessages(getMessageList(event));
     const direction = pendingDirection;
     const targetId = pendingAnchorId;
 
@@ -316,7 +327,7 @@ function handleMessagesAround(event) {
         type: "prepend",
       });
     }
-}
+  }
 
   function handleMessageNew(event) {
     const incomingMessage = event.message ?? event.val ?? event.data ?? null;

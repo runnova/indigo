@@ -1,25 +1,3 @@
-/**
- * useServerConnection.js
- *
- * Manages a single WebSocket connection to one OriginChats server.
- * Handles the full protocol lifecycle:
- *   connect → handshake → auth (Rotur or cracked) → ready → dispatch events
- *
- * Usage:
- *   const conn = useServerConnection();
- *   conn.connect(server);          // server = { src, name, icon }
- *   conn.send({ cmd: "..." });     // only after status() === "ready"
- *   conn.disconnect();
- *
- * Signals exposed:
- *   conn.status()     — "idle" | "connecting" | "handshake" | "authenticating" | "ready" | "error" | "closed"
- *   conn.serverInfo() — { name, icon, banner, limits, auth_mode, validator_key } from handshake
- *   conn.me()         — user object from "ready" packet
- *   conn.channels()   — array from "channels_get" response, kept live
- *   conn.lastEvent()  — the most recent raw parsed packet (for VirtualMessageList etc.)
- *   conn.error()      — human-readable error string, or null
- */
-
 import { createSignal } from "solid-js";
 import { state, setState, unreads, setUnreads, setLoaded } from "../App"
 

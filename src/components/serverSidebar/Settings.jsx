@@ -173,19 +173,7 @@ const tabs = [
     title: "About",
     icon: AppIcon,
     component: AboutSettings,
-  },
-  // {
-  //   id: "appearance",
-  //   title: "Appearance",
-  //   icon: HiOutlinePaintBrush,
-  //   component: AppearanceSettings,
-  // },
-  // {
-  //   id: "security",
-  //   title: "Security",
-  //   icon: HiOutlineShieldCheck,
-  //   component: SecuritySettings,
-  // },
+  }
 ];
 
 export default function SettingsPage() {

@@ -13,7 +13,6 @@ export default async function (conn, setState, state, Rotur, setLoadingProgress)
   if (!server) return;
   setState("current", "server", server);
   setLoadingProgress(20);
-  // get auth settings
   const settings = JSON.parse(
     localStorage.getItem("settings") || "{}"
   );

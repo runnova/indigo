@@ -19,7 +19,7 @@ export default function Inbox(props) {
     if (!event) return;
 
     if (event.cmd === "pings_get") {
-      setMessages(event.messages ?? []);
+      setMessages(event.val ?? event.messages ?? []);
     }
   });
 
