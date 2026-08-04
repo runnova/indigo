@@ -13,7 +13,6 @@
 3. message list
    1. individual message
       - edited label
-      - clicking mentions opens user popup
    3. virtual scrolling
       - downward virtual scrolling
 4. user list
@@ -36,11 +35,9 @@
    1. emoji picker
       - sticker search
       - show custom emojis from all connected servers
-   2. stop displaying typing on message receive
-   3. send gifts 
+   3. send gifts
 8. websocket connection
    1. events
-      - status
       - thread
 9. spotlight search
    1. search servers, channels, DM users

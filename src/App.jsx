@@ -56,6 +56,9 @@ import { bindVoiceEvents } from "./core/voiceClient.js";
 import ContextMenu from './components/Contextmenu.jsx';
 
 import "./core/ContextMenuDefs.jsx"
+
+import Spotlight from "./components/spotlight/Spotlight.jsx";
+
 export const [emojiPicker, setEmojiPicker] = createStore({
   open: false,
   x: 0,
@@ -197,22 +200,20 @@ export async function switchToChannel(server, channel) {
     src: server.src ?? server.url
   };
 
-  setState("current", "server", normalizedServer);
+  const previousServer = state.current.server?.src;
 
-  const currentServer = state.current.server?.src;
-
-  if (currentServer !== server.src || conn.status() !== "ready") {
+  if (previousServer !== normalizedServer.src || conn.status() !== "ready") {
     setState("current", {
-      server,
+      server: normalizedServer,
       channel: null
     });
 
     const settings = JSON.parse(localStorage.getItem("settings") || "{}");
 
     if (settings.type === "token" && settings.token) {
-      conn.connect(server, settings.token);
+      conn.connect(normalizedServer, settings.token);
     } else {
-      conn.connectCracked(server, {
+      conn.connectCracked(normalizedServer, {
         username: "guest",
         password: "guest"
       });
@@ -229,13 +230,14 @@ export async function switchToChannel(server, channel) {
       check();
       const interval = setInterval(check, 50);
     });
+  } else {
+    setState("current", "server", normalizedServer);
   }
 
   setState("current", "channel", channel);
 
-  const serverSrc = server.src;
-  if (serverSrc) {
-    setState("serverChannels", serverSrc, channel);
+  if (normalizedServer.src) {
+    setState("serverChannels", normalizedServer.src, channel);
   }
 }
 
@@ -260,14 +262,12 @@ function App() {
     };
   }
   createEffect(() => {
-    // get persisted state
     localStorage.setItem(
       "state",
       JSON.stringify(getPersistedState())
     );
   });
   createEffect(() => {
-    // populate icon and name of connected server
     const info = conn.serverInfo();
     const current = state.current.server;
 
@@ -712,6 +712,7 @@ function App() {
         />
       </Show>
       <ContextMenu />
+      <Spotlight />
     </div >
   );
 }

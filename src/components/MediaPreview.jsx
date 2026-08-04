@@ -99,13 +99,14 @@ export default function MediaPreview(props) {
   return (
     <div
       class="media_preview"
-      onClick={() => {
-        reset();
-        props.onClose?.();
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          reset();
+          props.onClose?.();
+        }
       }}
     >
-      <div class="media_actions" 
-    onClick={(e) => e.stopPropagation()}>
+      <div class="media_actions" onClick={(e) => e.stopPropagation()}>
         <button onClick={() => zoom(0.2)}>
           <HiOutlineMagnifyingGlassPlus />
         </button>
@@ -143,7 +144,12 @@ export default function MediaPreview(props) {
       <div
         ref={viewport}
         class="media_viewport"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            reset();
+            props.onClose?.();
+          }
+        }}
         onWheel={wheel}
         onMouseDown={down}
         onDblClick={() => (scale() === 1 ? zoomTo(2) : reset())}
@@ -153,6 +159,7 @@ export default function MediaPreview(props) {
             src={props.src}
             controls
             draggable={false}
+            onClick={(e) => e.stopPropagation()}
             style={{
               transform: `translate(${offset().x}px, ${offset().y}px) scale(${scale()})`,
             }}
@@ -161,6 +168,7 @@ export default function MediaPreview(props) {
           <img
             src={props.src}
             draggable={false}
+            onClick={(e) => e.stopPropagation()}
             style={{
               transform: `translate(${offset().x}px, ${offset().y}px) scale(${scale()})`,
             }}
