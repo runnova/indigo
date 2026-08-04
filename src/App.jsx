@@ -69,6 +69,7 @@ const defaultState = {
     { src: "dms.mistium.com", icon: null, name: "dms" },
     { src: "chats.mistium.com", icon: null, name: "sopher" },
   ],
+  serverGroups: [],
   current: {
     channel: null,
     server: null,
@@ -124,6 +125,7 @@ const savedState = JSON.parse(
 
 export const [state, setState] = createStore({
   servers: savedState.servers ?? defaultState.servers,
+  serverGroups: savedState.serverGroups ?? defaultState.serverGroups,
   current: {
     ...defaultState.current,
     ...(savedState.current ?? {})
@@ -250,6 +252,7 @@ function App() {
   function getPersistedState() {
     return {
       servers: state.servers,
+      serverGroups: state.serverGroups,
       current: state.current,
       serverChannels: state.serverChannels,
       theme: state.theme,
@@ -443,11 +446,13 @@ function App() {
     <div class="main x">
       <ServerBar
         servers={state.servers}
+        groups={state.serverGroups}
         currentServer={state.current.server}
         unreadTotal={getServerUnreadTotal}
         unreads={unreads}
         onSelect={selectServer}
         onReorder={(servers) => setState("servers", servers)}
+        onGroupsChange={(groups) => setState("serverGroups", groups)}
       />
       <div class="server_content x fill">
         <Show when={showLoader()}>

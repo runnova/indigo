@@ -16,14 +16,97 @@
   gap: .3em;
   border-right: 1px solid var(--diff-three);
 }
+.server_group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
 
+.server_group--drag-over {
+  outline: 2px dashed var(--group-color, #5865F2);
+  outline-offset: 2px;
+  border-radius: 16px;
+}
+
+/* collapsed folder look */
+.server_group_collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--group-color) 25%, transparent);
+}
+
+.server_group_mini_grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  width: 26px;
+  height: 26px;
+}
+
+.server_group_mini_icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.server_group_expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 0;
+  background-color: color-mix(in srgb, var(--group-color) 15%, transparent);
+}
+
+.server_group_toggle {
+  position: relative;
+  width: 32px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: var(--group-color);
+  cursor: pointer;
+}
+
+.server_group_toggle .server_tooltip {
+  left: calc(100% + 12px);
+}
+
+.server_group_tooltip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.server_group_tooltip_grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.server_group_tooltip_icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.server_single--drag-before {
+  box-shadow: 0 -3px 0 0 #5865F2;
+}
+
+.server_single--drag-after {
+  box-shadow: 0 3px 0 0 #5865F2;
+}
+/* Tooltip: always out of flow, correctly anchored, hover-only */
 .server_single {
+  position: relative; /* was only on --active before */
   width: 3em;
   height: 3em;
   aspect-ratio: 1/1;
   padding: .3em;
   border-radius: var(--br-mid);
-  position: relative;
 
   &>.unread_badge {
     position: absolute;
@@ -60,14 +143,24 @@
   &.server_single--active {
     z-index: 3;
     background-color: var(--bg-three);
-    position: relative;
   }
+}
+
+.server_gap_drop {
+  height: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.server_bar:has(.server_single[draggable="true"]:active) .server_gap_drop {
+  height: 12px;
 }
 
 .server_tooltip {
   position: absolute;
   left: calc(100% + 12px);
-  top: -90%;
+  top: 50%;
+  transform: translateY(-50%);
   background: var(--bg-three);
   color: var(--fg-one);
   padding: 6px 10px;
@@ -76,11 +169,60 @@
   pointer-events: none;
   display: none;
   width: fit-content;
+  opacity: 0;
   transition: opacity 0.15s;
   z-index: 1000;
   animation: appearLeft .2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.server_single:hover .server_tooltip,
+.server_group_toggle:hover .server_tooltip {
+  display: block;
+  opacity: 1;
+}
+
+/* Group tooltip: only decides internal layout, never visibility */
+.server_group_tooltip {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.server_group_tooltip_grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.server_group_tooltip_icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.server_group_toggle {
+  width: 3em;
+  height: 3em;
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--br-mid);
+  background-color: color-mix(in srgb, var(--group-color) 30%, transparent);
+  cursor: pointer;
+  position: relative;
+}
+
+.server_group_toggle:hover {
+  background-color: color-mix(in srgb, var(--group-color) 45%, transparent);
+}
+
+.server_group_toggle_icon {
+  width: 55%;
+  height: 55%;
+  color: var(--group-color);
+}
 .server_single:hover .server_tooltip {
   display: block;
 }

@@ -386,8 +386,8 @@ createEffect(() => {
                     <div
                       style={{
                         "white-space": "pre-wrap",
-                        "max-height": "200px",
-                        overflow: "hidden"
+                        "max-height": "150px",
+                        "overflow-y": "scroll"
                       }}
                     >
                       {parseMarkdown(p().bio)}

@@ -56,6 +56,26 @@ export function clearFakeMessages() {
     setFakeMessages([]);
 }
 
+const [fetchedReplies, setFetchedReplies] = createSignal(new Map());
+const pendingReplyFetches = new Set();
+
+function getCachedReply(id) {
+    return fetchedReplies().get(id);
+}
+
+function requestReplyMessage(channel, id) {
+    if (!id || pendingReplyFetches.has(id)) return;
+    if (fetchedReplies().has(id)) return;
+    if (!tempState?.conn?.send) return;
+
+    pendingReplyFetches.add(id);
+    tempState.conn.send({
+        cmd: "message_get",
+        channel,
+        id,
+    });
+}
+
 let getMessage = () => undefined;
 
 export function getMessageById(id) {
@@ -92,6 +112,23 @@ export function VirtualMessageList(props) {
     });
     resizeObserver.observe(el);
 }
+
+createEffect(() => {
+    const evt = tempState?.conn?.lastevent?.();
+    if (!evt || evt.cmd !== "message_get" || !evt.message) return;
+
+    const msg = evt.message;
+    if (!msg.id) return;
+
+    setFetchedReplies(map => {
+        if (map.get(msg.id) === msg) return map;
+        const next = new Map(map);
+        next.set(msg.id, msg);
+        return next;
+    });
+
+    pendingReplyFetches.delete(msg.id);
+});
 
     onCleanup(() => resizeObserver?.disconnect());
 
@@ -378,9 +415,22 @@ function onScroll() {
                     const previous = index() > 0 ? section.messages[index() - 1] : null;
                     const interaction = msg()?.interaction;
                     const grouped = previous && previous.user === message.user;
-                    const replyMessage = msg()?.reply_to
-                      ? section.messages.find(m => m.id === msg().reply_to.id)
-                      : null;
+                    const replyMessage = createMemo(() => {
+    const m = msg();
+    if (!m?.reply_to?.id) return null;
+
+    const replyId = m.reply_to.id;
+
+    const fromFullList = getMessageById(replyId);
+    if (fromFullList) return fromFullList;
+
+    const cached = getCachedReply(replyId);
+    if (cached) return cached;
+
+    requestReplyMessage(props.channel, replyId);
+
+    return m.reply_to;
+});
                     return (
                       <div
                         attr:data-index={index()}
@@ -425,7 +475,7 @@ function onScroll() {
                             embeds={msg().embeds}
                             grouped={grouped && !replyMessage && !interaction}
                             interaction={interaction}
-                            reply={replyMessage}
+reply={replyMessage()}
                             fake={msg().__fake}
                             ephemeral={msg().ephemeral}
                             deleted={msg()?.deleted}
