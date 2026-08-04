@@ -13,9 +13,9 @@
   border-radius: .5em 0 0 .5em;
   padding: .5em;
   min-width: fit-content;
-  gap: .3em;
   border-right: 1px solid var(--diff-three);
 }
+
 .server_group {
   position: relative;
   display: flex;
@@ -28,7 +28,6 @@
   border-radius: 16px;
 }
 
-/* collapsed folder look */
 .server_group_collapsed {
   display: flex;
   align-items: center;
@@ -39,9 +38,7 @@
 .server_group_mini_grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2px;
-  width: 26px;
-  height: 26px;
+  gap: .2em;
 }
 
 .server_group_mini_icon {
@@ -55,28 +52,24 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius: 0;
+  border-radius: var(--br-mid);
+  padding: .4em 0;
   background-color: color-mix(in srgb, var(--group-color) 15%, transparent);
+  &>* {
+    border-radius: var(--br-min) !important;
+  }
 }
 
 .server_group_toggle {
   position: relative;
   width: 32px;
   height: 6px;
-  border-radius: 3px;
   background-color: var(--group-color);
   cursor: pointer;
 }
 
 .server_group_toggle .server_tooltip {
   left: calc(100% + 12px);
-}
-
-.server_group_tooltip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
 }
 
 .server_group_tooltip_grid {
@@ -99,9 +92,9 @@
 .server_single--drag-after {
   box-shadow: 0 3px 0 0 #5865F2;
 }
-/* Tooltip: always out of flow, correctly anchored, hover-only */
+
 .server_single {
-  position: relative; /* was only on --active before */
+  position: relative;
   width: 3em;
   height: 3em;
   aspect-ratio: 1/1;
@@ -152,8 +145,29 @@
   flex-shrink: 0;
 }
 
+.server_gap_drop {
+  height: 5px;
+  width: 100%;
+  flex-shrink: 0;
+  transition: height 0.1s, background-color 0.1s;
+  border-radius: 2px;
+}
+
 .server_bar:has(.server_single[draggable="true"]:active) .server_gap_drop {
-  height: 12px;
+  height: 1em;
+  margin: 2px 0;
+}
+
+.server_gap_drop--active {
+  height: 4px;
+  background-color: #5865F2;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #5865F2 40%, transparent);
+}
+
+.server_single--drop-target {
+  outline: 2px solid #5865F2;
+  outline-offset: 2px;
+  border-radius: var(--br-mid);
 }
 
 .server_tooltip {
@@ -172,7 +186,7 @@
   opacity: 0;
   transition: opacity 0.15s;
   z-index: 1000;
-  animation: appearLeft .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: appearLeft .2s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .server_single:hover .server_tooltip,
@@ -181,7 +195,6 @@
   opacity: 1;
 }
 
-/* Group tooltip: only decides internal layout, never visibility */
 .server_group_tooltip {
   flex-direction: column;
   align-items: center;
@@ -223,6 +236,7 @@
   height: 55%;
   color: var(--group-color);
 }
+
 .server_single:hover .server_tooltip {
   display: block;
 }
@@ -239,7 +253,6 @@ nav button {
 .server_single--active,
 .browser_tabs button.active,
 .discovery_join,
-.server_tooltip,
 .emoji_category.active,
 nav button.active {
   position: relative;
@@ -263,6 +276,11 @@ nav button.active {
   & textarea {
     height: 100%;
     resize: none;
+    padding-top: 10px;
+  }
+
+  & .icon_button:hover {
+    background-color: var(--diff-two);
   }
 }
 
@@ -323,7 +341,7 @@ nav button.active {
 @keyframes appearLeft {
   0% {
     opacity: 0;
-    transform: translateX(-10px);
+    transform: translateX(-3px);
   }
 }
 
@@ -1561,19 +1579,72 @@ img.big_emoji {
   pointer-events: none;
 }
 
-.slash_popup.y {
+.slash_popup.x {
   height: fit-content;
   max-height: 400px;
-  overflow: hidden;
-  overflow-y: scroll;
   background-color: var(--bg-two);
   align-items: flex-start;
   border-radius: var(--br-mid);
-  box-shadow: 0 1em 0 var(--bg-two);
+  border-right: 1px solid var(--diff-three);
+  overflow: hidden;
+  align-items: stretch;
+  margin-bottom: .5em;
+}
+
+.slash_provider_filters {
+  flex-shrink: 0;
+  gap: .4em;
+  padding: .5em;
+  align-items: center;
+  border-right: 1px solid var(--diff-one);
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: var(--bg-three);
+}
+
+.provider_filter_button {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--br-min);
+  overflow: hidden;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  background-color: var(--diff-two);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--diff-one);
+  }
+
+  &.active {
+    border-color: var(--accent, #5865f2);
+  }
+
+  &.default {
+    font-weight: normal;
+    color: var(--text-secondary, #b5bac1);
+  }
+}
+
+.provider_filter_avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slash_suggestions_list {
+  flex: 1;
+  align-items: flex-start;
+  max-height: 400px;
+  overflow-y: scroll;
 
   &>button {
     gap: .3em;
-    padding: .5em;
+    padding: .5em 1em;
     display: flex;
     align-items: center;
     width: 100%;
@@ -1590,6 +1661,10 @@ img.big_emoji {
 
     &>strong {
       font-weight: normal;
+    }
+
+    &.selected {
+      background-color: var(--diff-two);
     }
   }
 }

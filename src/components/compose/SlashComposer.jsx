@@ -1,4 +1,4 @@
-import { For, Show, createSignal, createEffect, onMount } from "solid-js";
+import { For, Show, createSignal, createEffect, onMount, on } from "solid-js";
 import { createStore } from "solid-js/store";
 import { tempState } from "../../App";
 import { HiOutlineXMark, HiOutlinePaperAirplane } from "solid-icons/hi";
@@ -13,6 +13,7 @@ export function createSlashCommands() {
     suggestions: [],
     selected: 0
   });
+  const [providerFilter, setProviderFilter] = createSignal(null);
 
   onMount(() => {
     tempState?.conn?.send({
@@ -40,12 +41,17 @@ export function createSlashCommands() {
     const command = slashCommands().find(c => c.name === name);
 
     if (!command) {
+      const filter = providerFilter();
+      const filtered = slashCommands().filter(c =>
+        c.name.startsWith(name) &&
+        (!filter || c.registeredBy === filter)
+      );
+
       setSlashState({
         active: true,
         command: null,
-        suggestions: slashCommands().filter(c =>
-          c.name.startsWith(name)
-        )
+        suggestions: filtered,
+        selected: 0
       });
       return;
     }
@@ -118,6 +124,8 @@ export function createSlashCommands() {
     slashCommands,
     slashState,
     setSlashState,
+    providerFilter,
+    setProviderFilter,
     parseSlash,
     closeSlash,
     buildContent,
@@ -126,20 +134,187 @@ export function createSlashCommands() {
 }
 
 export function SlashSuggestions(props) {
+  const providers = () => {
+    const seen = new Set();
+    const list = [];
+
+    for (const c of props.slashCommands()) {
+      if (c.registeredBy && !seen.has(c.registeredBy)) {
+        seen.add(c.registeredBy);
+        list.push(c.registeredBy);
+      }
+    }
+
+    return list;
+  };
+
+  const filteredSuggestions = () => {
+    const filter = props.providerFilter();
+    if (!filter) return props.slashState.suggestions;
+
+    return props.slashState.suggestions.filter(
+      c => c.registeredBy === filter
+    );
+  };
+
+  const groupedSuggestions = () => {
+    const groups = [];
+    const indexByProvider = new Map();
+
+    for (const c of filteredSuggestions()) {
+      const key = c.registeredBy || "";
+
+      if (!indexByProvider.has(key)) {
+        indexByProvider.set(key, groups.length);
+        groups.push({ registeredBy: key, commands: [] });
+      }
+
+      groups[indexByProvider.get(key)].commands.push(c);
+    }
+
+    return groups;
+  };
+
+  const flatSuggestions = () => {
+    const flat = [];
+    for (const group of groupedSuggestions()) {
+      for (const c of group.commands) flat.push(c);
+    }
+    return flat;
+  };
+
+  createEffect(
+    on(flatSuggestions, (list) => {
+      if (list.length === 0) {
+        if (props.slashState.selected !== 0) {
+          props.setSlashState("selected", 0);
+        }
+        return;
+      }
+
+      if (
+        props.slashState.selected < 0 ||
+        props.slashState.selected >= list.length
+      ) {
+        props.setSlashState("selected", 0);
+      }
+    })
+  );
+
+  createEffect(
+    on(
+      () => props.slashState.selected,
+      (idx) => {
+        const el = document.querySelector(
+          `.slash_suggestions_list button[data-index="${idx}"]`
+        );
+        el?.scrollIntoView({ block: "nearest" });
+      }
+    )
+  );
+
+  function moveSelection(delta) {
+    const list = flatSuggestions();
+    if (list.length === 0) return;
+
+    const next =
+      (props.slashState.selected + delta + list.length) % list.length;
+
+    props.setSlashState("selected", next);
+  }
+
+  function pickSelected() {
+    const list = flatSuggestions();
+    if (list.length === 0) return;
+
+    const idx = Math.min(
+      Math.max(props.slashState.selected, 0),
+      list.length - 1
+    );
+
+    props.onPick(list[idx]);
+  }
+
+  createEffect(() => {
+    props.onNavRef?.({
+      moveNext: () => moveSelection(1),
+      movePrev: () => moveSelection(-1),
+      selectCurrent: pickSelected,
+      hasSuggestions: () => flatSuggestions().length > 0
+    });
+  });
+
   return (
     <Show when={props.slashState.active && !props.slashState.command}>
-      <div class="slash_popup y">
-        <For each={props.slashState.suggestions}>
-          {command => (
-            <button
-              class="x"
-              onClick={() => props.onPick(command)}
-            >
-              <strong>/{command.name}</strong>
-              <span>{command.description}</span>
-            </button>
-          )}
-        </For>
+      <div class="slash_popup x">
+        <div class="slash_provider_filters y">
+          <button
+            class={`provider_filter_button default${
+              !props.providerFilter() ? " active" : ""
+            }`}
+            title="All providers"
+            onClick={() => props.setProviderFilter(null)}
+          >
+            /
+          </button>
+
+          <For each={providers()}>
+            {(provider) => (
+              <button
+                class={`provider_filter_button${
+                  props.providerFilter() === provider ? " active" : ""
+                }`}
+                title={provider}
+                onClick={() =>
+                  props.setProviderFilter(
+                    props.providerFilter() === provider ? null : provider
+                  )
+                }
+              >
+                <img
+                  src={`https://avatars.rotur.dev/${provider}`}
+                  alt={provider}
+                  class="provider_filter_avatar"
+                />
+              </button>
+            )}
+          </For>
+        </div>
+
+        <div class="slash_suggestions_list y">
+          <For each={groupedSuggestions()}>
+            {(group) => (
+              <>
+                <Show when={!props.providerFilter() && group.registeredBy}>
+                  <div class="label">{group.registeredBy}</div>
+                </Show>
+
+                <For each={group.commands}>
+                  {command => {
+                    const index = () => flatSuggestions().indexOf(command);
+                    const isSelected = () =>
+                      index() === props.slashState.selected;
+
+                    return (
+                      <button
+                        class={`x${isSelected() ? " selected" : ""}`}
+                        data-index={index()}
+                        aria-selected={isSelected()}
+                        onMouseEnter={() =>
+                          props.setSlashState("selected", index())
+                        }
+                        onClick={() => props.onPick(command)}
+                      >
+                        <strong>/{command.name}</strong>
+                        <span>{command.description}</span>
+                      </button>
+                    );
+                  }}
+                </For>
+              </>
+            )}
+          </For>
+        </div>
       </div>
     </Show>
   );
@@ -171,6 +346,7 @@ export function SlashForm(props) {
                 type="text"
                 placeholder={option.type}
                 value={props.slashState.values[option.name] || ""}
+                autoFocus
                 onInput={(e) =>
                   props.setSlashState(
                     "values",

@@ -473,7 +473,7 @@ function onScroll() {
                             reactions={msg().reactions}
                             attachments={msg()?.attachments}
                             embeds={msg().embeds}
-                            grouped={grouped && !replyMessage && !interaction}
+                            grouped={grouped && !replyMessage() && !interaction}
                             interaction={interaction}
 reply={replyMessage()}
                             fake={msg().__fake}

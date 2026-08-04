@@ -30,6 +30,9 @@ export default function MessageComposer(props) {
   const {
     slashState,
     setSlashState,
+    slashCommands,
+    providerFilter,
+    setProviderFilter,
     parseSlash,
     closeSlash,
     buildContent,
@@ -37,6 +40,20 @@ export default function MessageComposer(props) {
   } = createSlashCommands();
 
   const handleSlashSend = () => sendSlash(props.channel, textarea);
+
+  let slashNav = {
+    moveNext: () => {},
+    movePrev: () => {},
+    selectCurrent: () => {},
+    hasSuggestions: () => false
+  };
+
+  function pickSuggestion(command) {
+    textarea.value = `/${command.name}`;
+    parseSlash(textarea.value);
+    textarea.focus();
+    autoResize();
+  }
 
   function sendTyping() {
     if (!sendTypinghuh) return;
@@ -175,15 +192,15 @@ export default function MessageComposer(props) {
 
       <SlashSuggestions
         slashState={slashState}
-        onSelect={(command) => {
-          textarea.value = `/${command.name}`;
-          parseSlash(textarea.value);
-          textarea.focus();
-          autoResize();
-        }}
+        setSlashState={setSlashState}
+        slashCommands={slashCommands}
+        providerFilter={providerFilter}
+        setProviderFilter={setProviderFilter}
+        onPick={pickSuggestion}
+        onNavRef={(nav) => { slashNav = nav; }}
       />
 
-      <div class="text_box x" style={{ "align-items": "flex-end" }}>
+      <div class="text_box x" style={{ "align-items": "stretch" }}>
         <div className="dropdown_container">
           <div className="action_buttons">
             <button className="icon_button"><HiOutlinePlus></HiOutlinePlus></button>
@@ -251,6 +268,40 @@ export default function MessageComposer(props) {
               }, 6000);
             }}
             onKeyDown={(e) => {
+              if (
+                slashState.active &&
+                !slashState.command &&
+                slashNav.hasSuggestions()
+              ) {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  slashNav.moveNext();
+                  return;
+                }
+
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  slashNav.movePrev();
+                  return;
+                }
+
+                if (e.key === "Tab") {
+                  e.preventDefault();
+                  if (e.shiftKey) {
+                    slashNav.movePrev();
+                  } else {
+                    slashNav.moveNext();
+                  }
+                  return;
+                }
+
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  slashNav.selectCurrent();
+                  return;
+                }
+              }
+
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
 
