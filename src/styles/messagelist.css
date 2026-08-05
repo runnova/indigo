@@ -256,6 +256,7 @@
 }
 
 .inline_emoji {
+  max-width: 50px;
   height: 1em;
   transform: scale(1.5);
   margin: 0 .3em;
@@ -301,7 +302,7 @@
 
 .reaction_single img,
 .reaction_single .inline_emoji {
-  width: 18px;
+  max-width: 50px;
   height: 18px;
 }
 

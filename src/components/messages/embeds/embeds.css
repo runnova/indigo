@@ -1,0 +1,16 @@
+.gift_claim_btn {
+    padding: .5em 1em;
+    background-color: var(--hl-one);
+    border-radius: var(--br-min);
+    margin-top: .5em;
+}
+
+.beam_embed_body {
+  & .gift_amount {
+    font-size: 2em;
+  }
+}
+
+.beam_embed_header {
+  gap: .3em;
+}

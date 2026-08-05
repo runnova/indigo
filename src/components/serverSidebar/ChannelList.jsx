@@ -1,4 +1,4 @@
-import { For, Show, onCleanup } from "solid-js";
+import { For, Show, onCleanup, createSignal, createEffect } from "solid-js";
 import {
   HiOutlineHashtag,
   HiOutlineSpeakerWave,
@@ -26,7 +26,7 @@ import {
 
 import { preloadChannel, markActive, markBackground } from "../channelCache";
 import { createHoverPreloadHandlers } from "../useHoverPreload";
-import { state, conn } from "../../App"
+import { state, conn, unreads, setUnreads } from "../../App"
 
 const channelIcons = {
   text: HiOutlineHashtag,
@@ -83,8 +83,52 @@ function isImageSrc(src) {
 export default function ChannelList(props) {
   const cleanupFns = [];
 
+  const [pings, setPings] = createSignal({});
+
   onCleanup(() => {
     cleanupFns.forEach(fn => fn());
+  });
+
+  createEffect(() => {
+    const packet = conn.lastEvent();
+
+    if (!packet || packet.cmd !== "message_new") return;
+
+    const channelName = packet.channel;
+    if (!channelName) return;
+
+    if (channelName === props.currentChannel) return;
+
+    const serverSrc = props.serverSrc ?? state.current.server?.src;
+
+    if (!serverSrc) {
+      console.warn("[ChannelList] no serverSrc, can't bump unread for", channelName);
+      return;
+    }
+
+    if (!unreads.servers[serverSrc]) {
+      setUnreads("servers", serverSrc, {});
+    }
+    setUnreads(
+      "servers",
+      serverSrc,
+      channelName,
+      count => (count ?? 0) + 1
+    );
+
+    const me = conn.me()?.username;
+    const pingedUsers = packet.message?.pings?.users ?? [];
+
+    console.log({
+      me: conn.me()?.username,
+      channelName,
+      currentChannel: props.currentChannel,
+      pingedUsers,
+      includes: pingedUsers.includes(conn.me()?.username),
+    });
+    if (me && pingedUsers.includes(me)) {
+      setPings(prev => ({ ...prev, [channelName]: true }));
+    }
   });
 
   function handleHoverPreload(channelName) {
@@ -100,6 +144,15 @@ export default function ChannelList(props) {
     }
 
     markActive(channelName);
+
+    if (pings()[channelName]) {
+      setPings(prev => {
+        const next = { ...prev };
+        delete next[channelName];
+        return next;
+      });
+    }
+
     props.onSelect(channelName);
   }
 
@@ -111,7 +164,6 @@ export default function ChannelList(props) {
             return <hr class="channel_separator" />;
           }
 
-          const unread = props.unreads[ch.name];
           const Icon = getChannelIcon(ch);
 
           const hover = createHoverPreloadHandlers(
@@ -119,6 +171,11 @@ export default function ChannelList(props) {
             300
           );
           cleanupFns.push(hover.cleanup);
+
+          const unreadCount = () => {
+            const serverSrc = props.serverSrc ?? state.current.server?.src;
+            return serverSrc ? unreads.servers?.[serverSrc]?.[ch.name] : undefined;
+          };
 
           return (
             <div
@@ -152,9 +209,13 @@ export default function ChannelList(props) {
 
               </div>
 
-              <Show when={unread?.unread_count > 0}>
+              <Show when={pings()[ch.name]}>
+                <span class="channel_ping_dot" />
+              </Show>
+
+              <Show when={unreadCount() > 0}>
                 <span class="channel_badge">
-                  {unread.unread_count}
+                  {unreadCount()}
                 </span>
               </Show>
             </div>

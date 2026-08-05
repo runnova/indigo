@@ -21,9 +21,6 @@ import { state, switchToChannel } from "../../App";
 import { connections, ensureConnected } from "../../core/server_connection.jsx";
 import "./style.css";
 
-// --- fuzzy-ish scoring -------------------------------------------------
-// Cheap subsequence match: rewards contiguous / prefix matches, tolerates
-// gaps. Returns -1 for no match, otherwise a score where lower = better.
 function fuzzyScore(query, target) {
   if (!query) return 0;
   if (typeof target !== "string" || !target) return -1;
@@ -33,11 +30,9 @@ function fuzzyScore(query, target) {
 
   const idx = t.indexOf(q);
   if (idx !== -1) {
-    // direct substring: prefix matches score best
     return idx === 0 ? 0 : 10 + idx;
   }
 
-  // fallback: subsequence match
   let ti = 0;
   let gaps = 0;
   let lastMatch = -1;
@@ -59,11 +54,7 @@ function channelIcon(type) {
   return HiOutlineHashtag;
 }
 
-// --- result gathering ----------------------------------------------------
-
 function collectServerEntries() {
-  // Union of state.servers (known/saved) and live connections map
-  // (covers servers connected this session that may not be persisted yet).
   const bySrc = new Map();
 
   for (const s of state.servers) {
@@ -152,8 +143,6 @@ export default function Spotlight() {
     setActiveIndex(0);
     queueMicrotask(() => inputRef?.focus());
 
-    // Make sure every known server has at least a passive connection so
-    // its channel list is searchable, honoring "idleConnections: keep".
     for (const server of state.servers) {
       if (connections.has(server.src)) continue;
 
@@ -192,12 +181,10 @@ export default function Spotlight() {
 
   const flatResults = createMemo(() => {
     const { serverResults, channelResults } = results();
-    // Channels first: usually the more specific/useful jump target.
     return [...channelResults, ...serverResults];
   });
 
   createEffect(() => {
-    // reset selection whenever the result set changes
     flatResults();
     setActiveIndex(0);
   });

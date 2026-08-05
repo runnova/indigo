@@ -17,6 +17,8 @@ import {
   SlashSendButton
 } from "./SlashComposer";
 
+import GiftPopup from "./GiftPopup";
+
 const MAX_TEXTAREA_HEIGHT = 200;
 const MIN_TEXTAREA_HEIGHT = 26;
 
@@ -26,6 +28,8 @@ export default function MessageComposer(props) {
   let typingTimer;
   let lastTypingSent = 0;
   const sendTypinghuh = state.settings.sendTypingStatus;
+
+  const [giftOpen, setGiftOpen] = createSignal(false);
 
   const {
     slashState,
@@ -42,9 +46,9 @@ export default function MessageComposer(props) {
   const handleSlashSend = () => sendSlash(props.channel, textarea);
 
   let slashNav = {
-    moveNext: () => {},
-    movePrev: () => {},
-    selectCurrent: () => {},
+    moveNext: () => { },
+    movePrev: () => { },
+    selectCurrent: () => { },
     hasSuggestions: () => false
   };
 
@@ -200,6 +204,25 @@ export default function MessageComposer(props) {
         onNavRef={(nav) => { slashNav = nav; }}
       />
 
+      <Show when={giftOpen()}>
+        <GiftPopup
+          onClose={() => setGiftOpen(false)}
+          onCreated={(url) => {
+            const text = textarea.value;
+
+            textarea.value =
+              text.length > 0
+                ? `${text} ${url}`
+                : url;
+
+            textarea.focus();
+            autoResize();
+
+            const pos = textarea.value.length;
+            textarea.setSelectionRange(pos, pos);
+          }}
+        />
+      </Show>
       <div class="text_box x" style={{ "align-items": "stretch" }}>
         <div className="dropdown_container">
           <div className="action_buttons">
@@ -213,7 +236,10 @@ export default function MessageComposer(props) {
               <HiOutlineArrowUpOnSquare />
               <span>Upload file</span>
             </button>
-            <button className="icon_button text">
+            <button
+              class="icon_button text"
+              onClick={() => setGiftOpen(true)}
+            >
               <HiOutlineGift />
               <span>Send gift</span>
             </button>
@@ -372,6 +398,7 @@ export default function MessageComposer(props) {
         hidden
         onChange={handleFiles}
       />
+
     </div>
   );
 }

@@ -4,6 +4,9 @@ import { setPreview } from "../../App";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx"
 const markdownCache = new Map();
 
+import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
+import { getEmbedProvider } from "./embeds/registry.jsx";
+
 function getParsedMarkdown(id, content) {
   if (markdownCache.has(id)) {
     return markdownCache.get(id);
@@ -46,8 +49,13 @@ function readMaskedLink(text, start) {
 
 export function Embed(props) {
   const embed = props.embed;
-  console.log(embed)
   if (embed.type == "image") return;
+
+  const provider = getEmbedProvider(embed.url);
+  if (provider) {
+    const Custom = provider.Component;
+    return <Custom url={embed.url} embed={embed} />;
+  }
 
   return (
     <a
@@ -240,12 +248,18 @@ function renderToken(token, depth = 0) {
         </a>
       );
 
-    case 'url':
+    case 'url': {
+      const provider = getEmbedProvider(token.url);
+  console.log("provider found:", provider);
+      if (provider) {
+        const Custom = provider.Component;
+        return <Custom key={key} url={token.url} />;
+      }
       if (token.url.match(/^https:\/\/chats\.mistium\.com\/emojis\/\d+$/)) {
         return <img key={key} class="inline_emoji" src={token.url} alt="" />;
       }
       return <EmbeddedLink key={key} url={token.url} />;
-
+    }
     case 'emoji':
       return (
         <img

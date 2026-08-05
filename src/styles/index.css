@@ -346,6 +346,16 @@ nav button.active {
   }
 }
 
+.channel_ping_dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  display: inline-block;
+  min-width: 8px;
+  min-height: 8px;
+}
+
 .channel_list {
   padding-right: 5px;
   padding-bottom: 5em;
@@ -359,11 +369,16 @@ nav button.active {
     transition: opacity .5s cubic-bezier(0.42, 1.67, 0.21, 0.90);
     gap: .75em;
     align-items: center;
-    opacity: .8;
+    opacity: .7;
     box-shadow: 0 0 0;
     cursor: pointer;
     white-space: nowrap;
     text-overflow: ellipsis;
+
+    &:has(.channel_badge) {
+      opacity: 1;
+      font-weight: 500;
+    }
 
     &>* {
       flex: 1;
@@ -679,7 +694,7 @@ iframe#rotur-auth {
 
 span.channel_badge {
   margin-left: auto;
-  opacity: .5;
+  color: var(--fg-dim);
   font-size: small;
 }
 
@@ -1569,9 +1584,11 @@ img.logo {
 }
 
 img.big_emoji {
-  width: 30px;
-  height: 30px;
+  height: 40px;
+  max-width: 60px;
   vertical-align: middle;
+  transform: none;
+  margin: 0;
 }
 
 .command-overlay {

@@ -48,56 +48,56 @@ export default function ServerBar(props) {
       .filter(g => (g.servers ?? []).length > 0);
   }
 
- function handleDropOnServer(targetSrc, targetGroupId) {
-  const drag = dragSrc();
-  setDragOverGroupId(null);
-  setDragOverServerSrc(null);
-  if (!drag || drag.src === targetSrc) return;
+  function handleDropOnServer(targetSrc, targetGroupId) {
+    const drag = dragSrc();
+    setDragOverGroupId(null);
+    setDragOverServerSrc(null);
+    if (!drag || drag.src === targetSrc) return;
 
-  let nextGroups = removeFromAllGroups(drag.src);
+    let nextGroups = removeFromAllGroups(drag.src);
 
-  if (targetGroupId) {
+    if (targetGroupId) {
+      nextGroups = nextGroups
+        .map(g =>
+          g.id === targetGroupId
+            ? { ...g, servers: [...(g.servers ?? []), drag.src] }
+            : g
+        )
+        .filter(g => (g.servers ?? []).length > 0);
+    } else {
+      nextGroups = [
+        ...nextGroups,
+        {
+          id: genId(),
+          name: "New Group",
+          color: "#5865F2",
+          collapsed: false,
+          servers: [targetSrc, drag.src]
+        }
+      ];
+    }
+
+    updateGroups(nextGroups);
+    setDragSrc(null);
+  }
+
+  function handleDropOnGroupToggle(groupId) {
+    const drag = dragSrc();
+    setDragOverGroupId(null);
+    if (!drag) return;
+
+    let nextGroups = removeFromAllGroups(drag.src);
     nextGroups = nextGroups
       .map(g =>
-        g.id === targetGroupId
+        g.id === groupId
           ? { ...g, servers: [...(g.servers ?? []), drag.src] }
           : g
       )
       .filter(g => (g.servers ?? []).length > 0);
-  } else {
-    nextGroups = [
-      ...nextGroups,
-      {
-        id: genId(),
-        name: "New Group",
-        color: "#5865F2",
-        collapsed: false,
-        servers: [targetSrc, drag.src]
-      }
-    ];
+
+    updateGroups(nextGroups);
+    setDragSrc(null);
   }
-
-  updateGroups(nextGroups);
-  setDragSrc(null);
-}
-
-function handleDropOnGroupToggle(groupId) {
-  const drag = dragSrc();
-  setDragOverGroupId(null);
-  if (!drag) return;
-
-  let nextGroups = removeFromAllGroups(drag.src);
-  nextGroups = nextGroups
-    .map(g =>
-      g.id === groupId
-        ? { ...g, servers: [...(g.servers ?? []), drag.src] }
-        : g
-    )
-    .filter(g => (g.servers ?? []).length > 0);
-
-  updateGroups(nextGroups);
-  setDragSrc(null);
-}
 
   const renderedOrder = createMemo(() => {
     const groupOfSrc = new Map();
@@ -366,6 +366,7 @@ function handleDropOnGroupToggle(groupId) {
             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='%233DA35D'%3E%3Cpath d='M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z'/%3E%3C/svg%3E"
             class="server_icon add_server"
           />
+        <span class="server_tooltip">Add Server</span>
         </div>
 
         <div
@@ -374,6 +375,7 @@ function handleDropOnGroupToggle(groupId) {
           style={{ "margin-top": "auto" }}
         >
           <HiOutlineAdjustmentsHorizontal class="add_server" />
+        <span class="server_tooltip">Settings</span>
         </div>
       </div>
 
