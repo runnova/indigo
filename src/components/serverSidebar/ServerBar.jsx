@@ -25,13 +25,67 @@ export default function ServerBar(props) {
   const fallbackIcon = `https://icons.veryicon.com/png/o/commerce-shopping/soft-designer-online-tools-icon/group-38.png`;
   const groups = () => props.groups ?? [];
 
-  const ungrouped = createMemo(() =>
-    ungroupedServers(props.servers, groups())
-  );
-
   const order = createMemo(() =>
     renderedOrder(props.servers, groups())
   );
+
+  // Derives unified list of interleaved groups and standalone servers
+  const items = createMemo(() => {
+    const currentGroups = groups();
+    const currentServers = props.servers ?? [];
+    const currentOrder = order();
+
+    const result = [];
+    const processedGroupIds = new Set();
+
+    for (const src of currentOrder) {
+      const group = currentGroups.find((g) => (g.servers ?? []).includes(src));
+
+      if (group) {
+        if (!processedGroupIds.has(group.id)) {
+          processedGroupIds.add(group.id);
+
+          const members = group.servers ?? [];
+          let maxIdx = -1;
+          for (const mSrc of members) {
+            const idx = currentOrder.indexOf(mSrc);
+            if (idx > maxIdx) maxIdx = idx;
+          }
+          const gapIndexAfter = maxIdx === -1 ? currentOrder.length : maxIdx + 1;
+
+          result.push({
+            type: "group",
+            group,
+            gapIndexAfter,
+          });
+        }
+      } else {
+        const server = serverBySrc(currentServers, src);
+        if (server) {
+          const serverIdx = currentOrder.indexOf(src);
+          result.push({
+            type: "server",
+            server,
+            gapIndexAfter: serverIdx + 1,
+          });
+        }
+      }
+    }
+
+    // Append any empty groups
+    for (const group of currentGroups) {
+      if (!processedGroupIds.has(group.id)) {
+        processedGroupIds.add(group.id);
+        result.push({
+          type: "group",
+          group,
+          gapIndexAfter: currentOrder.length,
+        });
+      }
+    }
+
+    return result;
+  });
 
   function updateGroups(next) {
     props.onGroupsChange(next);
@@ -39,6 +93,46 @@ export default function ServerBar(props) {
 
   function toggleCollapse(groupId) {
     updateGroups(toggleGroupCollapse(groups(), groupId));
+  }
+
+  // Real-time reordering execution on drag-over gap
+  function handleRealtimeGapOver(index) {
+    const drag = dragSrc();
+    if (!drag) return;
+
+    const currentOrder = order();
+    const currentGroups = groups();
+    const inGroup = currentGroups.find((g) => (g.servers ?? []).includes(drag.src));
+
+    const draggedOriginalIndex = currentOrder.findIndex((s) => s === drag.src);
+    const filteredOrder = currentOrder.filter((s) => s !== drag.src);
+
+    let adjustedIndex = index;
+    if (draggedOriginalIndex !== -1 && draggedOriginalIndex < index) {
+      adjustedIndex -= 1;
+    }
+    adjustedIndex = Math.max(0, Math.min(adjustedIndex, filteredOrder.length));
+
+    // Avoid infinite loops if position hasn't changed
+    if (!inGroup && draggedOriginalIndex === adjustedIndex) {
+      return;
+    }
+
+    // Detach from group if dragging out to a standalone gap
+    if (inGroup) {
+      const nextGroups = removeFromAllGroups(currentGroups, drag.src);
+      updateGroups(nextGroups);
+      setDragSrc({ src: drag.src, fromGroupId: null });
+    }
+
+    const nextOrder = [...filteredOrder];
+    nextOrder.splice(adjustedIndex, 0, drag.src);
+
+    const reorderedServers = nextOrder
+      .map((src) => serverBySrc(props.servers, src))
+      .filter(Boolean);
+
+    props.onReorder(reorderedServers);
   }
 
   function handleDropOnServer(targetSrc, targetGroupId) {
@@ -78,22 +172,7 @@ export default function ServerBar(props) {
     setDragOverGapIndex(null);
     if (!drag) return;
 
-    if (drag.fromGroupId) {
-      updateGroups(removeFromAllGroups(groups(), drag.src));
-    }
-
-    const currentOrder = order().filter((src) => src !== drag.src);
-    let adjustedIndex = toIndex;
-    const draggedOriginalIndex = order().findIndex((s) => s === drag.src);
-    if (draggedOriginalIndex !== -1 && draggedOriginalIndex < toIndex) {
-      adjustedIndex -= 1;
-    }
-    currentOrder.splice(adjustedIndex, 0, drag.src);
-
-    const reorderedServers = currentOrder
-      .map((src) => serverBySrc(props.servers, src))
-      .filter(Boolean);
-    props.onReorder(reorderedServers);
+    handleRealtimeGapOver(toIndex);
     setDragSrc(null);
   }
 
@@ -106,11 +185,13 @@ export default function ServerBar(props) {
           e.preventDefault();
           e.stopPropagation();
           setDragOverGapIndex(index);
+          handleRealtimeGapOver(index);
         }}
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();
           if (dragOverGapIndex() !== index) setDragOverGapIndex(index);
+          handleRealtimeGapOver(index);
         }}
         onDragLeave={(e) => {
           e.stopPropagation();
@@ -129,189 +210,181 @@ export default function ServerBar(props) {
     <>
       <div class="server_bar y">
         {GapDrop(0)}
-        <For each={groups()}>
-          {(group) => {
-            const groupTopIndex = () => {
-              const members = group.servers ?? [];
-              let lastIdx = -1;
-              for (const src of members) {
-                const idx = order().indexOf(src);
-                if (idx !== -1) lastIdx = Math.max(lastIdx, idx);
-              }
-              return lastIdx === -1 ? order().length : lastIdx + 1;
-            };
-
-            return (
-              <>
-                <div
-                  class={`server_group ${dragOverGroupId() === group.id ? "server_group--drag-over" : ""}`}
-                  style={{ "--group-color": group.color || "#5865F2" }}
-                  data-context="server_group"
-                  data-group-id={group.id}
-                >
-                  <Show
-                    when={!group.collapsed}
-                    fallback={
-                      <div
-                        class="server_single server_group_collapsed"
-                        onClick={() => toggleCollapse(group.id)}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setDragOverGroupId(group.id);
-                        }}
-                        onDragLeave={() => setDragOverGroupId(null)}
-                        onDrop={() => handleDropOnGroupToggle(group.id)}
-                        data-context="server_group"
-                        data-group-id={group.id}
-                      >
-                        <div class="server_group_mini_grid">
-                          <For each={(group.servers ?? []).slice(0, 4)}>
-                            {(src) => (
-                              <img
-                                src={serverBySrc(props.servers, src)?.icon ?? fallbackIcon}
-                                alt=""
-                                class="server_group_mini_icon"
-                              />
-                            )}
-                          </For>
-                        </div>
-                        <span class="server_tooltip">{group.name}</span>
-                      </div>
+        <For each={items()}>
+          {(item) => (
+            <Show
+              when={item.type === "group"}
+              fallback={
+                <>
+                  <div
+                    draggable
+                    onClick={() => props.onSelect(item.server)}
+                    data-context="server"
+                    data-src={item.server.src}
+                    onDragStart={() =>
+                      setDragSrc({ src: item.server.src, fromGroupId: null })
                     }
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverServerSrc(item.server.src);
+                    }}
+                    onDragLeave={() => setDragOverServerSrc(null)}
+                    onDrop={(e) => {
+                      e.stopPropagation();
+                      handleDropOnServer(item.server.src, null);
+                    }}
+                    onDragEnd={() => {
+                      setDragSrc(null);
+                      setDragOverServerSrc(null);
+                    }}
+                    class={`server_single ${
+                      props.currentServer?.src === item.server.src
+                        ? "server_single--active"
+                        : ""
+                    } ${
+                      dragOverServerSrc() === item.server.src
+                        ? "server_single--drop-target"
+                        : ""
+                    }`}
                   >
-                    <div class="server_group_expanded">
-                      <div
-                        class="server_group_toggle"
-                        onClick={() => toggleCollapse(group.id)}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setDragOverGroupId(group.id);
-                        }}
-                        onDragLeave={() => setDragOverGroupId(null)}
-                        onDrop={() => handleDropOnGroupToggle(group.id)}
-                        data-context="server_group"
-                        data-group-id={group.id}
-                      >
-                        <HiOutlineChevronDown class="server_group_toggle_icon" />
-                        <span class="server_tooltip">{group.name}</span>
+                    <img
+                      src={item.server.icon ?? fallbackIcon}
+                      alt={item.server.name}
+                      class="server_icon"
+                    />
+                    {!(
+                      props.unreads.servers?.[item.server.src]?.online ||
+                      props?.currentServer?.src === item.server.src
+                    ) && <span class="server_offline_indicator" />}
+                    <span class="server_tooltip">{item.server.name}</span>
+                    {props.unreadTotal(item.server.src) > 0 && (
+                      <span class="unread_badge"></span>
+                    )}
+                  </div>
+                  {GapDrop(item.gapIndexAfter)}
+                </>
+              }
+            >
+              <div
+                class={`server_group ${
+                  dragOverGroupId() === item.group.id
+                    ? "server_group--drag-over"
+                    : ""
+                }`}
+                style={{ "--group-color": item.group.color || "#5865F2" }}
+                data-context="server_group"
+                data-group-id={item.group.id}
+              >
+                <Show
+                  when={!item.group.collapsed}
+                  fallback={
+                    <div
+                      class="server_single server_group_collapsed"
+                      onClick={() => toggleCollapse(item.group.id)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverGroupId(item.group.id);
+                      }}
+                      onDragLeave={() => setDragOverGroupId(null)}
+                      onDrop={() => handleDropOnGroupToggle(item.group.id)}
+                      data-context="server_group"
+                      data-group-id={item.group.id}
+                    >
+                      <div class="server_group_mini_grid">
+                        <For each={(item.group.servers ?? []).slice(0, 4)}>
+                          {(src) => (
+                            <img
+                              src={
+                                serverBySrc(props.servers, src)?.icon ??
+                                fallbackIcon
+                              }
+                              alt=""
+                              class="server_group_mini_icon"
+                            />
+                          )}
+                        </For>
                       </div>
-                      <For each={group.servers ?? []}>
-                        {(src) => {
-                          const server = () => serverBySrc(props.servers, src);
-                          return (
-                            <Show when={server()}>
-                              <div
-                                draggable
-                                onClick={() => props.onSelect(server())}
-                                data-context="server"
-                                data-src={src}
-                                onDragStart={() =>
-                                  setDragSrc({ src, fromGroupId: group.id })
-                                }
-                                onDragOver={(e) => {
-                                  e.preventDefault();
-                                  setDragOverServerSrc(src);
-                                }}
-                                onDragLeave={() => setDragOverServerSrc(null)}
-                                onDrop={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleDropOnServer(src, group.id);
-                                }}
-                                onDragEnd={() => {
-                                  setDragSrc(null);
-                                  setDragOverServerSrc(null);
-                                }}
-                                class={`server_single ${
-                                  props.currentServer?.src === src
-                                    ? "server_single--active"
-                                    : ""
-                                } ${
-                                  dragOverServerSrc() === src
-                                    ? "server_single--drop-target"
-                                    : ""
-                                }`}
-                              >
-                                <img
-                                  src={server().icon ?? fallbackIcon}
-                                  alt={server().name}
-                                  class="server_icon"
-                                />
-                                {!(
-                                  props.unreads.servers?.[src]?.online ||
-                                  props?.currentServer?.src === src
-                                ) && <span class="server_offline_indicator" />}
-                                <span class="server_tooltip">{server().name}</span>
-                                {props.unreadTotal(src) > 0 && (
-                                  <span class="unread_badge"></span>
-                                )}
-                              </div>
-                            </Show>
-                          );
-                        }}
-                      </For>
+                      <span class="server_tooltip">{item.group.name}</span>
                     </div>
-                  </Show>
-                </div>
-                {GapDrop(groupTopIndex())}
-              </>
-            );
-          }}
-        </For>
-        <For each={ungrouped()}>
-          {(server) => {
-            const index = () => order().indexOf(server.src);
-            return (
-              <>
-                <div
-                  draggable
-                  onClick={() => props.onSelect(server)}
-                  data-context="server"
-                  data-src={server.src}
-                  onDragStart={() =>
-                    setDragSrc({ src: server.src, fromGroupId: null })
                   }
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverServerSrc(server.src);
-                  }}
-                  onDragLeave={() => setDragOverServerSrc(null)}
-                  onDrop={(e) => {
-                    e.stopPropagation();
-                    handleDropOnServer(server.src, null);
-                  }}
-                  onDragEnd={() => {
-                    setDragSrc(null);
-                    setDragOverServerSrc(null);
-                  }}
-                  class={`server_single ${
-                    props.currentServer?.src === server.src
-                      ? "server_single--active"
-                      : ""
-                  } ${
-                    dragOverServerSrc() === server.src
-                      ? "server_single--drop-target"
-                      : ""
-                  }`}
                 >
-                  <img
-                    src={server.icon ?? fallbackIcon}
-                    alt={server.name}
-                    class="server_icon"
-                  />
-                  {!(
-                    props.unreads.servers?.[server.src]?.online ||
-                    props?.currentServer?.src === server.src
-                  ) && <span class="server_offline_indicator" />}
-                  <span class="server_tooltip">{server.name}</span>
-                  {props.unreadTotal(server.src) > 0 && (
-                    <span class="unread_badge"></span>
-                  )}
-                </div>
-                {GapDrop(index() + 1)}
-              </>
-            );
-          }}
+                  <div class="server_group_expanded">
+                    <div
+                      class="server_group_toggle"
+                      onClick={() => toggleCollapse(item.group.id)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverGroupId(item.group.id);
+                      }}
+                      onDragLeave={() => setDragOverGroupId(null)}
+                      onDrop={() => handleDropOnGroupToggle(item.group.id)}
+                      data-context="server_group"
+                      data-group-id={item.group.id}
+                    >
+                      <HiOutlineChevronDown class="server_group_toggle_icon" />
+                      <span class="server_tooltip">{item.group.name}</span>
+                    </div>
+                    <For each={item.group.servers ?? []}>
+                      {(src) => {
+                        const server = () => serverBySrc(props.servers, src);
+                        return (
+                          <Show when={server()}>
+                            <div
+                              draggable
+                              onClick={() => props.onSelect(server())}
+                              data-context="server"
+                              data-src={src}
+                              onDragStart={() =>
+                                setDragSrc({ src, fromGroupId: item.group.id })
+                              }
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                setDragOverServerSrc(src);
+                              }}
+                              onDragLeave={() => setDragOverServerSrc(null)}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDropOnServer(src, item.group.id);
+                              }}
+                              onDragEnd={() => {
+                                setDragSrc(null);
+                                setDragOverServerSrc(null);
+                              }}
+                              class={`server_single ${
+                                props.currentServer?.src === src
+                                  ? "server_single--active"
+                                  : ""
+                              } ${
+                                dragOverServerSrc() === src
+                                  ? "server_single--drop-target"
+                                  : ""
+                              }`}
+                            >
+                              <img
+                                src={server().icon ?? fallbackIcon}
+                                alt={server().name}
+                                class="server_icon"
+                              />
+                              {!(
+                                props.unreads.servers?.[src]?.online ||
+                                props?.currentServer?.src === src
+                              ) && <span class="server_offline_indicator" />}
+                              <span class="server_tooltip">{server().name}</span>
+                              {props.unreadTotal(src) > 0 && (
+                                <span class="unread_badge"></span>
+                              )}
+                            </div>
+                          </Show>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
+              </div>
+              {GapDrop(item.gapIndexAfter)}
+            </Show>
+          )}
         </For>
         <div class="server_single" onClick={() => setDialogOpen(true)}>
           <img

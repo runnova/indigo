@@ -2,7 +2,7 @@ import { For, Show, createMemo, createSignal, createEffect } from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
-import { HiOutlineXMark } from "solid-icons/hi";
+import { HiOutlineDocument, HiOutlineXMark } from "solid-icons/hi";
 
 export function Message(props) {
   const rendered = createMemo(() =>
@@ -59,7 +59,7 @@ export function Message(props) {
                   tempState.virtMsgList.jumpToMessage(props.reply.id);
                 }}
               >
-                {props.reply.content}
+                {props.reply.content || <HiOutlineDocument></HiOutlineDocument>}
               </div>
             </>
           ) : (

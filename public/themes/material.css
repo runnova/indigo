@@ -9,9 +9,9 @@
   --hl-three: #45475A;
   --hl-four: #244A76;
 
-  --br-big: 3em;
-  --br-mid: 2em;
-  --br-tiny: 1.5em;
+  --br-big: 2em;
+  --br-mid: 1em;
+  --br-tiny: .5em;
   --br-min: 1em
 }
 
@@ -40,8 +40,4 @@
 
 .popup_content {
     padding: .5em;
-}
-
-.dialog_header {
-  padding: .2em 1em;
 }

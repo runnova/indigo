@@ -3,7 +3,8 @@ import { HiOutlineRocketLaunch, HiOutlineUserGroup, HiOutlineChatBubbleOvalLeft 
 import { createForumThreads } from "../core/useChannelMessages";
 import { VirtualMessageList } from "../scrolling";
 import { timeAgo } from "./Utility";
-import { state, setState } from "../App";
+import { state, setState, conn } from "../App";
+import MessageComposer from "./compose/MessageComposer";
 
 export function ForumView(props) {
   const [activeThread, setActiveThread] = createSignal(null);
@@ -36,6 +37,20 @@ export function ForumView(props) {
         wsMessages={props.wsMessages}
         onReady={props.onReady}
         onBack={() => setActiveThread(null)}
+      />
+      <MessageComposer
+        channel={state.current.channel}
+        onSend={(content, attachments) => {
+          conn.send({
+            cmd: "message_new",
+            channel: state.current.channel,
+            "thread_id":activeThread().id,
+            content,
+            attachments,
+            ...(state.replying && { reply_to: state.replying.id })
+          });
+          if (state.replying) setState("replying", null);
+        }}
       />
     </Show>
   );

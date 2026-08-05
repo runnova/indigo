@@ -565,6 +565,7 @@ export function VirtualMessageList(props) {
                   cmd: "message_delete",
                   id: hoveredMessage().id,
                   channel: state.current.channel,
+                  ...(props.threadId && { thread_id: props.threadId }),
                 })
               }
               onReact={(e) => {

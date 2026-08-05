@@ -2047,9 +2047,11 @@ img.big_emoji {
   display: flex;
   flex-direction: column;
   min-width: 180px;
-  padding: 4px;
-  border-radius: 8px;
+  padding: .2em;
+  border-radius: var(--br-mid);
   z-index: 9999;
+  box-shadow: 0 5px 1em #0000001b;
+  border: 1px solid var(--diff-three);
   background: var(--bg-three);
 }
 
@@ -2057,7 +2059,7 @@ img.big_emoji {
   border: none;
   background: transparent;
   text-align: left;
-  padding: .3em .5em;
+  padding: .5em .8em;
   cursor: pointer;
   border-radius: var(--br-mid);
   width: 100%;
@@ -2066,7 +2068,7 @@ img.big_emoji {
   display: flex;
   align-items: center;
   flex-direction: row;
-  gap: .5em;
+  gap: .2em;
 
   &>.scm-item-content {
     display: flex;
