@@ -8,12 +8,14 @@ export function Message(props) {
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
       ? props.content
-      : parseMarkdown(props.content)
+      : parseMarkdown(props.content),
   );
   if (props.reply) {
     props.reply.username = props.reply.user;
   }
-  const member = tempState?.conn?.members()?.find(user => user.username === props.username);
+  const member = tempState?.conn
+    ?.members()
+    ?.find((user) => user.username === props.username);
   const gradient = member?.gradient;
   const [editValue, setEditValue] = createSignal("");
 
@@ -24,8 +26,8 @@ export function Message(props) {
   });
 
   const dismissEphemeral = () => {
-    setState("messages", state.current.channel, msgs =>
-      msgs.filter(m => m.id !== props.id)
+    setState("messages", state.current.channel, (msgs) =>
+      msgs.filter((m) => m.id !== props.id),
     );
   };
 
@@ -51,7 +53,12 @@ export function Message(props) {
                 {props.reply.user}
               </div>
 
-              <div class="reply_text">
+              <div
+                class="reply_text"
+                onClick={() => {
+                  tempState.virtMsgList.jumpToMessage(props.reply.id);
+                }}
+              >
                 {props.reply.content}
               </div>
             </>
@@ -81,7 +88,10 @@ export function Message(props) {
             <div class="time">{props.time}</div>
           </div>
         ) : (
-          <div className="pfpWO" onClick={(e) => openPopout(props, e.currentTarget)}>
+          <div
+            className="pfpWO"
+            onClick={(e) => openPopout(props, e.currentTarget)}
+          >
             <img
               src={props.avatar}
               alt=""
@@ -109,38 +119,31 @@ export function Message(props) {
                 style={
                   Array.isArray(gradient)
                     ? {
-                      background: `linear-gradient(90deg, ${gradient.join(", ")})`,
-                      "-webkit-background-clip": "text",
-                      "-webkit-text-fill-color": "transparent",
-                      "background-clip": "text",
-                      color: "transparent"
-                    }
+                        background: `linear-gradient(90deg, ${gradient.join(", ")})`,
+                        "-webkit-background-clip": "text",
+                        "-webkit-text-fill-color": "transparent",
+                        "background-clip": "text",
+                        color: "transparent",
+                      }
                     : {
-                      color: member?.color
-                    }
+                        color: member?.color,
+                      }
                 }
                 onClick={(e) => openPopout(props, e.currentTarget)}
               >
-
                 {props.username}
               </div>
 
               <div class="time">{props.time}</div>
 
               <Show when={props.fake}>
-                <button
-                  class="fake-dismiss"
-                  onClick={props.onDismiss}
-                >
+                <button class="fake-dismiss" onClick={props.onDismiss}>
                   Dismiss <HiOutlineXMark />
                 </button>
               </Show>
 
               <Show when={props.ephemeral}>
-                <button
-                  class="fake-dismiss"
-                  onClick={dismissEphemeral}
-                >
+                <button class="fake-dismiss" onClick={dismissEphemeral}>
                   Dismiss <HiOutlineXMark />
                 </button>
               </Show>
@@ -149,19 +152,15 @@ export function Message(props) {
 
           <Show
             when={props.editing}
-            fallback={
-              <div class="message_text">
-                {rendered()}
-              </div>
-            }
+            fallback={<div class="message_text">{rendered()}</div>}
           >
             <textarea
               class="message_edit_textarea"
               value={editValue()}
-              onInput={e => setEditValue(e.currentTarget.value)}
+              onInput={(e) => setEditValue(e.currentTarget.value)}
               rows={Math.max(2, editValue().split("\n").length)}
               autofocus
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   setState("editing", null);
                 }
@@ -180,17 +179,19 @@ export function Message(props) {
                 }
               }}
             />
-            <small class="edit_instruct">ESC to
-
+            <small class="edit_instruct">
+              ESC to
               <a
                 href=""
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
                   setState("editing", null);
                 }}
               >
                 cancel
-              </a>, ENTER to send</small>
+              </a>
+              , ENTER to send
+            </small>
           </Show>
 
           {props.attachments?.length > 0 && (
@@ -224,18 +225,15 @@ export function Message(props) {
                           setPreview({
                             src: file.url,
                             type: file.mime_type,
-                          })}
+                          })
+                        }
                       />
                     );
                   }
 
                   if (file.mime_type?.startsWith("audio/")) {
                     return (
-                      <audio
-                        src={file.url}
-                        controls
-                        class="attachment_audio"
-                      />
+                      <audio src={file.url} controls class="attachment_audio" />
                     );
                   }
 
@@ -262,23 +260,22 @@ export function Message(props) {
                   const isCustom = emoji.startsWith("originChats://");
 
                   return (
-                    <div class="reaction_single" title={users.join(", ")}
+                    <div
+                      class="reaction_single"
+                      title={users.join(", ")}
                       onClick={() => {
                         tempState.conn.send({
                           cmd: "message_react_add",
                           channel: state.current.channel,
                           id: props.id,
-                          emoji: emoji
+                          emoji: emoji,
                         });
                       }}
                     >
                       {isCustom ? (
                         <img
                           class="inline_emoji"
-                          src={emoji.replace(
-                            "originChats://",
-                            "https://"
-                          )}
+                          src={emoji.replace("originChats://", "https://")}
                           alt=""
                         />
                       ) : (

@@ -147,6 +147,7 @@
   align-items: center;
   flex-direction: row;
   overflow: hidden;
+  z-index: 10;
 
   & button {
     padding: .2em .5em;

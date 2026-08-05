@@ -266,6 +266,7 @@ export function VirtualMessageList(props) {
   const [showScrollButton, setShowScrollButton] = createSignal(false);
   const [hasUnreadBelow, setHasUnreadBelow] = createSignal(false);
   const [unreadCount, setUnreadCount] = createSignal(0);
+  const [pendingJumpId, setPendingJumpId] = createSignal(null);
 
   let hideTimer;
 
@@ -351,11 +352,32 @@ export function VirtualMessageList(props) {
       rebuildSectionsFromMessages(true);
 
       if (update.type === "jump") {
-        requestAnimationFrame(() => {
-          const el = scrollEl?.querySelector(`[data-id="${update.targetId}"]`);
-          if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
-        });
+        setPendingJumpId(update.targetId);
       }
+      createEffect(() => {
+        const id = pendingJumpId();
+        if (!id) return;
+
+        sectionList();
+
+        const tryScroll = () => {
+          const el = scrollEl?.querySelector(`[data-id="${id}"]`);
+
+          if (!el) {
+            requestAnimationFrame(tryScroll);
+            return;
+          }
+
+          el.scrollIntoView({
+            block: "center",
+            behavior: "auto",
+          });
+
+          setPendingJumpId(null);
+        };
+
+        requestAnimationFrame(tryScroll);
+      });
 
       if (update.type === "reset") {
         requestAnimationFrame(() => scrollToBottom(true));
@@ -511,8 +533,7 @@ export function VirtualMessageList(props) {
             style={{
               position: "absolute",
               top: `${hoverRect().top - 60}px`,
-              right: `25px`,
-              "z-index": 100,
+              right: `25px`
             }}
           >
             <MessageActions

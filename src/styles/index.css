@@ -587,7 +587,6 @@ iframe#rotur-auth {
       var(--accent),
       transparent 70%);
   pointer-events: none;
-
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -599,7 +598,7 @@ iframe#rotur-auth {
   background-color: var(--bg-two);
   padding: .5em;
   border-radius: var(--br-mid);
-  z-index: 300;
+  z-index: 100;
   width: 300px;
   gap: .3em;
   position: relative;
