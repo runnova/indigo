@@ -50,7 +50,7 @@ import {
 addTheme("/themes/fun.css");
 
 import "https://embed.rotur.dev/embed.js";
-import { VoiceChannelView } from "./components/VoiceChannelView.jsx";
+import { VoiceChannelView } from "./components/voiceChannel/VoiceChannelView.jsx";
 import { bindVoiceEvents } from "./core/voiceClient.js";
 
 import ContextMenu from './components/Contextmenu.jsx';

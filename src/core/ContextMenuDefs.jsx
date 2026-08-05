@@ -74,7 +74,7 @@ SystemContextMenu.init([
         label: 'Remove',
         icon: HiOutlineTrash,
         fn: (el) => {
-          // 
+          //
         },
       }
     ],
@@ -86,9 +86,20 @@ SystemContextMenu.init([
         label: 'Unpin DM',
         icon: HiOutlineXMark,
         fn: (el) => {
-          // 
+          //
         },
       }
+    ],
+  },
+  {
+    'data-context': 'server_group',
+    actions: [ {
+      label: 'Ungroup',
+      icon: HiOutlineXMark,
+      fn: (el) => {
+          //
+        },
+      },
     ],
   },
   {
