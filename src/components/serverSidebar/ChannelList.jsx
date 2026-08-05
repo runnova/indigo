@@ -21,7 +21,9 @@ import {
   HiOutlineCalculator,
   HiOutlineHome,
   HiOutlineCodeBracketSquare,
-  HiOutlineCog6Tooth
+  HiOutlineCog6Tooth,
+  HiOutlineArrowDownRight,
+  HiOutlineArrowTurnDownRight
 } from "solid-icons/hi";
 
 import { preloadChannel, markActive, markBackground } from "../channelCache";
@@ -178,47 +180,69 @@ export default function ChannelList(props) {
           };
 
           return (
-            <div
-              class={`x channel_item${props.currentChannel === ch.name
-                ? " channel_item--active"
-                : ""
+            <>
+              <div
+                class={`x channel_item${
+                  props.currentChannel === ch.name ? " channel_item--active" : ""
                 }`}
-              channelType={ch.type}
-              data-context={ch.type === "chat" ? "type_chat" : undefined}
-              data-name={ch.name}
-              onClick={() => handleSelect(ch.name)}
-              onMouseEnter={hover.onMouseEnter}
-              onMouseLeave={hover.onMouseLeave}
-            >
-              <span class="channel_icon">
-                <Show
-                  when={isImageSrc(ch.icon)}
-                  fallback={<Icon />}
-                >
-                  <img
-                    src={ch.icon}
-                    alt=""
-                    class="channel_icon_image"
-                  />
+                channelType={ch.type}
+                data-context={ch.type === "chat" ? "type_chat" : undefined}
+                data-name={ch.name}
+                onClick={() => handleSelect(ch.name)}
+                onMouseEnter={hover.onMouseEnter}
+                onMouseLeave={hover.onMouseLeave}
+              >
+                <span class="channel_icon">
+                  <Show
+                    when={isImageSrc(ch.icon)}
+                    fallback={<Icon />}
+                  >
+                    <img
+                      src={ch.icon}
+                      alt=""
+                      class="channel_icon_image"
+                    />
+                  </Show>
+                </span>
+
+                <div class="y">
+                  {(ch.display_name &&
+                    state.settings.displayChannelName &&
+                    ch.display_name !== ch.name) && (
+                    <small style={{ opacity: ".5" }}>{ch.name}</small>
+                  )}
+                  {ch.display_name || ch.name}
+                </div>
+
+                <Show when={pings()[ch.name]}>
+                  <span class="channel_ping_dot" />
                 </Show>
-              </span>
 
-              <div class="y">
-                {(ch.display_name && state.settings.displayChannelName && ch.display_name != ch.name) ? (<small style={{ "opacity": ".5" }}>{ch.name}</small>) : (<></>)}
-                {ch.display_name || ch.name}
-
+                <Show when={unreadCount() > 0}>
+                  <span class="channel_badge">
+                    {unreadCount()}
+                  </span>
+                </Show>
               </div>
 
-              <Show when={pings()[ch.name]}>
-                <span class="channel_ping_dot" />
-              </Show>
+              <For each={ch.threads ?? []}>
+                {(thread) => (
+                  <div
+                    class="x channel_thread_item"
+                    data-thread={thread.id}
+                    onClick={() => props.onSelect(thread.id)}
+                  >
+                    <span class="channel_icon">
+                      <HiOutlineArrowTurnDownRight />
+                    </span>
 
-              <Show when={unreadCount() > 0}>
-                <span class="channel_badge">
-                  {unreadCount()}
-                </span>
-              </Show>
-            </div>
+                    <div class="y">
+                      {thread.name}
+                    </div>
+                  </div>
+                )}
+              </For>
+            </>
           );
         }}
       </For>

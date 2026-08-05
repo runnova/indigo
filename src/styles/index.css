@@ -361,7 +361,7 @@ nav button.active {
   padding-bottom: 5em;
   overflow-y: auto;
 
-  &>.channel_item {
+  &>.channel_item, .channel_thread_item {
     padding: .7em 1em;
     border-radius: var(--br-mid);
     min-width: 150px;
@@ -374,6 +374,10 @@ nav button.active {
     cursor: pointer;
     white-space: nowrap;
     text-overflow: ellipsis;
+    &.channel_thread_item {
+        padding-left: 2em;
+        opacity: .5;
+    }
 
     &:has(.channel_badge) {
       opacity: 1;
