@@ -9,46 +9,56 @@ import MessageComposer from "./compose/MessageComposer";
 export function ForumView(props) {
   const [activeThread, setActiveThread] = createSignal(null);
 
-  createEffect(() => {
-    setState("current", "thread", activeThread());
-  });
-
   const { threads, loading } = createForumThreads({
     channel: () => props.channel,
     wsEvent: () => props.wsMessages?.(),
     sendRequest: props.sendRequest,
   });
 
+  createEffect(() => {
+    const list = threads();
+    if (!list.length) return;
+
+    const currentId = state.current.thread?.id;
+    if (!currentId) return;
+
+    const stillCurrent = list.find(t => t.id === currentId);
+    if (stillCurrent && stillCurrent !== state.current.thread) {
+      setState("current", "thread", stillCurrent);
+    }
+  });
   return (
     <Show
-      when={activeThread()}
+      when={state.current.thread}
       fallback={
         <ForumThreadList
           threads={threads}
           loading={loading}
-          onSelect={(thread) => { setActiveThread(thread) }}
+          onSelect={(thread) => setState("current", "thread", thread)}
         />
       }
     >
       <VirtualMessageList
         channel={props.channel}
-        threadId={activeThread().id}
+        threadId={state.current.thread.id}
         sendRequest={props.sendRequest}
         wsMessages={props.wsMessages}
         onReady={props.onReady}
-        onBack={() => setActiveThread(null)}
+        onBack={() => setState("current", "thread", null)}
       />
+
       <MessageComposer
         channel={state.current.channel}
         onSend={(content, attachments) => {
           conn.send({
             cmd: "message_new",
             channel: state.current.channel,
-            "thread_id":activeThread().id,
+            thread_id: state.current.thread.id,
             content,
             attachments,
             ...(state.replying && { reply_to: state.replying.id })
           });
+
           if (state.replying) setState("replying", null);
         }}
       />

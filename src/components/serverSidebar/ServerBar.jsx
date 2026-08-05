@@ -29,7 +29,6 @@ export default function ServerBar(props) {
     renderedOrder(props.servers, groups())
   );
 
-  // Derives unified list of interleaved groups and standalone servers
   const items = createMemo(() => {
     const currentGroups = groups();
     const currentServers = props.servers ?? [];
@@ -72,7 +71,6 @@ export default function ServerBar(props) {
       }
     }
 
-    // Append any empty groups
     for (const group of currentGroups) {
       if (!processedGroupIds.has(group.id)) {
         processedGroupIds.add(group.id);
@@ -95,7 +93,6 @@ export default function ServerBar(props) {
     updateGroups(toggleGroupCollapse(groups(), groupId));
   }
 
-  // Real-time reordering execution on drag-over gap
   function handleRealtimeGapOver(index) {
     const drag = dragSrc();
     if (!drag) return;
@@ -113,12 +110,10 @@ export default function ServerBar(props) {
     }
     adjustedIndex = Math.max(0, Math.min(adjustedIndex, filteredOrder.length));
 
-    // Avoid infinite loops if position hasn't changed
     if (!inGroup && draggedOriginalIndex === adjustedIndex) {
       return;
     }
 
-    // Detach from group if dragging out to a standalone gap
     if (inGroup) {
       const nextGroups = removeFromAllGroups(currentGroups, drag.src);
       updateGroups(nextGroups);

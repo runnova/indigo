@@ -28,7 +28,7 @@ import {
 
 import { preloadChannel, markActive, markBackground } from "../channelCache";
 import { createHoverPreloadHandlers } from "../useHoverPreload";
-import { state, conn, unreads, setUnreads } from "../../App"
+import { state, conn, unreads, setUnreads, setState } from "../../App"
 
 const channelIcons = {
   text: HiOutlineHashtag,
@@ -230,15 +230,16 @@ export default function ChannelList(props) {
                   <div
                     class="x channel_thread_item"
                     data-thread={thread.id}
-                    onClick={() => props.onSelect(thread.id)}
+                    onClick={() => {
+                      markActive(ch.name);
+                      props.onSelect(ch.name);
+                      setState("current", "thread", thread);
+                    }}
                   >
                     <span class="channel_icon">
                       <HiOutlineArrowTurnDownRight />
                     </span>
-
-                    <div class="y">
-                      {thread.name}
-                    </div>
+                    <div class="y">{thread.name}</div>
                   </div>
                 )}
               </For>

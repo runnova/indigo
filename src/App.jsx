@@ -352,6 +352,17 @@ function App() {
   });
 
   createEffect(() => {
+    if (conn.status() !== "ready") return;
+
+    const channel = state.current.channel;
+    const thread = state.current.thread;
+
+    if (!channel || !thread) return;
+
+    tempState.virtMsgList?.openThread?.(thread);
+  });
+
+  createEffect(() => {
     // idle servers
     const settings = JSON.parse(
       localStorage.getItem("settings") || "{}"
@@ -647,20 +658,27 @@ function App() {
                             <>
                               <VirtualMessageList
                                 channel={state.current.channel}
+                                thread={state.current.thread}
                                 sendRequest={conn.send}
                                 wsMessages={conn.lastEvent}
-                                onReady={(api) => { tempState.virtMsgList = api; }}
+                                onReady={(api) => {
+                                  tempState.virtMsgList = api;
+                                }}
                               />
+
                               <MessageComposer
                                 channel={state.current.channel}
+                                thread={state.current.thread}
                                 onSend={(content, attachments) => {
                                   conn.send({
                                     cmd: "message_new",
                                     channel: state.current.channel,
+                                    thread: state.current.thread?.id,
                                     content,
                                     attachments,
                                     ...(state.replying && { reply_to: state.replying.id })
                                   });
+
                                   if (state.replying) setState("replying", null);
                                 }}
                               />
