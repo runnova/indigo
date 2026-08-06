@@ -20,7 +20,7 @@
     & .theme-color {
       background-color: var(--bg-three);
       height: 3em;
-      border-radius: .5em .5em 0 0;
+      border-radius: var(--br-mid) var(--br-mid) 0 0;
     }
 
     & h3,
@@ -69,9 +69,15 @@
 }
 
 .mod-list {
-  display: flex;
-  flex-direction: column;
-  gap: .5em;
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    --green: rgb(0, 148, 0);
+    --tgreen: rgb(155, 255, 155);
+    max-height: 300px;
+    padding-bottom: 5em;
+    overflow-y: auto;
+    padding-right: .5em;
 
   --green: rgb(0, 148, 0);
   --tgreen: rgb(155, 255, 155);

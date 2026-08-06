@@ -1,0 +1,60 @@
+:root {
+    --bg-one: #202020;
+    --bg-two: #252526;
+    --bg-three: #2D2D30;
+    --bg-four: #333337;
+
+    --diff-one: color-mix(in srgb, white 6%, transparent);
+    --diff-two: color-mix(in srgb, white 12%, transparent);
+    --diff-three: color-mix(in srgb, white 18%, transparent);
+
+    --hl-one: #0078D7;
+    --hl-two: #4CC2FF;
+    --hl-three: #005A9E;
+    --hl-four: #0E639C33;
+
+    --danger: #E81123;
+    --peace: #16C60C;
+
+    --border: 0 0 0 1px rgb(255 255 255 / 12%);
+
+    --fg-one: #FFFFFF;
+    --fg-two: rgb(255 255 255 / 65%);
+    --fg-dim: rgb(255 255 255 / 82%);
+    --fg-three: #99D6FF;
+
+    --br-big: 4px;
+    --br-mid: 3px;
+    --br-tiny: 2px;
+    --br-min: 2px;
+}
+.topbar,
+.server_bar {
+    padding: 0;
+    gap: 0;
+}
+
+.user_display {
+    margin: 0 !important;
+    width: calc(100% - 0.8em);
+}
+
+.interactive_section {
+    padding-bottom: 0;
+}
+
+.text_box_wrapper {
+    margin: 0;
+}
+
+.channel_item {
+    margin: 0 !important;
+}
+
+.searchbox {
+    margin: 0;
+}
+
+.inpgrp {
+    gap: 0 !important;
+}

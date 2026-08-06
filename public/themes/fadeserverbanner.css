@@ -1,0 +1,33 @@
+.server_info > .header {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    & > * {
+        width: 100%;
+        top: 0;
+    }
+    & > img {
+        height: calc(100% - 44px);
+        z-index: 1;
+        object-fit: cover;
+        border-radius: 0;
+    }
+    & > .dropdown {
+        position: absolute;
+        z-index: 2;
+        bottom: 0;
+        top: auto;
+        width: calc(100% - 1.5em);
+        border-bottom: 1px solid var(--bg-three);
+        box-shadow: 0 -2px 1em 1em var(--bg-two);
+        align-items: center;
+        padding-bottom: 0.7em;
+        background-color: var(--bg-two);
+        white-space: nowrap;
+
+        & > span {
+            font-size: 1.5em;
+            white-space: nowrap;
+        }
+    }
+}

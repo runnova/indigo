@@ -40,12 +40,3 @@
 .pfp {
   border-radius: 5em !important;
 }
-
-.server_info {
-  border-bottom: 1px solid var(--diff-three);
-  border-radius: 0;
-
-  & .dropdown.x {
-    background: transparent;
-  }
-}

@@ -1,25 +1,34 @@
-# Known Bugs
-- bot slash commands have not been implemented yet.
+# Known Issues
 - virt scrolling is bad. scrolling back down doesnt load newer messages. (3.2)
 - CORS. it needs to be able to proxy attatchments (5.1.4)
 
-# To Do
-1. thread interactions
-   - create, send message & more.
-2. context menu
+# TO DO
+- realtime RPC and status updates based on SDK
+- in UI button for accessing the spotlight search
+- message composer autocomplete
+  - short code emoji support and autocomplete on `:`
+  - user ping autocomplete on `@`
+  - channel and joined threads autocomplete on `#`
+
+## issues
+- actions appearing over the user popup.
+- add reaction from actions doesnt work
+
+# Planned
+1. context menu
    1. user
       - block user
       - add/remove friend
-3. message list
+2. message list
    1. individual message
       - edited label
-   3. virtual scrolling
+   2. virtual scrolling
       - downward virtual scrolling
-4. user list
+3. user list
    1. real time status (8.1) and RPC
-5. user popup
+4. user popup
    1. dms shortcut
-6. settings
+5. settings
    1. general
       - toggles
          - edited messages
@@ -31,16 +40,10 @@
    2. themes
       - background wallpaper setting
    3. JS plugins
-7. message compose box
+6. message compose box
    1. emoji picker
       - sticker search
       - show custom emojis from all connected servers
-   3. send gifts
-8. websocket connection
-   1. events
-      - thread
-9. spotlight search
-   1. search servers, channels, DM users
-10. DMs server
+7. DMs server
    1. ui functionality instead of bot
    2. better dms server icon

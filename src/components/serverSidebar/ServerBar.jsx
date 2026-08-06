@@ -2,7 +2,7 @@ import { For, createSignal, Show, createMemo } from "solid-js";
 import Dialog from "../Dialog.jsx";
 import ServerBrowser from "./discovery/ServerBrowser.jsx";
 import Settings from "./Settings";
-import { HiOutlineAdjustmentsHorizontal, HiOutlineChevronDown } from "solid-icons/hi";
+import { HiOutlineAdjustmentsHorizontal, HiOutlineChevronDown, HiOutlineMagnifyingGlass } from "solid-icons/hi";
 import {
   genId,
   removeFromAllGroups,
@@ -12,7 +12,9 @@ import {
   ungroupedServers,
   serverBySrc,
   renderedOrder,
+  getColorValue,
 } from "./groups.js";
+import { showSpotlight } from "../spotlight/Spotlight.jsx";
 
 export default function ServerBar(props) {
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -175,7 +177,7 @@ export default function ServerBar(props) {
     return (
       <div
         class={`server_gap_drop ${dragOverGapIndex() === index ? "server_gap_drop--active" : ""}`}
-        style={{ "min-height": "8px", "pointer-events": "auto" }}
+        style={{ "pointer-events": "auto" }}
         onDragEnter={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -266,7 +268,7 @@ export default function ServerBar(props) {
                     ? "server_group--drag-over"
                     : ""
                 }`}
-                style={{ "--group-color": item.group.color || "#5865F2" }}
+                style={{ "--group-color": getColorValue(item.group.color) }}
                 data-context="server_group"
                 data-group-id={item.group.id}
               >
@@ -390,8 +392,15 @@ export default function ServerBar(props) {
         </div>
         <div
           class="server_single"
-          onClick={() => setSettingsDialogOpen(true)}
+          onClick={() => showSpotlight(true)}
           style={{ "margin-top": "auto" }}
+        >
+          <HiOutlineMagnifyingGlass class="add_server"/>
+          <span class="server_tooltip">Spotlight <kbd style={{"font-size": "small"}}>CTRL + /</kbd></span>
+        </div>
+        <div
+          class="server_single"
+          onClick={() => setSettingsDialogOpen(true)}
         >
           <HiOutlineAdjustmentsHorizontal class="add_server" />
           <span class="server_tooltip">Settings</span>

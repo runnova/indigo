@@ -381,12 +381,20 @@
   opacity: 0.6;
 }
 
+.forum-thread-header {
+    justify-content: space-between;
+    padding: .5em;
+    background-color: var(--bg-two);
+    border-bottom: 1px solid var(--diff-three);
+    margin: 0;
+}
+
 .forum-back-btn {
   align-items: center;
-  gap: .3em;
+  gap: .5em;
   background-color: var(--bg-three);
   border-radius: var(--br-mid);
-  padding: .2em .5em;
+  padding: .5em .8em;
 }
 
 .mention {

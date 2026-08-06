@@ -83,7 +83,8 @@ export default function MemberPopout() {
               "--secondary": user.theme?.secondary,
               "--tertiary": user.theme?.tertiary,
               "--text": user.theme?.text,
-              transition: ".3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              transition: ".3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              "z-index": "11"
             }}
           >
             <MemberProfile

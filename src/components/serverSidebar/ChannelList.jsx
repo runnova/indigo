@@ -23,7 +23,10 @@ import {
   HiOutlineCodeBracketSquare,
   HiOutlineCog6Tooth,
   HiOutlineArrowDownRight,
-  HiOutlineArrowTurnDownRight
+  HiOutlineArrowTurnDownRight,
+  HiOutlineChevronRight,
+  HiOutlineMicrophone,
+  HiOutlineSpeakerXMark
 } from "solid-icons/hi";
 
 import { preloadChannel, markActive, markBackground } from "../channelCache";
@@ -85,7 +88,28 @@ function isImageSrc(src) {
 export default function ChannelList(props) {
   const cleanupFns = [];
 
-  const [pings, setPings] = createSignal({});
+  // Tracks which channels (by name) have their thread list collapsed.
+  // Local/in-memory only — not persisted to global state or storage.
+  const [collapsedChannels, setCollapsedChannels] = createSignal(new Set());
+
+  function isCollapsed(channelName) {
+    return collapsedChannels().has(channelName);
+  }
+
+  function toggleCollapsed(channelName, evt) {
+    // Prevent the click from also selecting the channel.
+    evt?.stopPropagation();
+
+    setCollapsedChannels(prev => {
+      const next = new Set(prev);
+      if (next.has(channelName)) {
+        next.delete(channelName);
+      } else {
+        next.add(channelName);
+      }
+      return next;
+    });
+  }
 
   onCleanup(() => {
     cleanupFns.forEach(fn => fn());
@@ -111,26 +135,20 @@ export default function ChannelList(props) {
     if (!unreads.servers[serverSrc]) {
       setUnreads("servers", serverSrc, {});
     }
+
+    const me = conn.me()?.username;
+    const pingedUsers = packet.message?.pings?.users ?? [];
+    const wasPinged = !!(me && pingedUsers.includes(me));
+
     setUnreads(
       "servers",
       serverSrc,
       channelName,
-      count => (count ?? 0) + 1
+      entry => ({
+        count: (entry?.count ?? 0) + 1,
+        ping_count: (entry?.ping_count ?? 0) + (wasPinged ? 1 : 0)
+      })
     );
-
-    const me = conn.me()?.username;
-    const pingedUsers = packet.message?.pings?.users ?? [];
-
-    console.log({
-      me: conn.me()?.username,
-      channelName,
-      currentChannel: props.currentChannel,
-      pingedUsers,
-      includes: pingedUsers.includes(conn.me()?.username),
-    });
-    if (me && pingedUsers.includes(me)) {
-      setPings(prev => ({ ...prev, [channelName]: true }));
-    }
   });
 
   function handleHoverPreload(channelName) {
@@ -147,15 +165,12 @@ export default function ChannelList(props) {
 
     markActive(channelName);
 
-    if (pings()[channelName]) {
-      setPings(prev => {
-        const next = { ...prev };
-        delete next[channelName];
-        return next;
-      });
-    }
-
     props.onSelect(channelName);
+  }
+
+  function getLiveChannel(channelName) {
+    const channels = conn.channels?.() ?? [];
+    return channels.find(c => c.name === channelName);
   }
 
   return (
@@ -174,9 +189,19 @@ export default function ChannelList(props) {
           );
           cleanupFns.push(hover.cleanup);
 
-          const unreadCount = () => {
+          const unreadEntry = () => {
             const serverSrc = props.serverSrc ?? state.current.server?.src;
             return serverSrc ? unreads.servers?.[serverSrc]?.[ch.name] : undefined;
+          };
+
+          const unreadCount = () => unreadEntry()?.count ?? 0;
+          const pingCount = () => unreadEntry()?.ping_count ?? 0;
+
+          const hasThreads = () => (ch.threads?.length ?? 0) > 0;
+
+          const voiceMembers = () => {
+            if (ch.type !== "voice") return [];
+            return getLiveChannel(ch.name)?.voice_state ?? [];
           };
 
           return (
@@ -192,6 +217,17 @@ export default function ChannelList(props) {
                 onMouseEnter={hover.onMouseEnter}
                 onMouseLeave={hover.onMouseLeave}
               >
+                <Show when={hasThreads()}>
+                  <span
+                    class={`channel_collapse_chevron${
+                      isCollapsed(ch.name) ? " channel_collapse_chevron--collapsed" : ""
+                    }`}
+                    onClick={(e) => toggleCollapsed(ch.name, e)}
+                  >
+                    <HiOutlineChevronRight />
+                  </span>
+                </Show>
+
                 <span class="channel_icon">
                   <Show
                     when={isImageSrc(ch.icon)}
@@ -205,7 +241,7 @@ export default function ChannelList(props) {
                   </Show>
                 </span>
 
-                <div class="y">
+                <div class="y channel_name">
                   {(ch.display_name &&
                     state.settings.displayChannelName &&
                     ch.display_name !== ch.name) && (
@@ -214,35 +250,62 @@ export default function ChannelList(props) {
                   {ch.display_name || ch.name}
                 </div>
 
-                <Show when={pings()[ch.name]}>
-                  <span class="channel_ping_dot" />
+                <Show when={pingCount() > 0}>
+                  <span class="channel_badge channel_badge--ping">
+                    {pingCount()}
+                  </span>
                 </Show>
 
-                <Show when={unreadCount() > 0}>
+                <Show when={pingCount() === 0 && unreadCount() > 0}>
                   <span class="channel_badge">
                     {unreadCount()}
                   </span>
                 </Show>
               </div>
 
-              <For each={ch.threads ?? []}>
-                {(thread) => (
-                  <div
-                    class="x channel_thread_item"
-                    data-thread={thread.id}
-                    onClick={() => {
-                      markActive(ch.name);
-                      props.onSelect(ch.name);
-                      setState("current", "thread", thread);
-                    }}
-                  >
-                    <span class="channel_icon">
-                      <HiOutlineArrowTurnDownRight />
-                    </span>
-                    <div class="y">{thread.name}</div>
-                  </div>
-                )}
-              </For>
+              <Show when={ch.type === "voice"}>
+                <For each={voiceMembers()}>
+                  {(user) => (
+                    <div
+                      class="x channel_thread_item"
+                      data-username={user.username}
+                    >
+                      <span class="channel_icon">
+                        <img className="channel_icon_image" src={"https://avatars.rotur.dev/" + user.username} alt="" />
+                      </span>
+                      <div class="y channel_name channel_voice_user_name fill">
+                        {user.username}
+                      </div>
+                      <span class="channel_voice_user_mic">
+                        <Show when={user.muted} fallback={<HiOutlineMicrophone />}>
+                          <HiOutlineSpeakerXMark />
+                        </Show>
+                      </span>
+                    </div>
+                  )}
+                </For>
+              </Show>
+
+              <Show when={!hasThreads() || !isCollapsed(ch.name)}>
+                <For each={ch.threads ?? []}>
+                  {(thread) => (
+                    <div
+                      class="x channel_thread_item"
+                      data-thread={thread.id}
+                      onClick={() => {
+                        markActive(ch.name);
+                        props.onSelect(ch.name);
+                        setState("current", "thread", thread);
+                      }}
+                    >
+                      <span class="channel_icon">
+                        <HiOutlineArrowTurnDownRight />
+                      </span>
+                      <div class="y channel_name">{thread.name}</div>
+                    </div>
+                  )}
+                </For>
+              </Show>
             </>
           );
         }}

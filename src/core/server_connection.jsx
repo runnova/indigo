@@ -442,7 +442,10 @@ function handlePacket(connection, packet) {
       const channels = {};
 
       for (const [name, info] of Object.entries(packet.unreads ?? {})) {
-        channels[name] = info.unread_count ?? 0;
+        channels[name] = {
+          count: info.unread_count ?? 0,
+          ping_count: info.ping_count ?? 0
+        };
       }
 
       setUnreads(

@@ -10,6 +10,7 @@ import {
   HiOutlineChatBubbleBottomCenterText,
   HiOutlineMapPin,
   HiOutlineXMark,
+  HiOutlineSwatch
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
 import { setState } from "../App.jsx";
@@ -20,7 +21,7 @@ import {
   canvasToBlob,
 } from "../components/utility/quote-maker.js";
 import { addAttachment } from "../components/compose/attachmentStore.js";
-import { removeGroup, renameGroup } from "../components/serverSidebar/groups.js";
+import { removeGroup, renameGroup, getColorNames, getColorValue, setGroupColor } from "../components/serverSidebar/groups.js";
 
 const removeServer = (src) => {
   setState("servers", (servers) =>
@@ -102,7 +103,6 @@ SystemContextMenu.init([
         label: "Ungroup",
         icon: HiOutlineXMark,
         fn: (el) => {
-          console.log(el.dataset)
           setState("serverGroups", (groups) =>
             removeGroup(groups, el.dataset.groupId),
           );
@@ -113,15 +113,36 @@ SystemContextMenu.init([
         icon: HiOutlineDocumentText,
         fn: (el) => {
           const name = prompt("Group name:");
-
           if (name == null) return;
-
           setState(
             "serverGroups",
             (groups) => renameGroup(groups, el.dataset.groupId, name.trim() || "New Group")
           );
         }
-      }
+      },
+      {
+        label: "Recolor",
+        icon: HiOutlineSwatch,
+        actions: getColorNames().map((name) => ({
+          label: name,
+          icon: () => (
+            <span
+              style={{
+                display: "inline-block",
+                width: "12px",
+                height: "12px",
+                "border-radius": "50%",
+                background: getColorValue(name),
+              }}
+            />
+          ),
+          fn: (el) => {
+            setState("serverGroups", (groups) =>
+              setGroupColor(groups, el.dataset.groupId, name)
+            );
+          },
+        })),
+      },
     ],
   },
   {

@@ -1,0 +1,39 @@
+.forum_post_compose {
+    background-color: var(--bg-two);
+    margin: 0.5em;
+    border-radius: var(--br-mid);
+    border: 1px solid var(--diff-three);
+    gap: 0.5em;
+    justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+    & > .searchbox {
+        background-color: transparent;
+        gap: 0.5em;
+        width: 100%;
+        border: 0;
+        align-items: center;
+        & > input {
+            padding: 0.5em;
+        }
+        & > .y.fill {
+            & > input {
+                font-weight: bold;
+            }
+            & > * {
+                padding: 0.5em;
+            }
+        }
+    }
+}
+
+.new_forum_post_btn {
+    padding: 0.5em 0.8em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
+    white-space: nowrap;
+    background: var(--hl-three);
+    border-radius: var(--br-min);
+}

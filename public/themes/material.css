@@ -15,23 +15,6 @@
   --br-min: 1em
 }
 
-.resize_handle {
-  opacity: 1;
-  width: 1px;
-  position: relative;
-
-  &::after {
-    content: "";
-    display: flex;
-    position: absolute;
-    width: 4px;
-    height: 100%;
-    top: 0;
-    right: -2px;
-    z-index: 99;
-  }
-}
-
 .pfpWO {
   & .overlay {
     border-radius: 0;

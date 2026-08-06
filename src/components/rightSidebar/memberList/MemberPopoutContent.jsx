@@ -36,9 +36,6 @@ export default function MemberProfile(props) {
   }
 );
 
-createEffect(() => {
-  console.log("username changed:", props.username);
-});
   const [showAllRoles, setShowAllRoles] = createSignal(false);
 
   const [status] = createResource(

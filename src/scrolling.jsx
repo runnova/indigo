@@ -7,7 +7,12 @@ import {
   Show,
   onCleanup,
 } from "solid-js";
-import { HiOutlineChevronLeft, HiOutlineChevronDown } from "solid-icons/hi";
+import {
+  HiOutlineChevronLeft,
+  HiOutlineChevronDown,
+  HiOutlineUserMinus,
+  HiOutlineUserPlus,
+} from "solid-icons/hi";
 import { Message } from "./components/messages/message.jsx";
 import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./core/useChannelMessages.jsx";
@@ -16,7 +21,6 @@ import {
   state,
   setState,
   setEmojiPicker,
-  emojiPicker,
 } from "./App.jsx";
 
 const [fakeMessages, setFakeMessages] = createSignal([]);
@@ -387,14 +391,26 @@ export function VirtualMessageList(props) {
   const renderOverlay = state.settings.profileOverlays;
   return (
     <>
-      <div className="realchannelcontent">
-        <Show when={props.onBack}>
-          <div class="forum-thread-header">
-            <button class="forum-back-btn x" onClick={props.onBack}>
-              <HiOutlineChevronLeft /> Back
+      <Show when={props.onBack}>
+        <div class="forum-thread-header x">
+          <button class="forum-back-btn x" onClick={props.onBack}>
+            <HiOutlineChevronLeft /> Back
+          </button>
+
+          {state.current.thread.participants.includes(
+            tempState.conn.me().username,
+          ) ? (
+            <button class="forum-back-btn x" onClick={props.onLeave}>
+              <HiOutlineUserMinus /> Leave
             </button>
-          </div>
-        </Show>
+          ) : (
+            <button class="forum-back-btn x" onClick={props.onJoin} style={{color: "var(--peace)"}}>
+              <HiOutlineUserPlus /> Join
+            </button>
+          )}
+        </div>
+      </Show>
+      <div className="realchannelcontent">
         <Show when={showScrollButton()}>
           <button
             class="scroll-to-bottom-btn"
@@ -533,7 +549,7 @@ export function VirtualMessageList(props) {
             style={{
               position: "absolute",
               top: `${hoverRect().top - 60}px`,
-              right: `25px`
+              right: `25px`,
             }}
           >
             <MessageActions

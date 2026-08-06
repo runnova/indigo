@@ -2,7 +2,9 @@ import {
   Show,
   createEffect,
   onMount,
-  createMemo, createSignal, on
+  createMemo,
+  createSignal,
+  on,
 } from "solid-js";
 
 import { createStore } from "solid-js/store";
@@ -13,7 +15,7 @@ import {
   HiOutlineMapPin,
   HiOutlineMagnifyingGlass,
   HiOutlineInbox,
-  HiOutlineUserCircle
+  HiOutlineUserCircle,
 } from "solid-icons/hi";
 
 const appIcon = `${import.meta.env.BASE_URL}icon.svg`;
@@ -25,17 +27,21 @@ import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
-import { VirtualMessageList, getMessageById, addFakeMessage } from "./scrolling";
-import { ForumView } from "./components/ForumView";
+import {
+  VirtualMessageList,
+  getMessageById,
+  addFakeMessage,
+} from "./scrolling";
+import { ForumView } from "./components/forumView/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
 import {
   useServerConnection,
   ensureConnected,
-  connections
+  connections,
 } from "./core/server_connection.jsx";
 import MediaPreview from "./components/MediaPreview";
-import useAppInitialization from "./core/useAppInitialization.js"
+import useAppInitialization from "./core/useAppInitialization.js";
 
 import { Rotur } from "rotur-sdk";
 import "./themeManager";
@@ -45,7 +51,7 @@ import {
   listThemes,
   resetThemes,
   quickCss,
-  setQuickCss
+  setQuickCss,
 } from "./themeManager";
 addTheme("/themes/fun.css");
 
@@ -53,9 +59,9 @@ import "https://embed.rotur.dev/embed.js";
 import { VoiceChannelView } from "./components/voiceChannel/VoiceChannelView.jsx";
 import { bindVoiceEvents } from "./core/voiceClient.js";
 
-import ContextMenu from './components/Contextmenu.jsx';
+import ContextMenu from "./components/Contextmenu.jsx";
 
-import "./core/ContextMenuDefs.jsx"
+import "./core/ContextMenuDefs.jsx";
 
 import Spotlight from "./components/spotlight/Spotlight.jsx";
 
@@ -63,9 +69,8 @@ export const [emojiPicker, setEmojiPicker] = createStore({
   open: false,
   x: 0,
   y: 0,
-  onSelect: null
+  onSelect: null,
 });
-
 
 const defaultState = {
   servers: [
@@ -77,7 +82,7 @@ const defaultState = {
     channel: null,
     server: null,
     thread: null,
-    channel_type: ""
+    channel_type: "",
   },
   serverChannels: {},
   replying: null,
@@ -86,7 +91,7 @@ const defaultState = {
   searchQuery: "",
   theme: {
     stylesheets: [],
-    quickCss: ""
+    quickCss: "",
   },
   settings: {
     dmsServer: "dms.mistium.com",
@@ -101,41 +106,48 @@ const defaultState = {
     messageLogger: false,
     firstBarWidth: 260,
     thirdBarWidth: 320,
-    displayChannelName: true
-  }
+    displayChannelName: true,
+  },
 };
 export const [unreads, setUnreads] = createStore({
-  servers: {}
+  servers: {},
 });
 export const [preview, setPreview] = createSignal(null);
 
 export const [loaded, setLoaded] = createStore({ done: false });
 const [showLoader, setShowLoader] = createSignal(true);
 function getServerUnreadTotal(src) {
-  const server =
-    unreads.servers?.[src];
+  const server = unreads.servers?.[src];
 
   if (!server) return 0;
 
   return Object.entries(server)
     .filter(([key]) => key !== "online")
-    .reduce((sum, [, count]) => sum + count, 0);
+    .reduce((sum, [, entry]) => sum + (entry?.count ?? 0), 0);
 }
 
-const savedState = JSON.parse(
-  localStorage.getItem("state") || "{}"
-);
+function getServerPingTotal(src) {
+  const server = unreads.servers?.[src];
+
+  if (!server) return 0;
+
+  return Object.entries(server)
+    .filter(([key]) => key !== "online")
+    .reduce((sum, [, entry]) => sum + (entry?.ping_count ?? 0), 0);
+}
+
+const savedState = JSON.parse(localStorage.getItem("state") || "{}");
 
 export const [state, setState] = createStore({
   servers: savedState.servers ?? defaultState.servers,
   serverGroups: savedState.serverGroups ?? defaultState.serverGroups,
   current: {
     ...defaultState.current,
-    ...(savedState.current ?? {})
+    ...(savedState.current ?? {}),
   },
   serverChannels: {
     ...defaultState.serverChannels,
-    ...(savedState.serverChannels ?? {})
+    ...(savedState.serverChannels ?? {}),
   },
   replying: null,
   editing: null,
@@ -143,21 +155,20 @@ export const [state, setState] = createStore({
   searchQuery: "",
   theme: {
     ...defaultState.theme,
-    ...(savedState.theme ?? {})
+    ...(savedState.theme ?? {}),
   },
   settings: {
     ...defaultState.settings,
-    ...(savedState.settings ?? {})
+    ...(savedState.settings ?? {}),
   },
 });
 
-
 const [firstBarWidth, setFirstBarWidth] = createSignal(
-  state.settings.firstBarWidth
+  state.settings.firstBarWidth,
 );
 
 export const [thirdBarWidth, setThirdBarWidth] = createSignal(
-  state.settings.thirdBarWidth
+  state.settings.thirdBarWidth,
 );
 
 createEffect(() => {
@@ -169,7 +180,7 @@ createEffect(() => {
 });
 
 export var tempState = {};
-window.tempState = tempState
+window.tempState = tempState;
 window.state = state;
 
 export var conn;
@@ -178,13 +189,15 @@ function preloadChannelMessages(channelName) {
   return new Promise((resolve) => {
     let resolved = false;
 
-    const dispose = createEffect(on(conn.lastEvent, (packet) => {
-      if (resolved || !packet) return;
-      if (packet.cmd === "messages_get" && packet.channel === channelName) {
-        resolved = true;
-        resolve(packet.val ?? packet.messages ?? []);
-      }
-    }));
+    const dispose = createEffect(
+      on(conn.lastEvent, (packet) => {
+        if (resolved || !packet) return;
+        if (packet.cmd === "messages_get" && packet.channel === channelName) {
+          resolved = true;
+          resolve(packet.val ?? packet.messages ?? []);
+        }
+      }),
+    );
 
     conn.send({ cmd: "messages_get", channel: channelName, limit: 20 });
 
@@ -197,7 +210,7 @@ function preloadChannelMessages(channelName) {
 export async function switchToChannel(server, channel) {
   const normalizedServer = {
     ...server,
-    src: server.src ?? server.url
+    src: server.src ?? server.url,
   };
 
   const previousServer = state.current.server?.src;
@@ -205,7 +218,7 @@ export async function switchToChannel(server, channel) {
   if (previousServer !== normalizedServer.src || conn.status() !== "ready") {
     setState("current", {
       server: normalizedServer,
-      channel: null
+      channel: null,
     });
 
     const settings = JSON.parse(localStorage.getItem("settings") || "{}");
@@ -215,11 +228,11 @@ export async function switchToChannel(server, channel) {
     } else {
       conn.connectCracked(normalizedServer, {
         username: "guest",
-        password: "guest"
+        password: "guest",
       });
     }
 
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       const check = () => {
         if (conn.status() === "ready") {
           clearInterval(interval);
@@ -246,9 +259,7 @@ function App() {
   bindVoiceEvents(conn);
   const [loadingProgress, setLoadingProgress] = createSignal(0);
   const currentChannel = createMemo(() =>
-    conn
-      .channels()
-      .find(channel => channel.name === state.current.channel)
+    conn.channels().find((channel) => channel.name === state.current.channel),
   );
   useAppInitialization(conn, setState, state, Rotur, setLoadingProgress);
   function getPersistedState() {
@@ -262,10 +273,7 @@ function App() {
     };
   }
   createEffect(() => {
-    localStorage.setItem(
-      "state",
-      JSON.stringify(getPersistedState())
-    );
+    localStorage.setItem("state", JSON.stringify(getPersistedState()));
   });
   createEffect(() => {
     const info = conn.serverInfo();
@@ -273,14 +281,10 @@ function App() {
 
     if (!info || !current?.src) return;
 
-    setState(
-      "servers",
-      (s) => s.src === current.src,
-      {
-        icon: info.icon,
-        name: info.name
-      }
-    );
+    setState("servers", (s) => s.src === current.src, {
+      icon: info.icon,
+      name: info.name,
+    });
   });
   let restoreTimeout;
 
@@ -300,7 +304,7 @@ function App() {
 
     if (
       state.current.channel !== savedChannel &&
-      channels.some(c => c.name === savedChannel)
+      channels.some((c) => c.name === savedChannel)
     ) {
       restoreTimeout = setTimeout(() => {
         setState("current", "channel", savedChannel);
@@ -310,12 +314,11 @@ function App() {
 
   createEffect((prev) => {
     // get unreads
-    const ready =
-      conn.status() === "ready";
+    const ready = conn.status() === "ready";
 
     if (ready && !prev) {
       conn.send({
-        cmd: "unreads_get"
+        cmd: "unreads_get",
       });
     }
 
@@ -325,27 +328,12 @@ function App() {
   createEffect(() => {
     // mark as read
     if (conn.status() !== "ready") return;
-
     const channel = state.current.channel;
     const serverSrc = state.current.server?.src;
-
     if (!channel || !serverSrc) return;
 
-    if (!unreads.servers[serverSrc]) {
-      setUnreads("servers", serverSrc, {});
-    }
-
-    conn.send({
-      cmd: "unreads_ack",
-      channel
-    });
-
-    setUnreads(
-      "servers",
-      serverSrc,
-      channel,
-      0
-    );
+    conn.send({ cmd: "unreads_ack", channel });
+    setUnreads("servers", serverSrc, channel, { count: 0, ping_count: 0 });
   });
   createEffect(() => {
     console.log("current.server =", state.current.server);
@@ -364,9 +352,7 @@ function App() {
 
   createEffect(() => {
     // idle servers
-    const settings = JSON.parse(
-      localStorage.getItem("settings") || "{}"
-    );
+    const settings = JSON.parse(localStorage.getItem("settings") || "{}");
 
     for (const server of state.servers) {
       if (server.src === state.current.server?.src) {
@@ -377,14 +363,14 @@ function App() {
         server,
         settings.type === "token"
           ? {
-            roturToken: settings.token
-          }
-          : {
-            crackedUser: {
-              username: "guest",
-              password: "guest"
+              roturToken: settings.token,
             }
-          }
+          : {
+              crackedUser: {
+                username: "guest",
+                password: "guest",
+              },
+            },
       );
     }
   });
@@ -402,14 +388,12 @@ function App() {
 
   function selectServer(server) {
     if (!server.src && server.url) server.src = server.url;
-    if (
-      state.current.server?.src === server.src &&
-      conn.status() === "ready"
-    ) return;
+    if (state.current.server?.src === server.src && conn.status() === "ready")
+      return;
     setState("current", {
       server,
       channel: null,
-      channel_type: ""
+      channel_type: "",
     });
 
     const settings = JSON.parse(localStorage.getItem("settings") || "{}");
@@ -419,7 +403,7 @@ function App() {
     } else {
       conn.connectCracked(server, {
         username: "guest",
-        password: "guest"
+        password: "guest",
       });
     }
   }
@@ -436,21 +420,20 @@ function App() {
   const currentServerName = () =>
     conn.serverInfo()?.name ?? state.current.server?.name ?? "";
 
-  const statusLabel = () => ({
-    idle: "",
-    connecting: "Connecting…",
-    handshake: "Handshaking…",
-    authenticating: "Authenticating…",
-    ready: "",
-    error: `Error: ${conn?.error()}`,
-    closed: "Disconnected",
-  }[conn.status()] ?? "");
+  const statusLabel = () =>
+    ({
+      idle: "",
+      connecting: "Connecting…",
+      handshake: "Handshaking…",
+      authenticating: "Authenticating…",
+      ready: "",
+      error: `Error: ${conn?.error()}`,
+      closed: "Disconnected",
+    })[conn.status()] ?? "";
   const getHoistedRole = (user) => {
     const roles = conn.roles?.() ?? {};
 
-    return user.roles?.find(roleId =>
-      roles[roleId]?.hoisted
-    );
+    return user.roles?.find((roleId) => roles[roleId]?.hoisted);
   };
 
   return (
@@ -460,6 +443,7 @@ function App() {
         groups={state.serverGroups}
         currentServer={state.current.server}
         unreadTotal={getServerUnreadTotal}
+        pingTotal={getServerPingTotal}
         unreads={unreads}
         onSelect={selectServer}
         onReorder={(servers) => setState("servers", servers)}
@@ -475,14 +459,12 @@ function App() {
                 <div
                   class="loaderProgressFill"
                   style={{
-                    width: `${loadingProgress()}%`
+                    width: `${loadingProgress()}%`,
                   }}
                 />
               </div>
 
-              <span class="loaderText">
-                {loadingProgress()}%
-              </span>
+              <span class="loaderText">{loadingProgress()}%</span>
             </div>
           </div>
         </Show>
@@ -500,6 +482,7 @@ function App() {
               channels={conn.channels()}
               currentChannel={state.current.channel}
               unreads={unreads}
+              serverSrc={state.current.server?.src}
               onSelectChannel={selectChannel}
               preloadChannel={preloadChannelMessages}
             />
@@ -514,7 +497,7 @@ function App() {
 
             const move = (ev) => {
               setFirstBarWidth(
-                Math.max(180, Math.min(500, startWidth + ev.clientX - start))
+                Math.max(180, Math.min(500, startWidth + ev.clientX - start)),
               );
             };
 
@@ -528,13 +511,20 @@ function App() {
           }}
         />
         <div class="fill y">
-          <div className="actual_real_servercontent fill y" style={{ height: "0" }}>
-            <Show when={(state.current?.channel_type === "dms_home")}>
+          <div
+            className="actual_real_servercontent fill y"
+            style={{ height: "0" }}
+          >
+            <Show when={state.current?.channel_type === "dms_home"}>
               <div class="topbar">
                 <div class="channelbar x">
-                  <Show when={state.current.channel} fallback={currentServerName()}>
-
-                    <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} />
+                  <Show
+                    when={state.current.channel}
+                    fallback={currentServerName()}
+                  >
+                    <HiOutlineHashtag
+                      style={{ transform: "translateY(-1px)" }}
+                    />
                     <span>Home</span>
                     <div class="inpgrp x fill">
                       <div class="searchbox fill">
@@ -550,49 +540,62 @@ function App() {
                 </div>
               </div>
               <div class="x fill server_content_box dmshome">
-
-                <RightSidebar
-                  state={state}
-                  conn={conn}
-                  type="fill"
-                />
+                <RightSidebar state={state} conn={conn} type="fill" />
               </div>
             </Show>
 
             <Show when={state.current?.channel_type !== "dms_home"}>
               <div class="topbar">
                 <div class="channelbar x">
-                  <Show when={state.current.channel} fallback={currentServerName()}>
-                    <HiOutlineHashtag style={{ "transform": "translateY(-1px)" }} /> <span>{currentChannel()?.display_name || currentChannel()?.name}</span>
+                  <Show
+                    when={state.current.channel}
+                    fallback={currentServerName()}
+                  >
+                    <HiOutlineHashtag
+                      style={{ transform: "translateY(-1px)" }}
+                    />{" "}
+                    <span>
+                      {currentChannel()?.display_name || currentChannel()?.name}
+                    </span>
                     &bull;
                     <div className="channel_desc">
-                      {currentChannel()?.description || state.current?.thread?.name || ""}
+                      {currentChannel()?.description ||
+                        state.current?.thread?.name ||
+                        ""}
                     </div>
                   </Show>
                   <div class="inpgrp x">
                     <button
-                      className={state.thirdBarContext === "selfroles" ? "active" : ""}
+                      className={
+                        state.thirdBarContext === "selfroles" ? "active" : ""
+                      }
                       onClick={() => setState("thirdBarContext", "selfroles")}
                     >
                       <HiOutlineUserCircle />
                     </button>
 
                     <button
-                      className={state.thirdBarContext === "inbox" ? "active" : ""}
+                      className={
+                        state.thirdBarContext === "inbox" ? "active" : ""
+                      }
                       onClick={() => setState("thirdBarContext", "inbox")}
                     >
                       <HiOutlineInbox />
                     </button>
 
                     <button
-                      className={state.thirdBarContext === "pinned" ? "active" : ""}
+                      className={
+                        state.thirdBarContext === "pinned" ? "active" : ""
+                      }
                       onClick={() => setState("thirdBarContext", "pinned")}
                     >
                       <HiOutlineMapPin />
                     </button>
 
                     <button
-                      className={state.thirdBarContext === "members" ? "active" : ""}
+                      className={
+                        state.thirdBarContext === "members" ? "active" : ""
+                      }
                       onClick={() => setState("thirdBarContext", "members")}
                     >
                       <HiOutlineUsers />
@@ -614,7 +617,6 @@ function App() {
                       />
                       <HiOutlineMagnifyingGlass />
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -627,64 +629,70 @@ function App() {
                         <Show when={!state.current.server}>
                           <p>Select a server to get started.</p>
                         </Show>
-                        <Show when={state.current.server && conn.status() !== "ready"}>
+                        <Show
+                          when={
+                            state.current.server && conn.status() !== "ready"
+                          }
+                        >
                           <p>{statusLabel() || "Connecting…"}</p>
                         </Show>
-                        <Show when={conn.status() === "ready" && !state.current.channel}>
+                        <Show
+                          when={
+                            conn.status() === "ready" && !state.current.channel
+                          }
+                        >
                           <p>Pick a channel from the sidebar.</p>
                         </Show>
                       </div>
                     }
                   >
-                    {
-                      currentChannel()?.type === "voice"
-                        ? (
-                          <VoiceChannelView
-                            channel={state.current.channel}
-                            server={state.current.server}
-                            conn={conn}
-                          />
-                        )
-                        : currentChannel()?.type === "forum"
-                          ? (
-                            <ForumView
-                              channel={state.current.channel}
-                              sendRequest={conn.send}
-                              wsMessages={conn.lastEvent}
-                              onReady={(api) => { tempState.virtMsgList = api; }}
-                            />
-                          )
-                          : (
-                            <>
-                              <VirtualMessageList
-                                channel={state.current.channel}
-                                thread={state.current.thread}
-                                sendRequest={conn.send}
-                                wsMessages={conn.lastEvent}
-                                onReady={(api) => {
-                                  tempState.virtMsgList = api;
-                                }}
-                              />
+                    {currentChannel()?.type === "voice" ? (
+                      <VoiceChannelView
+                        channel={state.current.channel}
+                        server={state.current.server}
+                        conn={conn}
+                      />
+                    ) : currentChannel()?.type === "forum" ? (
+                      <ForumView
+                        channel={state.current.channel}
+                        sendRequest={conn.send}
+                        wsMessages={conn.lastEvent}
+                        onReady={(api) => {
+                          tempState.virtMsgList = api;
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <VirtualMessageList
+                          channel={state.current.channel}
+                          thread={state.current.thread}
+                          sendRequest={conn.send}
+                          wsMessages={conn.lastEvent}
+                          onReady={(api) => {
+                            tempState.virtMsgList = api;
+                          }}
+                        />
 
-                              <MessageComposer
-                                channel={state.current.channel}
-                                thread={state.current.thread}
-                                onSend={(content, attachments) => {
-                                  conn.send({
-                                    cmd: "message_new",
-                                    channel: state.current.channel,
-                                    thread: state.current.thread?.id,
-                                    content,
-                                    attachments,
-                                    ...(state.replying && { reply_to: state.replying.id })
-                                  });
+                        <MessageComposer
+                          channel={state.current.channel}
+                          thread={state.current.thread}
+                          onSend={(content, attachments) => {
+                            conn.send({
+                              cmd: "message_new",
+                              channel: state.current.channel,
+                              thread: state.current.thread?.id,
+                              content,
+                              attachments,
+                              ...(state.replying && {
+                                reply_to: state.replying.id,
+                              }),
+                            });
 
-                                  if (state.replying) setState("replying", null);
-                                }}
-                              />
-                            </>
-                          )
-                    }
+                            if (state.replying) setState("replying", null);
+                          }}
+                        />
+                      </>
+                    )}
                   </Show>
                 </div>
 
@@ -696,7 +704,10 @@ function App() {
 
                     const move = (ev) => {
                       setThirdBarWidth(
-                        Math.max(220, Math.min(500, startWidth - (ev.clientX - start)))
+                        Math.max(
+                          220,
+                          Math.min(500, startWidth - (ev.clientX - start)),
+                        ),
                       );
                     };
 
@@ -712,13 +723,12 @@ function App() {
                 <RightSidebar
                   state={state}
                   conn={conn}
-                  type={(currentChannel()?.type === "chat") ? "chat" : undefined}
+                  type={currentChannel()?.type === "chat" ? "chat" : undefined}
                   username={currentChannel()?.display_name}
                 />
               </div>
             </Show>
           </div>
-
         </div>
       </div>
       <MemberPopout />
@@ -731,7 +741,7 @@ function App() {
       </Show>
       <ContextMenu />
       <Spotlight />
-    </div >
+    </div>
   );
 }
 

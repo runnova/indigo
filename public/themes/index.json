@@ -20,6 +20,16 @@
     "type": "theme"
   },
   {
+    "id": "metro",
+    "name": "Metro Dark",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Theme based on win10 Metro design",
+    "file": "metro.css",
+    "preview": "#005A9D",
+    "type": "theme"
+  },
+  {
     "id": "light",
     "name": "Clean light",
     "author": "darkdot",
@@ -64,6 +74,15 @@
     "version": "1.0.0",
     "description": "Narrow screen? put the server bar on top",
     "file": "horizserverbar.css",
+    "type": "mod"
+  },
+  {
+    "id": "fadeserverbanner",
+    "name": "Fade server banner",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "banner fade effect and makes server name bigger",
+    "file": "fadeserverbanner.css",
     "type": "mod"
   },
   {

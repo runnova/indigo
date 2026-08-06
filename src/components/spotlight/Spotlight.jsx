@@ -22,6 +22,12 @@ import { connections, ensureConnected } from "../../core/server_connection.jsx";
 import "./style.css";
 import { buildResults } from "./buildResults.jsx";
 
+let openSpotlight = null;
+
+export function showSpotlight() {
+  openSpotlight?.();
+}
+
 export function fuzzyScore(query, target) {
   if (!query) return 0;
   if (typeof target !== "string" || !target) return -1;
@@ -108,6 +114,12 @@ export default function Spotlight() {
       );
     }
   }
+
+  openSpotlight = show;
+
+  onCleanup(() => {
+    if (openSpotlight === show) openSpotlight = null;
+  });
 
   onMount(() => {
     const handler = (e) => {

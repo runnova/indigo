@@ -477,6 +477,7 @@ function renderToken(token, depth = 0) {
 }
 
 function isBigEmojiMessage(input) {
+  if (!input) return;
   const trimmed = input.trim();
 
   const tokens = trimmed
