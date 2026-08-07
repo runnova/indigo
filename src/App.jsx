@@ -262,6 +262,7 @@ export async function switchToChannel(server, channel, threadId) {
   }
 }
 
+export const [thirdBarCollapsed, setThirdBarCollapsed] = createSignal(false);
 function App() {
   conn = useServerConnection();
   bindVoiceEvents(conn);
@@ -441,7 +442,6 @@ function App() {
       );
     }
   });
-
   const [fadeOut, setFadeOut] = createSignal(false);
   createEffect(() => {
     if (loaded.done) {
@@ -636,7 +636,14 @@ function App() {
                       className={
                         state.thirdBarContext === "selfroles" ? "active" : ""
                       }
-                      onClick={() => setState("thirdBarContext", "selfroles")}
+                      onClick={() => {
+                        if (state.thirdBarContext === "selfroles" && !thirdBarCollapsed()) {
+                          setThirdBarCollapsed(true);
+                        } else {
+                          setState("thirdBarContext", "selfroles");
+                          setThirdBarCollapsed(false);
+                        }
+                      }}
                     >
                       <HiOutlineUserCircle />
                     </button>
@@ -645,7 +652,14 @@ function App() {
                       className={
                         state.thirdBarContext === "inbox" ? "active" : ""
                       }
-                      onClick={() => setState("thirdBarContext", "inbox")}
+                      onClick={() => {
+                        if (state.thirdBarContext === "inbox" && !thirdBarCollapsed()) {
+                          setThirdBarCollapsed(true);
+                        } else {
+                          setState("thirdBarContext", "inbox");
+                          setThirdBarCollapsed(false);
+                        }
+                      }}
                     >
                       <HiOutlineInbox />
                     </button>
@@ -654,7 +668,14 @@ function App() {
                       className={
                         state.thirdBarContext === "pinned" ? "active" : ""
                       }
-                      onClick={() => setState("thirdBarContext", "pinned")}
+                      onClick={() => {
+                        if (state.thirdBarContext === "pinned" && !thirdBarCollapsed()) {
+                          setThirdBarCollapsed(true);
+                        } else {
+                          setState("thirdBarContext", "pinned");
+                          setThirdBarCollapsed(false);
+                        }
+                      }}
                     >
                       <HiOutlineMapPin />
                     </button>
@@ -663,23 +684,31 @@ function App() {
                       className={
                         state.thirdBarContext === "members" ? "active" : ""
                       }
-                      onClick={() => setState("thirdBarContext", "members")}
+                      onClick={() => {
+                        if (state.thirdBarContext === "members" && !thirdBarCollapsed()) {
+                          setThirdBarCollapsed(true);
+                        } else {
+                          setState("thirdBarContext", "members");
+                          setThirdBarCollapsed(false);
+                        }
+                      }}
                     >
                       <HiOutlineUsers />
                     </button>
-
                     <div class="searchbox">
                       <input
                         type="text"
                         class="message_search_input"
                         placeholder="Search messages..."
-                        onFocus={() => setState("thirdBarContext", "search")}
-
+                        onFocus={() => {
+                          setState("thirdBarContext", "search");
+                          setThirdBarCollapsed(false);
+                        }}
                         onKeyDown={(e) => {
                           if (e.key !== "Enter") return;
-
                           setState("searchQuery", e.currentTarget.value);
                           setState("thirdBarContext", "search");
+                          setThirdBarCollapsed(false);
                         }}
                       />
                       <HiOutlineMagnifyingGlass />

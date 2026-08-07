@@ -31,6 +31,20 @@ export function Message(props) {
     );
   };
 
+  let editTextarea;
+
+  createEffect(() => {
+    if (props.editing && editTextarea) {
+      queueMicrotask(() => {
+        editTextarea.focus();
+        editTextarea.setSelectionRange(
+          editTextarea.value.length,
+          editTextarea.value.length,
+        );
+      });
+    }
+  });
+
   return (
     <div
       class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
@@ -160,6 +174,7 @@ export function Message(props) {
               onInput={(e) => setEditValue(e.currentTarget.value)}
               rows={Math.max(2, editValue().split("\n").length)}
               autofocus
+              ref={editTextarea}
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   setState("editing", null);
@@ -180,9 +195,9 @@ export function Message(props) {
               }}
             />
             <small class="edit_instruct">
-              ESC to
+              ESC to{" "}
               <a
-                href=""
+                href="#"
                 onClick={(e) => {
                   e.preventDefault();
                   setState("editing", null);

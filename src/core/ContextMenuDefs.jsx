@@ -10,7 +10,8 @@ import {
   HiOutlineChatBubbleBottomCenterText,
   HiOutlineMapPin,
   HiOutlineXMark,
-  HiOutlineSwatch
+  HiOutlineSwatch,
+  HiOutlinePencil
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
 import { setState } from "../App.jsx";
@@ -149,11 +150,22 @@ SystemContextMenu.init([
     "data-context": "message",
     actions: [
       {
+        label: "Edit",
+        icon: HiOutlinePencil,
+        fn: (el) => {
+          const msg = getMessageById(el.dataset.id);
+          setState("editing", {
+            id: el.dataset.id,
+            user: msg.user,
+            content: msg.content,
+          });
+        },
+      },
+      {
         label: "Reply",
         icon: HiOutlineArrowUturnLeft,
         fn: (el) => {
           const msg = getMessageById(el.dataset.id);
-          console.log(el.dataset.id, msg);
           setState("replying", {
             id: el.dataset.id,
             user: msg.user,

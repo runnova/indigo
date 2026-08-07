@@ -4,14 +4,13 @@ import { setState, state } from "../../App";
 
 import {
   HiOutlineCog6Tooth,
-  HiOutlineUser,
-  HiOutlineBell,
   HiOutlinePaintBrush,
-  HiOutlineShieldCheck,
+  HiOutlinePencilSquare,
 } from "solid-icons/hi";
 
 import ThemeSettings from "./settings/Theme"
 import appIcon from "/icon_small.svg"
+import Customize from "./settings/Customize.jsx";
 
 function AppIcon(props) {
   return <img src={appIcon} alt="" {...props} />;
@@ -167,6 +166,12 @@ const tabs = [
     title: "Themes",
     icon: HiOutlinePaintBrush,
     component: ThemeSettings,
+  },
+  {
+    id: "customize",
+    title: "Customize",
+    icon: HiOutlinePencilSquare,
+    component: Customize,
   },
   {
     id: "about",

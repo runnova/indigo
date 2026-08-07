@@ -2,16 +2,7 @@ import { For, createSignal, onMount } from "solid-js";
 import "./theme.css";
 import { HiOutlineCheck, HiOutlineMagnifyingGlass } from "solid-icons/hi";
 
-import {
-  addTheme,
-  removeTheme,
-  listThemes,
-  resetThemes,
-  quickCss,
-  setQuickCss,
-} from "../../../themeManager";
-import { mountDomSelector } from "../../utility/Dom-selector.jsx";
-import ThemeCustomizer from "./customizer/ThemeCustomizer";
+import { addTheme, removeTheme, listThemes, resetThemes } from "../../../themeManager";
 
 const afterLastDot = (str) => str.split(".").pop().toUpperCase();
 
@@ -25,7 +16,6 @@ const extensionColor = (file) => extensionColors[afterLastDot(file)] ?? "#888";
 export default function ThemeSettings() {
   const [themes, setThemes] = createSignal([]);
   const [enabledThemes, setEnabledThemes] = createSignal([]);
-  const [css, setCss] = createSignal("");
 
   const [section, setSection] = createSignal("themes");
   const [search, setSearch] = createSignal("");
@@ -57,8 +47,6 @@ export default function ThemeSettings() {
     setThemes(await res.json());
 
     await refreshEnabled();
-
-    setCss(await quickCss());
   });
 
   const isEnabled = (theme) => enabledThemes().includes(themePath(theme));
@@ -78,15 +66,6 @@ export default function ThemeSettings() {
   const removeAllThemes = async () => {
     await resetThemes();
     await refreshEnabled();
-  };
-
-  const saveQuickCss = async () => {
-    await setQuickCss(css());
-  };
-
-  const resetQuickCss = async () => {
-    setCss("");
-    await setQuickCss("");
   };
 
   const themeCount = () =>
@@ -216,42 +195,7 @@ export default function ThemeSettings() {
           </For>
         </div>
       )}
-      <h2 class="settings_title">Quick CSS</h2>
 
-      <p class="settings_subt">
-        Use CSS to restyle Indigo into looking however you want it to.
-      </p>
-
-      <textarea
-        style={{ "font-family": "monospace", resize: "vertical" }}
-        class="quickcss"
-        value={css()}
-        rows={5}
-        onInput={(e) => setCss(e.currentTarget.value)}
-      />
-
-      <div class="theme-actions">
-        <button class="hl" onClick={saveQuickCss}>
-          Save
-        </button>
-        <button
-          onClick={() => {
-            mountDomSelector({
-              onSelect: (selector, el) => {
-                console.log("Selected:", selector, el);
-                setCss((prev) => `${prev}\n${selector} {\n  \n}\n`);
-              },
-              onCancel: () => {
-                console.log("Selection cancelled");
-              },
-            });
-          }}
-        >
-          Select element
-        </button>
-        <button onClick={resetQuickCss}>Reset</button>
-      </div>
-      <ThemeCustomizer></ThemeCustomizer>
     </>
   );
 }

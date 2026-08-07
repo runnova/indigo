@@ -5,7 +5,7 @@ import SelfRoles from "./SelfRoles.jsx";
 import SearchResultsList from "./SearchResultsList.jsx";
 import MemberProfile from "./memberList/MemberPopoutContent.jsx";
 import Inbox from "./Inbox.jsx";
-import { thirdBarWidth } from "../../App.jsx"
+import { thirdBarWidth, thirdBarCollapsed } from "../../App.jsx"
 
 const thirdBarViews = {
   members: MemberList,
@@ -25,20 +25,23 @@ export default function RightSidebar(props) {
     }
     return thirdBarViews[props.state.thirdBarContext] || MemberList
   };
-
   return (
     <>
       <div
         class="third_bar bar"
         style={{
-          width: `${thirdBarWidth()}px`,
-          "min-width": `${thirdBarWidth()}px`,
-          "max-width": `${thirdBarWidth()}px`,
+          width: thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
+          "min-width": thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
+          "max-width": thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
+          overflow: "hidden",
+          "border-left": thirdBarCollapsed() ? "none" : undefined,
         }}
       >
-        <Dynamic component={View()}
-          conn={props.conn}
-          getHoistedRole={props.getHoistedRole} {...props} />
+        <Show when={!thirdBarCollapsed()}>
+          <Dynamic component={View()}
+            conn={props.conn}
+            getHoistedRole={props.getHoistedRole} {...props} />
+        </Show>
       </div>
     </>
   );

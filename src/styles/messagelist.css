@@ -289,8 +289,8 @@
 .reaction_single {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: .4em .8em;
+  gap: .3em;
+  padding: .3em .5em;
   border-radius: var(--br-mid);
   border: 1px solid var(--diff-three);
   background: var(--diff-two);
@@ -304,6 +304,9 @@
 
 .reaction_single img {
   transform: scale(1.2);
+  &.inline_emoji {
+      margin: 0;
+  }
 }
 
 .message_embeds {

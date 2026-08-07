@@ -1,15 +1,13 @@
 # Known Issues
-- virt scrolling is bad. scrolling back down doesnt load newer messages. (3.2)
-- CORS. it needs to be able to proxy attatchments (5.1.4)
+- scrolling back down doesnt load newer messages.
+- CORS. it needs to be able to proxy attatchments
 
 # TO DO
 - realtime RPC and status updates based on SDK
-- in UI button for accessing the spotlight search
 - message composer autocomplete
   - short code emoji support and autocomplete on `:`
 
 ## issues
-- actions appearing over the user popup.
 - add reaction from actions doesnt work
 
 # Planned
