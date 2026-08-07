@@ -107,6 +107,7 @@ const defaultState = {
     firstBarWidth: 260,
     thirdBarWidth: 320,
     displayChannelName: true,
+    parseMarkdown: true,
   },
 };
 export const [unreads, setUnreads] = createStore({
@@ -207,22 +208,23 @@ function preloadChannelMessages(channelName) {
   });
 }
 
-export async function switchToChannel(server, channel) {
-  const normalizedServer = {
-    ...server,
-    src: server.src ?? server.url,
-  };
-
+export async function switchToChannel(server, channel, threadId) {
+  const src =
+    typeof server === "string" ? server : (server?.src ?? server?.url);
+  let normalizedServer = state.servers.find((s) => s.src === src);
+  if (!normalizedServer) {
+    normalizedServer =
+      typeof server === "object" ? { ...server, src } : { src };
+    setState("servers", (servers) => [...servers, normalizedServer]);
+  }
   const previousServer = state.current.server?.src;
-
   if (previousServer !== normalizedServer.src || conn.status() !== "ready") {
     setState("current", {
       server: normalizedServer,
       channel: null,
+      thread: null,
     });
-
     const settings = JSON.parse(localStorage.getItem("settings") || "{}");
-
     if (settings.type === "token" && settings.token) {
       conn.connect(normalizedServer, settings.token);
     } else {
@@ -231,7 +233,6 @@ export async function switchToChannel(server, channel) {
         password: "guest",
       });
     }
-
     await new Promise((resolve) => {
       const check = () => {
         if (conn.status() === "ready") {
@@ -239,28 +240,94 @@ export async function switchToChannel(server, channel) {
           resolve();
         }
       };
-
       check();
       const interval = setInterval(check, 50);
     });
   } else {
     setState("current", "server", normalizedServer);
   }
-
   setState("current", "channel", channel);
-
   if (normalizedServer.src) {
     setState("serverChannels", normalizedServer.src, channel);
+  }
+
+  if (threadId) {
+    const channels = conn.channels?.() ?? [];
+    const parentChannel = channels.find((ch) => ch.name === channel);
+    const thread =
+      parentChannel?.threads?.find((t) => t.id === threadId) ?? null;
+    setState("current", "thread", thread);
+  } else {
+    setState("current", "thread", null);
   }
 }
 
 function App() {
   conn = useServerConnection();
   bindVoiceEvents(conn);
+
+  onMount(() => {
+    const params = new URLSearchParams(window.location.search);
+    const serverSrc = params.get("s");
+    const channel = params.get("c");
+    const thread = params.get("t");
+
+    if (serverSrc) {
+      switchToChannel(serverSrc, channel || null, thread || undefined);
+    }
+  });
+
+  let deepLinkThreadApplied = false;
+  createEffect(() => {
+    if (deepLinkThreadApplied) return;
+    if (conn.status() !== "ready") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("t");
+    if (!t) {
+      deepLinkThreadApplied = true;
+      return;
+    }
+
+    const channels = conn.channels();
+    if (!channels.length) return;
+
+    const parentChannel = channels.find(
+      (ch) => ch.name === state.current.channel,
+    );
+    const thread = parentChannel?.threads?.find((th) => th.id === t);
+
+    if (thread) {
+      setState("current", "thread", thread);
+      deepLinkThreadApplied = true;
+    }
+  });
+
   const [loadingProgress, setLoadingProgress] = createSignal(0);
   const currentChannel = createMemo(() =>
     conn.channels().find((channel) => channel.name === state.current.channel),
   );
+
+  createEffect(() => {
+    const src = state.current.server?.src;
+    const channel = state.current.channel;
+    const thread = state.current.thread?.id;
+
+    const params = new URLSearchParams();
+    if (src) params.set("s", src);
+    if (channel) params.set("c", channel);
+    if (thread) params.set("t", thread);
+
+    const query = params.toString();
+    const newUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+
+    if (
+      newUrl !==
+      `${window.location.pathname}${window.location.search}${window.location.hash}`
+    ) {
+      window.history.replaceState(null, "", newUrl);
+    }
+  });
   useAppInitialization(conn, setState, state, Rotur, setLoadingProgress);
   function getPersistedState() {
     return {

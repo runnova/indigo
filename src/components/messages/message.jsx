@@ -8,7 +8,7 @@ export function Message(props) {
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
       ? props.content
-      : parseMarkdown(props.content),
+      : parseMarkdown(props.content || ""),
   );
   if (props.reply) {
     props.reply.username = props.reply.user;

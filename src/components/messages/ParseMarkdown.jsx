@@ -1,9 +1,10 @@
 import { For } from "solid-js";
-import { setState, state, tempState } from "../../App"
+import { setState, state, tempState } from "../../App";
 import { setPreview } from "../../App";
-import { openPopout } from "../rightSidebar/memberList/popout.jsx"
+import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 const markdownCache = new Map();
 
+import { switchToChannel } from "../../App";
 import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
 import { getEmbedProvider } from "./embeds/registry.jsx";
 
@@ -43,7 +44,7 @@ function readMaskedLink(text, start) {
   return {
     label,
     url: text.slice(urlStart, i - 1),
-    end: i
+    end: i,
   };
 }
 
@@ -66,9 +67,7 @@ export function Embed(props) {
     >
       <div className="col fill">
         {embed.url && (
-          <div class="embed_url">
-            {embed.url.replace(/(^\w+:|^)\/\//, '')}
-          </div>
+          <div class="embed_url">{embed.url.replace(/(^\w+:|^)\/\//, "")}</div>
         )}
         {embed.author && (
           <div class="embed_author">
@@ -87,11 +86,7 @@ export function Embed(props) {
           </div>
         )}
 
-        {embed.title && (
-          <div class="embed_title">
-            {embed.title}
-          </div>
-        )}
+        {embed.title && <div class="embed_title">{embed.title}</div>}
 
         {embed.description && (
           <div class="embed_description">
@@ -103,7 +98,8 @@ export function Embed(props) {
           <div class="embed_timestamp">
             {new Date(embed.timestamp).toLocaleString()}
           </div>
-        )}</div>
+        )}
+      </div>
       <div className="col">
         {embed.image && (
           <div class="embed_timestamp">
@@ -121,13 +117,13 @@ function EmbeddedLink(props) {
   const [info] = createResource(async () => {
     try {
       const res = await fetch(props.url, {
-        method: "HEAD"
+        method: "HEAD",
       });
 
       const type = res.headers.get("content-type") || "";
 
       return {
-        type
+        type,
       };
     } catch {
       return null;
@@ -147,7 +143,7 @@ function EmbeddedLink(props) {
         const type = data().type;
 
         if (type.startsWith("image/")) {
-          console.log("d")
+          console.log("d");
           return (
             <img
               src={props.url}
@@ -176,21 +172,11 @@ function EmbeddedLink(props) {
         }
 
         if (type.startsWith("audio/")) {
-          return (
-            <audio
-              src={props.url}
-              controls
-              loading="lazy"
-            />
-          );
+          return <audio src={props.url} controls loading="lazy" />;
         }
 
         return (
-          <a
-            href={props.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={props.url} target="_blank" rel="noopener noreferrer">
             {props.url}
           </a>
         );
@@ -212,45 +198,53 @@ function renderToken(token, depth = 0) {
   const key = getKey();
 
   if (depth > 50) {
-    console.warn('renderToken: max depth exceeded');
+    console.warn("renderToken: max depth exceeded");
     return null;
   }
 
   switch (token.type) {
-    case 'text':
+    case "text":
       return token.value;
 
-    case 'bold':
-      return <strong key={key}>{token.children?.map(t => renderToken(t, depth + 1))}</strong>;
+    case "bold":
+      return (
+        <strong key={key}>
+          {token.children?.map((t) => renderToken(t, depth + 1))}
+        </strong>
+      );
 
-    case 'underlineItalic':
-      return <u key={key}><i>{token.children?.map(t => renderToken(t, depth + 1))}</i></u>;
+    case "underlineItalic":
+      return (
+        <u key={key}>
+          <i>{token.children?.map((t) => renderToken(t, depth + 1))}</i>
+        </u>
+      );
 
-    case 'strikethrough':
-      return <s key={key}>{token.children?.map(t => renderToken(t, depth + 1))}</s>;
+    case "strikethrough":
+      return (
+        <s key={key}>{token.children?.map((t) => renderToken(t, depth + 1))}</s>
+      );
 
-    case 'codeInline':
+    case "codeInline":
       return <kbd key={key}>{token.code}</kbd>;
 
-    case 'codeBlock':
+    case "codeBlock":
       return (
         <pre key={key} class="code_block">
-          <code class={`lang-${token.language}`}>
-            {token.code}
-          </code>
+          <code class={`lang-${token.language}`}>{token.code}</code>
         </pre>
       );
 
-    case 'link':
+    case "link":
       return (
         <a key={key} href={token.url} target="_blank" rel="noopener noreferrer">
-          {token.label?.map(t => renderToken(t, depth + 1))}
+          {token.label?.map((t) => renderToken(t, depth + 1))}
         </a>
       );
 
-    case 'url': {
+    case "url": {
       const provider = getEmbedProvider(token.url);
-  console.log("provider found:", provider);
+      console.log("provider found:", provider);
       if (provider) {
         const Custom = provider.Component;
         return <Custom key={key} url={token.url} />;
@@ -260,7 +254,7 @@ function renderToken(token, depth = 0) {
       }
       return <EmbeddedLink key={key} url={token.url} />;
     }
-    case 'emoji':
+    case "emoji":
       return (
         <img
           key={key}
@@ -271,7 +265,7 @@ function renderToken(token, depth = 0) {
       );
     case "newline":
       return <br key={key} />;
-    case 'sticker':
+    case "sticker":
       return (
         <img
           key={key}
@@ -307,7 +301,7 @@ function renderToken(token, depth = 0) {
         case "t":
           return date.toLocaleTimeString([], {
             hour: "numeric",
-            minute: "2-digit"
+            minute: "2-digit",
           });
 
         case "T":
@@ -320,19 +314,19 @@ function renderToken(token, depth = 0) {
           return date.toLocaleDateString([], {
             year: "numeric",
             month: "long",
-            day: "numeric"
+            day: "numeric",
           });
 
         case "f":
           return date.toLocaleString([], {
             dateStyle: "medium",
-            timeStyle: "short"
+            timeStyle: "short",
           });
 
         case "F":
           return date.toLocaleString([], {
             dateStyle: "full",
-            timeStyle: "long"
+            timeStyle: "long",
           });
 
         default:
@@ -340,7 +334,67 @@ function renderToken(token, depth = 0) {
       }
     }
 
-    case "channel":
+    case "channel": {
+      if (token.threadId) {
+        const channels = tempState.conn?.channels?.() ?? [];
+        let threadName = null;
+        let parentChannel = token.name;
+        for (const ch of channels) {
+          const match = ch.threads?.find(t => t.id === token.threadId);
+          if (match) {
+            threadName = match.name;
+            parentChannel = ch.name;
+            break;
+          }
+        }
+        const isCurrentServer = token.host && tempState.conn?.serverInfo?.()?.src === token.host;
+        const label = threadName ? `#${parentChannel} • ${threadName}` : `#${token.name} • ${token.threadId}`;
+        if (isCurrentServer) {
+          return (
+          <a
+              key={key}
+              href="#"
+              class="channel_link"
+              onClick={(e) => {
+                e.preventDefault();
+                switchToChannel(token.host, token.name, token.threadId);
+              }}
+            >
+              {label}
+            </a>
+          );
+        }
+        if (token.host) {
+          return (
+          <a
+              key={key}
+              href={`https://${token.host}/${token.name}/${token.threadId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="channel_link"
+            >
+              #{token.host}/{parentChannel}{threadName ? ` • ${threadName}` : ` • ${token.threadId}`}
+            </a>
+          );
+        }
+        return label;
+      }
+      const isCurrentServer = token.host && tempState.conn?.serverInfo?.()?.src === token.host;
+      if (isCurrentServer) {
+        return (
+          <a
+            key={key}
+            href="#"
+            class="channel_link"
+            onClick={(e) => {
+              e.preventDefault();
+              switchToChannel(token.host, token.name);
+            }}
+          >
+            #{token.name}
+          </a>
+        );
+      }
       if (token.host) {
         return (
           <a
@@ -349,16 +403,18 @@ function renderToken(token, depth = 0) {
             target="_blank"
             rel="noopener noreferrer"
             class="channel_link"
+            onClick={(e) => {
+              e.preventDefault();
+              switchToChannel(token.host, token.name, token.threadId);
+            }}
           >
-            #{token.host}/{token.name}
+            #{token.host} • {token.name}
           </a>
         );
       }
-
       const available = tempState.conn?.channels?.()?.some(
         (x) => x.name === token.name
       );
-
       if (available) {
         return (
           <a
@@ -367,22 +423,17 @@ function renderToken(token, depth = 0) {
             class="channel_link"
             onClick={(e) => {
               e.preventDefault();
-              setState("current", "channel", token.name);
-
-              const serverSrc = state.current.server?.src;
-              if (serverSrc) {
-                setState("serverChannels", serverSrc, token.name);
-              }
+              switchToChannel(state.current.server?.src, token.name);
             }}
           >
             #{token.name}
           </a>
         );
       }
-
       return `#${token.name}`;
+    }
 
-    case 'mention':
+    case "mention":
       return (
         <a
           key={key}
@@ -390,7 +441,7 @@ function renderToken(token, depth = 0) {
           class="mention"
           onClick={(e) => {
             e.preventDefault();
-            openPopout(token.username, e.currentTarget)
+            openPopout(token.username, e.currentTarget);
           }}
         >
           @
@@ -404,9 +455,10 @@ function renderToken(token, depth = 0) {
         </a>
       );
 
-    case 'roleMention':
-      const entry = Object.entries(tempState.conn?.roles?.() ?? {})
-        .find(([, role]) => role.id === token.id);
+    case "roleMention":
+      const entry = Object.entries(tempState.conn?.roles?.() ?? {}).find(
+        ([, role]) => role.id === token.id,
+      );
 
       if (entry) {
         const [name, role] = entry;
@@ -422,54 +474,60 @@ function renderToken(token, depth = 0) {
       }
       return `@${token.id}`;
 
-    case 'heading':
+    case "heading":
       switch (token.level) {
         case 1:
-          return <h1 key={key}>{token.children?.map(t => renderToken(t, depth + 1))}</h1>;
+          return (
+            <h1 key={key}>
+              {token.children?.map((t) => renderToken(t, depth + 1))}
+            </h1>
+          );
         case 2:
-          return <h2 key={key}>{token.children?.map(t => renderToken(t, depth + 1))}</h2>;
+          return (
+            <h2 key={key}>
+              {token.children?.map((t) => renderToken(t, depth + 1))}
+            </h2>
+          );
         case 3:
-          return <h3 key={key}>{token.children?.map(t => renderToken(t, depth + 1))}</h3>;
+          return (
+            <h3 key={key}>
+              {token.children?.map((t) => renderToken(t, depth + 1))}
+            </h3>
+          );
       }
 
-    case 'small':
+    case "small":
       return (
         <small key={key}>
-          {token.children?.map(t => renderToken(t, depth + 1))}
+          {token.children?.map((t) => renderToken(t, depth + 1))}
         </small>
       );
 
-    case 'blockquote':
+    case "blockquote":
       return (
         <blockquote key={key}>
           {token.children?.map((line, i) => (
             <>
-              {line.children?.map(t => renderToken(t, depth + 1))}
+              {line.children?.map((t) => renderToken(t, depth + 1))}
               {i !== token.children.length - 1 && <br />}
             </>
           ))}
         </blockquote>
       );
 
-    case 'list':
+    case "list":
       return (
         <ul key={key}>
           <For each={token.items}>
             {(item) => (
-              <li>
-                {item.children?.map(t => renderToken(t, depth + 1))}
-              </li>
+              <li>{item.children?.map((t) => renderToken(t, depth + 1))}</li>
             )}
           </For>
         </ul>
       );
 
-    case 'paragraph':
-      return (
-        <>
-          {token.children?.map(t => renderToken(t, depth + 1))}
-        </>
-      );
+    case "paragraph":
+      return <>{token.children?.map((t) => renderToken(t, depth + 1))}</>;
 
     default:
       return null;
@@ -480,17 +538,16 @@ function isBigEmojiMessage(input) {
   if (!input) return;
   const trimmed = input.trim();
 
-  const tokens = trimmed
-    .split(/\s+/)
-    .filter(Boolean);
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
 
   if (tokens.length === 0 || tokens.length > 3) {
     return false;
   }
 
-  return tokens.every(token =>
-    token.startsWith("originChats:<emoji>//") ||
-    /\p{Extended_Pictographic}/u.test(token)
+  return tokens.every(
+    (token) =>
+      token.startsWith("originChats:<emoji>//") ||
+      /\p{Extended_Pictographic}/u.test(token),
   );
 }
 
@@ -499,7 +556,7 @@ export function parseMarkdown(input) {
     return input
       .trim()
       .split(/\s+/)
-      .map(token => {
+      .map((token) => {
         if (token.startsWith("originChats:<emoji>//")) {
           const url = token.slice("originChats:<emoji>//".length);
           const match = url.match(/^(.+)\/(\d+)$/);
@@ -516,7 +573,11 @@ export function parseMarkdown(input) {
           );
         }
 
-        return <span key={getKey()} class="big_emoji">{token}</span>;
+        return (
+          <span key={getKey()} class="big_emoji">
+            {token}
+          </span>
+        );
       });
   }
 

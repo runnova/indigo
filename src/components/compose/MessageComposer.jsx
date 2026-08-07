@@ -1,21 +1,38 @@
 import { Show, For, createSignal, createEffect, onMount, on } from "solid-js";
-import EmojiPicker from "./EmojiPicker"
-import { state, setState, tempState, emojiPicker, setEmojiPicker } from "../../App"
-import { HiOutlineXMark, HiOutlinePlus, HiOutlineArrowUpOnSquare, HiOutlineGift, HiOutlineFaceSmile, HiOutlinePencil } from "solid-icons/hi";
+import EmojiPicker from "./EmojiPicker";
+import {
+  state,
+  setState,
+  tempState,
+  emojiPicker,
+  setEmojiPicker,
+} from "../../App";
+import {
+  HiOutlineXMark,
+  HiOutlinePlus,
+  HiOutlineArrowUpOnSquare,
+  HiOutlineGift,
+  HiOutlineFaceSmile,
+  HiOutlinePencil,
+} from "solid-icons/hi";
 import Typing from "./Typing";
 import {
   attachments,
   setAttachments,
   addAttachment,
-  removeAttachment
+  removeAttachment,
 } from "./attachmentStore.js";
 import {
   createSlashCommands,
   SlashSuggestions,
   SlashForm,
   SlashCloseButton,
-  SlashSendButton
+  SlashSendButton,
 } from "./SlashComposer";
+
+import Autocomplete from "./Autocomplete";
+import { createMentionAutocomplete } from "./mentionAutocomplete";
+import { createChannelAutocomplete } from "./channelAutocomplete";
 
 import GiftPopup from "./GiftPopup";
 
@@ -40,17 +57,20 @@ export default function MessageComposer(props) {
     parseSlash,
     closeSlash,
     buildContent,
-    sendSlash
+    sendSlash,
   } = createSlashCommands();
 
   const handleSlashSend = () => sendSlash(props.channel, textarea);
 
   let slashNav = {
-    moveNext: () => { },
-    movePrev: () => { },
-    selectCurrent: () => { },
-    hasSuggestions: () => false
+    moveNext: () => {},
+    movePrev: () => {},
+    selectCurrent: () => {},
+    hasSuggestions: () => false,
   };
+
+  const mention = createMentionAutocomplete();
+  const channelAc = createChannelAutocomplete();
 
   function pickSuggestion(command) {
     textarea.value = `/${command.name}`;
@@ -74,7 +94,7 @@ export default function MessageComposer(props) {
       duration,
       global: true,
       thread_id: null,
-      user: tempState?.conn.me().username
+      user: tempState?.conn.me().username,
     });
   }
 
@@ -85,7 +105,7 @@ export default function MessageComposer(props) {
 
     const newHeight = Math.min(
       Math.max(textarea.scrollHeight - 12, MIN_TEXTAREA_HEIGHT),
-      MAX_TEXTAREA_HEIGHT
+      MAX_TEXTAREA_HEIGHT,
     );
 
     textarea.style.height = `${newHeight}px`;
@@ -105,8 +125,8 @@ export default function MessageComposer(props) {
           const pos = textarea.value.length;
           textarea.setSelectionRange(pos, pos);
         });
-      }
-    )
+      },
+    ),
   );
 
   onMount(() => {
@@ -126,9 +146,7 @@ export default function MessageComposer(props) {
     const end = textarea.selectionEnd;
 
     textarea.value =
-      textarea.value.slice(0, start) +
-      emoji +
-      textarea.value.slice(end);
+      textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
 
     const pos = start + emoji?.length;
 
@@ -158,18 +176,14 @@ export default function MessageComposer(props) {
             {(attachment) => (
               <div class="attachment_single">
                 <div class="attachment_header">
-                  <div class="title">
-                    {attachment.name}
-                  </div>
+                  <div class="title">{attachment.name}</div>
 
                   <div class="x">
                     <button>
                       <HiOutlinePencil />
                     </button>
 
-                    <button
-                      onClick={() => removeAttachment(attachment.id)}
-                    >
+                    <button onClick={() => removeAttachment(attachment.id)}>
                       <HiOutlineXMark />
                     </button>
                   </div>
@@ -201,7 +215,26 @@ export default function MessageComposer(props) {
         providerFilter={providerFilter}
         setProviderFilter={setProviderFilter}
         onPick={pickSuggestion}
-        onNavRef={(nav) => { slashNav = nav; }}
+        onNavRef={(nav) => {
+          slashNav = nav;
+        }}
+      />
+      <Autocomplete
+        items={mention.mentionItems}
+        activeIndex={mention.activeIndex}
+        setActiveIndex={mention.setActiveIndex}
+        onPick={(item) => mention.pickMention(item, textarea)}
+        renderItem={(m) => <span>@{m.username}</span>}
+      />
+
+      <Autocomplete
+        items={channelAc.channelItems}
+        activeIndex={channelAc.activeIndex}
+        setActiveIndex={channelAc.setActiveIndex}
+        onPick={(item) => channelAc.pickChannel(item, textarea)}
+        renderItem={(c) => (
+          <span>#{c.type === "thread" ? `${c.channel.name}/${c.name}` : c.name}</span>
+        )}
       />
 
       <Show when={giftOpen()}>
@@ -210,10 +243,7 @@ export default function MessageComposer(props) {
           onCreated={(url) => {
             const text = textarea.value;
 
-            textarea.value =
-              text.length > 0
-                ? `${text} ${url}`
-                : url;
+            textarea.value = text.length > 0 ? `${text} ${url}` : url;
 
             textarea.focus();
             autoResize();
@@ -226,20 +256,16 @@ export default function MessageComposer(props) {
       <div class="text_box x" style={{ "align-items": "stretch" }}>
         <div className="dropdown_container">
           <div className="action_buttons">
-            <button className="icon_button"><HiOutlinePlus></HiOutlinePlus></button>
+            <button className="icon_button">
+              <HiOutlinePlus></HiOutlinePlus>
+            </button>
           </div>
           <div className="dropdown_content">
-            <button
-              class="icon_button text"
-              onClick={() => fileInput.click()}
-            >
+            <button class="icon_button text" onClick={() => fileInput.click()}>
               <HiOutlineArrowUpOnSquare />
               <span>Upload file</span>
             </button>
-            <button
-              class="icon_button text"
-              onClick={() => setGiftOpen(true)}
-            >
+            <button class="icon_button text" onClick={() => setGiftOpen(true)}>
               <HiOutlineGift />
               <span>Send gift</span>
             </button>
@@ -262,16 +288,13 @@ export default function MessageComposer(props) {
             style={{
               resize: "none",
               "min-height": `${MIN_TEXTAREA_HEIGHT}px`,
-              "max-height": `${MAX_TEXTAREA_HEIGHT}px`
+              "max-height": `${MAX_TEXTAREA_HEIGHT}px`,
             }}
-            onPaste={async e => {
+            onPaste={async (e) => {
               const items = [...(e.clipboardData?.items || [])];
 
               for (const item of items) {
-                if (
-                  item.kind === "file" &&
-                  item.type.startsWith("image/")
-                ) {
+                if (item.kind === "file" && item.type.startsWith("image/")) {
                   const file = item.getAsFile();
                   if (file) {
                     await addAttachment(file);
@@ -284,8 +307,15 @@ export default function MessageComposer(props) {
             onInput={(e) => {
               parseSlash(e.target.value);
 
-              autoResize();
+              if (!slashState.active) {
+                mention.parseMention(e.target.value, e.target.selectionStart);
+                channelAc.parseChannel(e.target.value, e.target.selectionStart);
+              } else {
+                mention.closeMention();
+                channelAc.closeChannel();
+              }
 
+              autoResize();
               sendTyping();
 
               clearTimeout(typingTimer);
@@ -328,6 +358,55 @@ export default function MessageComposer(props) {
                 }
               }
 
+              if (mention.hasSuggestions()) {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  mention.moveNext();
+                  return;
+                }
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  mention.movePrev();
+                  return;
+                }
+                if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+                  e.preventDefault();
+                  const item = mention.mentionItems()[mention.activeIndex()];
+                  if (item) mention.pickMention(item, textarea);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  mention.closeMention();
+                  return;
+                }
+              }
+
+              if (channelAc.hasSuggestions()) {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  channelAc.moveNext();
+                  return;
+                }
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  channelAc.movePrev();
+                  return;
+                }
+                if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+                  e.preventDefault();
+                  const item =
+                    channelAc.channelItems()[channelAc.activeIndex()];
+                  if (item) channelAc.pickChannel(item, textarea);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  channelAc.closeChannel();
+                  return;
+                }
+              }
+
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
 
@@ -335,7 +414,7 @@ export default function MessageComposer(props) {
 
                 if (
                   !content &&
-                  attachments.filter(a => a.uploaded).length === 0
+                  attachments.filter((a) => a.uploaded).length === 0
                 ) {
                   return;
                 }
@@ -343,8 +422,8 @@ export default function MessageComposer(props) {
                 props.onSend(
                   content,
                   attachments
-                    .filter(a => a.uploaded)
-                    .map(a => a.serverAttachment)
+                    .filter((a) => a.uploaded)
+                    .map((a) => a.serverAttachment),
                 );
 
                 setAttachments([]);
@@ -359,16 +438,11 @@ export default function MessageComposer(props) {
             slashState={slashState}
             onClose={() => closeSlash(textarea)}
           />
-          <SlashSendButton
-            slashState={slashState}
-            onSend={handleSlashSend}
-          />
+          <SlashSendButton slashState={slashState} onSend={handleSlashSend} />
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"
-              onClick={() =>
-                setEmojiPicker("open", open => !open)
-              }
+              onClick={() => setEmojiPicker("open", (open) => !open)}
             >
               <HiOutlineFaceSmile />
             </button>
@@ -382,7 +456,7 @@ export default function MessageComposer(props) {
 
                     setEmojiPicker({
                       open: false,
-                      onSelect: null
+                      onSelect: null,
                     });
                   }}
                 />
@@ -398,7 +472,6 @@ export default function MessageComposer(props) {
         hidden
         onChange={handleFiles}
       />
-
     </div>
   );
 }

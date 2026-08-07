@@ -450,8 +450,18 @@ export function VirtualMessageList(props) {
                       const previous =
                         index() > 0 ? section.messages[index() - 1] : null;
                       const interaction = msg()?.interaction;
+                      const TEN_MINUTES_MS = 10 * 60 * 1000;
+
+                      const previousTimestamp = previous
+                        ? (Number(previous.timestamp) > 1e12
+                            ? Number(previous.timestamp)
+                            : Number(previous.timestamp) * 1000)
+                        : 0;
+
                       const grouped =
-                        previous && previous.user === message.user;
+                        previous &&
+                        previous.user === message.user &&
+                        timestamp - previousTimestamp <= TEN_MINUTES_MS;
                       const replyMessage = createMemo(() => {
                         const m = msg();
                         if (!m?.reply_to?.id) return null;

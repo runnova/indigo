@@ -23,10 +23,10 @@
     --fg-dim: rgb(255 255 255 / 82%);
     --fg-three: #99D6FF;
 
-    --br-big: 4px;
-    --br-mid: 3px;
-    --br-tiny: 2px;
-    --br-min: 2px;
+    --br-big: 0;
+    --br-mid: 0;
+    --br-tiny: 0;
+    --br-min: 0;
 }
 .topbar,
 .server_bar {

@@ -264,12 +264,6 @@
   border-radius: 0;
 }
 
-.mention {
-  background-color: var(--hl-four);
-  padding: 3px 7px;
-  border-radius: var(--br-mid);
-}
-
 .is-reply-target {
   background: var(--hl-four);
 
@@ -296,8 +290,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: .3em .5em;
+  padding: .4em .8em;
   border-radius: var(--br-mid);
+  border: 1px solid var(--diff-three);
   background: var(--diff-two);
 }
 
@@ -310,7 +305,6 @@
 .reaction_single img {
   transform: scale(1.2);
 }
-
 
 .message_embeds {
   display: flex;
@@ -402,7 +396,11 @@
   width: fit-content;
   gap: 3px;
   align-items: center;
+  border: 1px solid var(--diff-three);
   flex-direction: row;
+  background-color: var(--hl-four);
+  padding: 2px 5px;
+  border-radius: var(--br-mid);
   &>.pfp {
     height: 1em;
     display: inline;

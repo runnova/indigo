@@ -7,8 +7,6 @@
 - in UI button for accessing the spotlight search
 - message composer autocomplete
   - short code emoji support and autocomplete on `:`
-  - user ping autocomplete on `@`
-  - channel and joined threads autocomplete on `#`
 
 ## issues
 - actions appearing over the user popup.

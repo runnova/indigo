@@ -88,8 +88,6 @@ function isImageSrc(src) {
 export default function ChannelList(props) {
   const cleanupFns = [];
 
-  // Tracks which channels (by name) have their thread list collapsed.
-  // Local/in-memory only — not persisted to global state or storage.
   const [collapsedChannels, setCollapsedChannels] = createSignal(new Set());
 
   function isCollapsed(channelName) {
@@ -97,7 +95,6 @@ export default function ChannelList(props) {
   }
 
   function toggleCollapsed(channelName, evt) {
-    // Prevent the click from also selecting the channel.
     evt?.stopPropagation();
 
     setCollapsedChannels(prev => {

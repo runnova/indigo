@@ -1,0 +1,12 @@
+.autocomplete_popup {
+    background-color: var(--bg-three);
+    border-radius: var(--br-mid);
+    margin-bottom: .3em;
+    &>.autocomplete_item {
+        padding: .5em;
+        border-radius: var(--br-mid);
+        &.active, &:hover {
+            background-color: var(--diff-one);
+        }
+    }
+}

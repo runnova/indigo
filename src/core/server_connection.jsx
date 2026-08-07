@@ -258,19 +258,10 @@ function createConnection(server, roturToken, crackedUser) {
     }
   };
 
-  if (!unreads.servers?.[server.src]) {
-    setUnreads(
-      "servers",
-      server.src,
-      {}
-    );
-  }
-
   setUnreads(
     "servers",
     server.src,
-    "online",
-    false
+    prev => prev ?? { online: false }
   );
   connections.set(server.src, connection);
 

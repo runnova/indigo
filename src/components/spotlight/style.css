@@ -22,7 +22,7 @@
   flex-direction: column;
   background: var(--bg-two, #1e1f22);
   border: 1px solid var(--diff-three, rgba(255, 255, 255, 0.06));
-  border-radius: 10px;
+  border-radius: var(--br-big);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   animation: spotlight_pop 0.14s ease-out;
@@ -65,7 +65,7 @@
 .spotlight_hint {
   font-size: 11px;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--br-mid);
   background: rgba(255, 255, 255, 0.06);
   color: var(--fg-dim, #949ba4);
   font-family: inherit;
@@ -100,7 +100,7 @@
   width: 100%;
   padding: 8px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--br-mid);
   background: none;
   cursor: pointer;
   text-align: left;
@@ -124,7 +124,7 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  border-radius: 6px;
+  border-radius: var(--br-big);
   object-fit: cover;
 }
 

@@ -363,7 +363,6 @@ function tryParseSticker(text, i) {
     end: j
   };
 }
-
 function tryParseChannel(text, i) {
   if (!text.slice(i).startsWith('originChats://')) return null;
 
@@ -373,10 +372,26 @@ function tryParseChannel(text, i) {
     j++;
   }
 
-  const channel = text.slice(i + 'originChats://'.length, j);
+  const raw = text.slice(i + 'originChats://'.length, j);
+  const parts = raw.split('/');
 
+  if (parts.length === 1) {
+    return {
+      token: { type: 'channel', name: parts[0] },
+      end: j
+    };
+  }
+
+  if (parts.length === 2) {
+    return {
+      token: { type: 'channel', host: parts[0], name: parts[1] },
+      end: j
+    };
+  }
+
+  // host/channel/threadId
   return {
-    token: { type: 'channel', name: channel },
+    token: { type: 'channel', host: parts[0], name: parts[1], threadId: parts[2] },
     end: j
   };
 }
