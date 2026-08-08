@@ -2,7 +2,12 @@ import { For, Show, createMemo, createSignal, createEffect } from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
-import { HiOutlineDocument, HiOutlineXMark } from "solid-icons/hi";
+import {
+  HiOutlineArrowDownTray,
+  HiOutlineArrowTopRightOnSquare,
+  HiOutlineDocument,
+  HiOutlineXMark,
+} from "solid-icons/hi";
 
 export function Message(props) {
   const rendered = createMemo(() =>
@@ -44,6 +49,15 @@ export function Message(props) {
       });
     }
   });
+
+  const formatFileSize = (size) => {
+    if (size === 0) return "0 B";
+
+    const units = ["B", "KB", "MB", "GB"];
+    const index = Math.floor(Math.log(size) / Math.log(1024));
+
+    return `${(size / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+  };
 
   return (
     <div
@@ -254,14 +268,55 @@ export function Message(props) {
 
                   return (
                     <a
-                      href={file.url}
-                      download={file.name}
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="attachment_file"
+                      class="attachment_file x"
                     >
-                      <div class="file_name">{file.name}</div>
-                      <div class="file_type">{file.mime_type}</div>
+                      <HiOutlineDocument />
+
+                      <div className="y fill">
+                        <div class="file_name">{file.name}</div>
+                        <div class="file_type">{file.mime_type}</div>
+                      </div>
+
+                      <div class="file_size">{formatFileSize(file.size)}</div>
+
+                      <div class="x">
+                        <button
+                          type="button"
+                          title="Download"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const link = document.createElement("a");
+                            link.href = file.url;
+                            link.download = file.name;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                        >
+                          <HiOutlineArrowDownTray />
+                        </button>
+
+                        <button
+                          type="button"
+                          title="Open in new tab"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            window.open(
+                              file.url,
+                              "_blank",
+                              "noopener,noreferrer",
+                            );
+                          }}
+                        >
+                          <HiOutlineArrowTopRightOnSquare />
+                        </button>
+                      </div>
                     </a>
                   );
                 }}

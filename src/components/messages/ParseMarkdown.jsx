@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { For, createResource, Show } from "solid-js";
 import { setState, state, tempState } from "../../App";
 import { setPreview } from "../../App";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
@@ -17,6 +17,57 @@ function getParsedMarkdown(id, content) {
   markdownCache.set(id, parsed);
 
   return parsed;
+}
+
+function ServerInviteEmbed(props) {
+  const [info] = createResource(async () => {
+    try {
+      const res = await fetch(`https://${props.host}/info`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  });
+
+  return (
+    <Show
+      when={info()}
+      fallback={
+        <div class="embed_card server_invite x">
+          <div class="col fill">
+            <div class="embed_title">{props.host}</div>
+            <div class="embed_url">This server may be down</div>
+          </div>
+          <button
+            class="server_invite_join"
+            onClick={() => switchToChannel(props.host, null)}
+          >
+            Join
+          </button>
+        </div>
+      }
+    >
+      {(data) => (
+        <div class="embed_card server_invite x">
+          <img src={data().server?.icon} alt="" class="server_invite_icon" />
+          <div class="col fill">
+            <div class="embed_title">{data().server?.name}</div>
+            <div class="embed_url">
+              {data().stats?.total_users} members • {data().stats?.online_users}{" "}
+              online
+            </div>
+          </div>
+          <button
+            class="server_invite_join"
+            onClick={() => switchToChannel(props.host, null)}
+          >
+            Join
+          </button>
+        </div>
+      )}
+    </Show>
+  );
 }
 
 function readMaskedLink(text, start) {
@@ -110,8 +161,6 @@ export function Embed(props) {
     </a>
   );
 }
-
-import { createResource, Show } from "solid-js";
 
 function EmbeddedLink(props) {
   const [info] = createResource(async () => {
@@ -340,18 +389,21 @@ function renderToken(token, depth = 0) {
         let threadName = null;
         let parentChannel = token.name;
         for (const ch of channels) {
-          const match = ch.threads?.find(t => t.id === token.threadId);
+          const match = ch.threads?.find((t) => t.id === token.threadId);
           if (match) {
             threadName = match.name;
             parentChannel = ch.name;
             break;
           }
         }
-        const isCurrentServer = token.host && tempState.conn?.serverInfo?.()?.src === token.host;
-        const label = threadName ? `#${parentChannel} • ${threadName}` : `#${token.name} • ${token.threadId}`;
+        const isCurrentServer =
+          token.host && tempState.conn?.serverInfo?.()?.src === token.host;
+        const label = threadName
+          ? `#${parentChannel} • ${threadName}`
+          : `#${token.name} • ${token.threadId}`;
         if (isCurrentServer) {
           return (
-          <a
+            <a
               key={key}
               href="#"
               class="channel_link"
@@ -366,20 +418,22 @@ function renderToken(token, depth = 0) {
         }
         if (token.host) {
           return (
-          <a
+            <a
               key={key}
               href={`https://${token.host}/${token.name}/${token.threadId}`}
               target="_blank"
               rel="noopener noreferrer"
               class="channel_link"
             >
-              #{token.host}/{parentChannel}{threadName ? ` • ${threadName}` : ` • ${token.threadId}`}
+              #{token.host}/{parentChannel}
+              {threadName ? ` • ${threadName}` : ` • ${token.threadId}`}
             </a>
           );
         }
         return label;
       }
-      const isCurrentServer = token.host && tempState.conn?.serverInfo?.()?.src === token.host;
+      const isCurrentServer =
+        token.host && tempState.conn?.serverInfo?.()?.src === token.host;
       if (isCurrentServer) {
         return (
           <a
@@ -412,9 +466,9 @@ function renderToken(token, depth = 0) {
           </a>
         );
       }
-      const available = tempState.conn?.channels?.()?.some(
-        (x) => x.name === token.name
-      );
+      const available = tempState.conn
+        ?.channels?.()
+        ?.some((x) => x.name === token.name);
       if (available) {
         return (
           <a
@@ -432,6 +486,9 @@ function renderToken(token, depth = 0) {
       }
       return `#${token.name}`;
     }
+
+    case "serverInvite":
+      return <ServerInviteEmbed key={key} host={token.host} />;
 
     case "mention":
       return (

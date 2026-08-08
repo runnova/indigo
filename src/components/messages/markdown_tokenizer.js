@@ -375,9 +375,9 @@ function tryParseChannel(text, i) {
   const raw = text.slice(i + 'originChats://'.length, j);
   const parts = raw.split('/');
 
-  if (parts.length === 1) {
+  if (parts.length === 1 && /^[a-zA-Z0-9.-]+$/.test(parts[0])) {
     return {
-      token: { type: 'channel', name: parts[0] },
+      token: { type: 'serverInvite', host: parts[0] },
       end: j
     };
   }
