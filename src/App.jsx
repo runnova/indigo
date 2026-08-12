@@ -74,8 +74,7 @@ export const [emojiPicker, setEmojiPicker] = createStore({
 
 const defaultState = {
   servers: [
-    { src: "dms.mistium.com", icon: null, name: "dms" },
-    { src: "chats.mistium.com", icon: null, name: "sopher" },
+    { src: "dms.mistium.com", icon: null, name: "dms" }
   ],
   serverGroups: [],
   current: {
