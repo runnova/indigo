@@ -2,6 +2,7 @@ import { For, createResource, Show } from "solid-js";
 import { setState, state, tempState } from "../../App";
 import { setPreview } from "../../App";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
+import { twemojiUrl } from "./twemoji.js";
 const markdownCache = new Map();
 
 import { switchToChannel } from "../../App";
@@ -312,6 +313,22 @@ function renderToken(token, depth = 0) {
           alt=""
         />
       );
+
+    case "nativeEmoji": {
+      if (!state.settings.twemoji) {
+        return token.char;
+      }
+      return (
+        <img
+          key={key}
+          class="inline_emoji twemoji"
+          src={twemojiUrl(token.char)}
+          alt={token.char}
+          draggable={false}
+          loading="lazy"
+        />
+      );
+    }
     case "newline":
       return <br key={key} />;
     case "sticker":
@@ -626,6 +643,19 @@ export function parseMarkdown(input) {
               class="inline_emoji big_emoji"
               src={`https://${match[1]}/emojis/${match[2]}`}
               alt=""
+            />
+          );
+        }
+
+        if (state.settings.twemoji && /\p{Extended_Pictographic}/u.test(token)) {
+          return (
+            <img
+              key={getKey()}
+              class="inline_emoji big_emoji twemoji"
+              src={twemojiUrl(token)}
+              alt={token}
+              draggable={false}
+              loading="lazy"
             />
           );
         }

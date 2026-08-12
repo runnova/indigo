@@ -4,7 +4,7 @@ import { timeAgo } from "../../Utility"
 
 async function fetchServers() {
   const response = await fetch(
-    "https://originchats.mistium.com/discovery.json"
+    "https://originchats.com/discovery.json"
   );
 
   if (!response.ok) {

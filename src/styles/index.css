@@ -834,8 +834,8 @@ span.channel_badge {
 
             & > *,
             & > * > * {
-                width: 40px;
-                height: 40px;
+                width: 30px;
+                height: 30px;
                 font-size: 20px;
                 margin: 0.2em;
             }

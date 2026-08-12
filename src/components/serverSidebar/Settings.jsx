@@ -77,6 +77,10 @@ function GeneralSettings() {
         <SettingCheckbox setting="parseMarkdown" />
       </div>
       <div class="settings_item x">
+        <div class="settings_section_label">Use twemoji instead of system emojis</div>
+        <SettingCheckbox setting="twemoji" />
+      </div>
+      <div class="settings_item x">
         <div class="settings_section_label">Temporarily keep deleted messages</div>
         <SettingCheckbox setting="messageLogger" />
       </div>

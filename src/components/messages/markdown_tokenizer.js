@@ -17,6 +17,33 @@ function consumeWhile(text, i, predicate) {
   return i;
 }
 
+const SHORTCODE_EMOJI_MAP = {
+  sob: "😭",
+  wilted_rose: "🥀",
+  joy: "😂",
+  heart: "❤️",
+  fire: "🔥",
+  thumbsup: "👍",
+  thumbsdown: "👎",
+  eyes: "👀",
+  skull: "💀",
+  cry: "😢",
+  laughing: "😆",
+  smile: "😄",
+  wave: "👋",
+  clap: "👏",
+  pray: "🙏",
+  tada: "🎉",
+  100: "💯",
+  rose: "🌹",
+  broken_heart: "💔",
+  thinking: "🤔",
+  wink: "😉",
+};
+
+const NATIVE_EMOJI_REGEX =
+  /^(?:\p{Extended_Pictographic}(?:\uFE0F)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F)?)*)/u;
+
 function parseInlineContent(text, start = 0, endMarker = null) {
   const tokens = [];
   let i = start;
@@ -93,6 +120,13 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
+    const shortcodeEmojiMatch = tryParseShortcodeEmoji(text, i);
+    if (shortcodeEmojiMatch) {
+      tokens.push(shortcodeEmojiMatch.token);
+      i = shortcodeEmojiMatch.end;
+      continue;
+    }
+
     const stickerMatch = tryParseSticker(text, i);
     if (stickerMatch) {
       tokens.push(stickerMatch.token);
@@ -118,6 +152,13 @@ function parseInlineContent(text, start = 0, endMarker = null) {
     if (mentionMatch) {
       tokens.push(mentionMatch.token);
       i = mentionMatch.end;
+      continue;
+    }
+
+    const nativeEmojiMatch = tryParseNativeEmoji(text, i);
+    if (nativeEmojiMatch) {
+      tokens.push(nativeEmojiMatch.token);
+      i = nativeEmojiMatch.end;
       continue;
     }
 
@@ -167,6 +208,8 @@ function isSpecialChar(text, i) {
   if (char === '\n') return true;
   if (char === "<" && text.startsWith("<t:", i)) return true;
   if (char === "#") return true;
+  if (char === ':' && /^:[a-zA-Z0-9_+-]+:/.test(text.slice(i))) return true;
+  if (NATIVE_EMOJI_REGEX.test(text.slice(i))) return true;
 
   return false;
 }
@@ -338,6 +381,36 @@ function tryParseEmoji(text, i) {
   return {
     token: { type: 'emoji', host, id },
     end: j
+  };
+}
+
+// :shortcode: -> nativeEmoji token (converted to unicode char, rendered as twemoji when enabled)
+function tryParseShortcodeEmoji(text, i) {
+  if (text[i] !== ':') return null;
+
+  const match = text.slice(i).match(/^:([a-zA-Z0-9_+-]+):/);
+  if (!match) return null;
+
+  const name = match[1].toLowerCase();
+  const char = SHORTCODE_EMOJI_MAP[name];
+
+  if (!char) return null;
+
+  return {
+    token: { type: 'nativeEmoji', char, shortcode: name },
+    end: i + match[0].length
+  };
+}
+
+function tryParseNativeEmoji(text, i) {
+  const slice = text.slice(i);
+  const match = slice.match(NATIVE_EMOJI_REGEX);
+
+  if (!match || !match[0]) return null;
+
+  return {
+    token: { type: 'nativeEmoji', char: match[0] },
+    end: i + match[0].length
   };
 }
 

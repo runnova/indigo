@@ -108,6 +108,7 @@ const defaultState = {
     thirdBarWidth: 320,
     displayChannelName: true,
     parseMarkdown: true,
+    twemoji:true,
   },
 };
 export const [unreads, setUnreads] = createStore({

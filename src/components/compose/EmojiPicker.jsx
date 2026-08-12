@@ -10,7 +10,8 @@ import './emojiPicker.css'
 import { HiOutlineMagnifyingGlass, HiOutlineSparkles } from "solid-icons/hi";
 
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
-import { tempState } from "../../App.jsx";
+import { tempState, state } from "../../App.jsx";
+import { twemojiUrl } from "../messages/twemoji.js";
 
 let searchInput;
 
@@ -338,7 +339,19 @@ export default function EmojiPicker(props) {
                 >
                   <Show
                     when={emoji.custom}
-                    fallback={emoji.emoji}
+                    fallback={
+                      state.settings.twemoji ? (
+                        <img
+                          class="twemoji"
+                          src={twemojiUrl(emoji.emoji)}
+                          alt={emoji.emoji}
+                          draggable={false}
+                          loading="lazy"
+                        />
+                      ) : (
+                        emoji.emoji
+                      )
+                    }
                   >
                     <img
                       src={`https://${props.src}/emojis/${emoji.id}`}
