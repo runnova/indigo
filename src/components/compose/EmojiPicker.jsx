@@ -4,9 +4,9 @@ import {
   For,
   Show,
   createEffect,
-  onMount
+  onMount,
 } from "solid-js";
-import './emojiPicker.css'
+import "./emojiPicker.css";
 import { HiOutlineMagnifyingGlass, HiOutlineSparkles } from "solid-icons/hi";
 
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
@@ -25,13 +25,10 @@ const GROUP_ICONS = {
   6: "💡",
   7: "👓",
   8: "⚠️",
-  9: "🏴"
+  9: "🏴",
 };
 
-const CUSTOM_GROUP = "custom";
-
-const GROUPS = [...new Set(emojis.map(e => e.group))]
-  .sort((a, b) => a - b);
+const GROUPS = [...new Set(emojis.map((e) => e.group))].sort((a, b) => a - b);
 
 export default function EmojiPicker(props) {
   const [query, setQuery] = createSignal("");
@@ -49,7 +46,7 @@ export default function EmojiPicker(props) {
     if (tags().length) return;
 
     const res = await fetch(
-      "https://gifs.originchats.com/api/gifs/tags?limit=50"
+      "https://gifs.originchats.com/api/gifs/tags?limit=50",
     );
 
     const data = await res.json();
@@ -89,7 +86,7 @@ export default function EmojiPicker(props) {
     if (offset() === 0) {
       setGifs(data.gifs ?? []);
     } else {
-      setGifs(prev => [...prev, ...(data.gifs ?? [])]);
+      setGifs((prev) => [...prev, ...(data.gifs ?? [])]);
     }
 
     setGifLoading(false);
@@ -102,16 +99,46 @@ export default function EmojiPicker(props) {
     setOffset(0);
   });
 
-  const customEmojis = createMemo(() => {
-    const list = tempState.conn?.emojis?.();
+  const emojiServers = createMemo(() => {
+      return state.servers.map((server) => ({
+        src: server.src,
+        name: server.name ?? server.src,
+        icon: server.icon ?? null,
+      }));
+    });
 
-    if (!list) return [];
+    const [customServer, setCustomServer] = createSignal(null);
 
-    return Object.entries(list).map(([id, emoji]) => ({
-      id,
-      ...emoji
-    }));
-  });
+    const activeCustomServer = createMemo(() => {
+      return (
+        customServer() ??
+        tempState.conn?.serverInfo?.()?.src ??
+        emojiServers()[0]?.src ??
+        null
+      );
+    });
+
+    const customEmojisFor = (src) => {
+      const list = tempState.serverEmojis?.[src];
+
+      if (!list) return [];
+
+      if (Array.isArray(list)) {
+        return list.map((emoji) => ({
+          custom: true,
+          src,
+          id: emoji.id,
+          name: emoji.name,
+        }));
+      }
+
+      return Object.entries(list).map(([id, emoji]) => ({
+        custom: true,
+        src,
+        id,
+        ...emoji,
+      }));
+    };
 
   const grouped = createMemo(() => {
     const map = new Map();
@@ -131,28 +158,32 @@ export default function EmojiPicker(props) {
     const q = query().trim().toLowerCase();
 
     if (!q) {
-      if (group() === CUSTOM_GROUP) {
-        return customEmojis().map(e => ({
-          custom: true,
-          id: e.id,
-          name: e.name
-        }));
+      if (group() === "custom") {
+        return customEmojisFor(activeCustomServer());
       }
 
       return grouped().get(group()) ?? [];
     }
 
-    return emojis.filter((emoji) => {
+    const unicodeMatches = emojis.filter((emoji) => {
       const searchable = [
         emoji.annotation,
         ...(emoji.tags ?? []),
-        ...(emoji.shortcodes ?? [])
+        ...(emoji.shortcodes ?? []),
       ]
         .join(" ")
         .toLowerCase();
 
       return searchable.includes(q);
     });
+
+    const customMatches = emojiServers().flatMap((server) =>
+      customEmojisFor(server.src).filter((e) =>
+        (e.name ?? "").toLowerCase().includes(q),
+      ),
+    );
+
+    return [...customMatches, ...unicodeMatches];
   });
 
   return (
@@ -184,9 +215,7 @@ export default function EmojiPicker(props) {
           ref={searchInput}
           type="text"
           placeholder={
-            tab() === "emoji"
-              ? "Search emojis..."
-              : "Search GIFs..."
+            tab() === "emoji" ? "Search emojis..." : "Search GIFs..."
           }
           value={query()}
           onInput={(e) => setQuery(e.currentTarget.value)}
@@ -196,7 +225,9 @@ export default function EmojiPicker(props) {
             title="I'm feeling lucky"
             onClick={async () => {
               try {
-                const res = await fetch("https://gifs.originchats.com/api/gifs/random");
+                const res = await fetch(
+                  "https://gifs.originchats.com/api/gifs/random",
+                );
                 const { gif } = await res.json();
 
                 if (gif?.url) {
@@ -229,7 +260,7 @@ export default function EmojiPicker(props) {
                     {(tag) => (
                       <button
                         classList={{
-                          active: selectedTag() === tag.tag
+                          active: selectedTag() === tag.tag,
                         }}
                         onClick={() => setSelectedTag(tag.tag)}
                       >
@@ -248,21 +279,15 @@ export default function EmojiPicker(props) {
                   <option value="likes">Most Liked</option>
                 </select>
               </div>
-
             </Show>
             <div class="gif_grid">
-              <Show
-                when={!gifLoading()}
-                fallback={<div>Loading...</div>}
-              >
+              <Show when={!gifLoading()} fallback={<div>Loading...</div>}>
                 <For each={gifs()}>
                   {(gif) => (
                     <button
                       class="gif_button"
                       onClick={() =>
-                        props.onSelect(
-                          "https://gifs.originchats.com" + gif.url
-                        )
+                        props.onSelect("https://gifs.originchats.com" + gif.url)
                       }
                     >
                       <img
@@ -291,17 +316,28 @@ export default function EmojiPicker(props) {
         <div class="x fill">
           <Show when={!query().trim()}>
             <div class="emoji_categories y">
-              <button
-                type="button"
-                class="emoji_category"
-                classList={{
-                  active: group() === CUSTOM_GROUP
-                }}
-                title="Custom emojis"
-                onClick={() => setGroup(CUSTOM_GROUP)}
-              >
-                ⭐
-              </button>
+              <For each={emojiServers()}>
+                {(server) => (
+                  <button
+                    type="button"
+                    class="emoji_category"
+                    classList={{
+                      active:
+                        group() === "custom" &&
+                        activeCustomServer() === server.src,
+                    }}
+                    title={server.name}
+                    onClick={() => {
+                      setCustomServer(server.src);
+                      setGroup("custom");
+                    }}
+                  >
+                    <Show when={server.icon} fallback={server.name?.[0] ?? "?"}>
+                      <img src={server.icon} alt="" />
+                    </Show>
+                  </button>
+                )}
+              </For>
 
               <For each={GROUPS}>
                 {(id) => (
@@ -309,7 +345,7 @@ export default function EmojiPicker(props) {
                     type="button"
                     class="emoji_category"
                     classList={{
-                      active: group() === id
+                      active: group() === id,
                     }}
                     title={`Group ${id}`}
                     onClick={() => setGroup(id)}
@@ -331,11 +367,10 @@ export default function EmojiPicker(props) {
                   onClick={() => {
                     props.onSelect(
                       emoji.custom
-                        ? `originChats:<emoji>//${tempState.conn.serverInfo().src}/${emoji.id}`
-                        : emoji.emoji
-                    )
-                  }
-                  }
+                        ? `originChats:<emoji>//${emoji.src}/${emoji.id}`
+                        : emoji.emoji,
+                    );
+                  }}
                 >
                   <Show
                     when={emoji.custom}
@@ -354,7 +389,7 @@ export default function EmojiPicker(props) {
                     }
                   >
                     <img
-                      src={`https://${props.src}/emojis/${emoji.id}`}
+                      src={`https://${emoji.src}/emojis/${emoji.id}`}
                       alt={emoji.name}
                     />
                   </Show>

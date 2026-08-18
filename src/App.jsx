@@ -28,9 +28,7 @@ import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
 import {
-  VirtualMessageList,
-  getMessageById,
-  addFakeMessage,
+  VirtualMessageList
 } from "./scrolling";
 import { ForumView } from "./components/forumView/ForumView";
 
@@ -39,6 +37,7 @@ import {
   useServerConnection,
   ensureConnected,
   connections,
+  serverEmojis,
 } from "./core/server_connection.jsx";
 import MediaPreview from "./components/MediaPreview";
 import useAppInitialization from "./core/useAppInitialization.js";
@@ -46,14 +45,9 @@ import useAppInitialization from "./core/useAppInitialization.js";
 import { Rotur } from "rotur-sdk";
 import "./themeManager";
 import {
-  addTheme,
-  removeTheme,
-  listThemes,
-  resetThemes,
-  quickCss,
-  setQuickCss,
+  addTheme
 } from "./themeManager";
-addTheme("/themes/fun.css");
+addTheme(`${import.meta.env.BASE_URL}themes/fun.css`);
 
 import "https://embed.rotur.dev/embed.js";
 import { VoiceChannelView } from "./components/voiceChannel/VoiceChannelView.jsx";
@@ -181,6 +175,11 @@ createEffect(() => {
 });
 
 export var tempState = {};
+
+createEffect(() => {
+  tempState.serverEmojis = { ...serverEmojis };
+});
+
 window.tempState = tempState;
 window.state = state;
 
@@ -451,6 +450,17 @@ function App() {
         setShowLoader(false);
       }, 300);
     }
+  });
+
+  createEffect(() => {
+    // collect emojis from all connections
+    const emojiMap = {};
+
+    for (const [src, connection] of connections.entries()) {
+      emojiMap[src] = connection.state.emojis ?? [];
+    }
+
+    tempState.serverEmojis = emojiMap;
   });
 
   function selectServer(server) {

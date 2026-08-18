@@ -463,7 +463,7 @@ export function createChannelMessages({
     if (event.cmd === "messages_around") return handleMessagesAround(event);
     if (event.cmd === "message_new") return handleMessageNew(event);
     if (event.cmd === "message_edit") return handleMessageEdit(event);
-    if (event.cmd === "message_react_add") return handleReactionAdd(event);
+    if (event.cmd === "reaction_add") return handleReactionAdd(event);
     if (event.cmd === "message_delete") return handleMessageDelete(event);
   }
 

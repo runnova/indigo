@@ -83,26 +83,26 @@ export default function MemberProfile(props) {
                 alt=""
                 class="pfp"
               />
-
               <img
-                src={`https://avatars.rotur.dev/.overlay/${props.username}`}
+                src={`https://api.rotur.dev/cosmetics/overlays/${profile()?.status?.data?.overlay}.gif`}
                 alt=""
                 class="overlay"
               />
             </div>
 
-            <div class="data y" style={{ "margin-top": ".5em" }}>
+            <div class="data y" style={{ "margin": ".5em 0wa" }}>
               <div class="x" style={{
                 "font-size": "1.5em",
                 "flex-wrap": "wrap",
                 "align-items": "center",
                 "overflow-wrap": "anywhere"
               }}>
-                <span onClick={() => window.open("https://rotur.dev/profile/" + profile()?.username)} class="username_clickable" style={{ "margin-right": ".3em" }}>{profile()?.username}</span>
+                <span onClick={() => window.open("https://rotur.dev/profile/" + profile()?.username)} class="username_clickable" style={{ "margin-right": ".3em" }}>{profile()?.display_name || profile()?.username}</span>
                 <small style={{ "font-size": "14px" }}>
                   {profile()?.pronouns}
                 </small>
               </div>
+              <span style={{"font-size": "small", "margin-bottom": ".3em"}}>{(profile()?.display_name) ? profile()?.username : ""}</span>
 
               <div class="data_buttons x" style={{ "font-size": "small" }}>
                 {profile()?.group_tag ? (<button onClick={() => { window.open(`https://rotur.dev/groups/${profile()?.group_tag}`) }}>
@@ -151,7 +151,7 @@ export default function MemberProfile(props) {
                       style={{
                         "white-space": "pre-wrap",
                         "max-height": "150px",
-                        "overflow-y": "scroll"
+                        "overflow-y": "auto"
                       }}
                     >
                       {parseMarkdown(p().bio)}

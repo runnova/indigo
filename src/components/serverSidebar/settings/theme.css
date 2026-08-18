@@ -44,7 +44,7 @@
 
     & .getbtn {
       background-color: var(--green);
-      color: white;
+      color: var(--fg-one);
       border-radius: var(--br-mid);
       padding: .3em 1em;
       font-size: medium;
@@ -122,7 +122,7 @@
 
     & .getbtn {
       background-color: var(--green);
-      color: white;
+      color: var(--fg-one);
       border-radius: var(--br-mid);
       padding: .3em 1em;
       font-size: medium;

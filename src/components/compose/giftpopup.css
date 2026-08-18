@@ -80,7 +80,7 @@
   border: none;
   border-radius: 8px;
   background: var(--hl-one);
-  color: white;
+  color: var(--fg-one);
   font: inherit;
   font-weight: 600;
   cursor: pointer;

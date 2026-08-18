@@ -1,12 +1,3 @@
-/**
- * attachmentStore.js
- *
- * Global attachment queue, usable from anywhere (not just MessageComposer).
- * Pulls the current server + validator_key from App state / connections map
- * at upload time, since validator_key is per-server handshake data, not
- * something that should be passed in as a prop.
- */
-
 import { createStore } from "solid-js/store";
 import { state } from "../../App";
 import { connections, fetchRoturValidator } from "../../core/server_connection";
@@ -31,11 +22,6 @@ export function clearAttachments() {
   setAttachments([]);
 }
 
-/**
- * Uploads a single file to the *currently active* server.
- * If you need to target a specific server (not the active one),
- * pass its `src` explicitly as the third arg.
- */
 async function uploadAttachment(id, file, serverSrc) {
   const src = serverSrc ?? state.current?.server?.src;
 

@@ -1,4 +1,3 @@
-// channelAutocomplete.js
 import { createSignal } from "solid-js";
 import { tempState } from "../../App";
 

@@ -107,3 +107,10 @@
   background: var(--surface, #2b2b2b);
   color: inherit;
 }
+
+.emoji_category img {
+    aspect-ratio: 1 / 1;
+    width: 18pt;
+    transform: scale(1.2);
+    border-radius: var(--br-tiny);
+}

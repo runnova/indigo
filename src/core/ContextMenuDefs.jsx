@@ -40,29 +40,48 @@ SystemContextMenu.init([
         fn: (el) => el.click(),
       },
       {
-        label: "Remove",
+        label: "Leave server",
         icon: HiOutlineTrash,
         fn: (el) => {
           removeServer(el.dataset.src);
         },
       },
       {
-        label: "Reload icon",
-        icon: HiOutlineArrowPath,
-        fn: (el) => {
-          const img = el.closest(".server_icon");
-          if (!img) return;
-
-          const url = new URL(img.src);
-          url.searchParams.set("_", Date.now());
-
-          img.src = url.toString();
-        },
-      },
-      {
         label: "Reconnect",
         icon: HiOutlineArrowPath,
         fn: (el) => reconnectServer(el.dataset.src),
+      },
+      {
+        label: "Advanced",
+        icon: HiOutlineChatBubbleLeftRight,
+        actions: [
+          {
+            label: "Silent leave",
+            icon: HiOutlineTrash,
+            fn: (el) => {
+              const msg = getMessageById(el.dataset.id);
+              console.log(el.dataset.id, msg);
+              addFakeMessage({
+                user: "Indigo",
+                avatar: "/icon_small.svg",
+                content: `\`\`\`json\n${JSON.stringify(msg, null, 2)}\n\`\`\`\n-# Only you can see this.`,
+              });
+            },
+          },
+          {
+            label: "Reload icon",
+            icon: HiOutlineArrowPath,
+            fn: (el) => {
+              const img = el.closest(".server_icon");
+              if (!img) return;
+
+              const url = new URL(img.src);
+              url.searchParams.set("_", Date.now());
+
+              img.src = url.toString();
+            },
+          },
+        ],
       },
     ],
   },

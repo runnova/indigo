@@ -10,7 +10,7 @@
       height: 5px;
       bottom: 0px;
       left: 19px;
-      background-color: white;
+      background-color: var(--fg-one);
       filter: blur(4px);
     }
   }

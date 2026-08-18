@@ -550,6 +550,7 @@ iframe#rotur-auth {
         content-visibility: auto;
         contain-intrinsic-size: 41.38px;
         max-width: calc(100% - 0.4em);
+        margin: 0 0.3em;
 
         & * {
             overflow: hidden;
@@ -831,13 +832,31 @@ span.channel_badge {
         & .emoji_grid {
             flex: 1;
             overflow-y: auto;
+            display: grid;
+            gap: .5em;
+            grid-template-columns: repeat(auto-fill, 30px);
+            padding: 0 1em;
+            align-content: start;
+            content-visibility: auto;
+            contain-intrinsic-size: 30px 30px;
 
-            & > *,
-            & > * > * {
+            & > * {
+                position: relative;
                 width: 30px;
                 height: 30px;
-                font-size: 20px;
-                margin: 0.2em;
+                & > * {
+                    font-size: 20px;
+                    height: 100%;
+                    width: 100%;
+                    margin: 0.2em;
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    &:hover {
+                        border-radius: .2em;
+                        background-color: var(--diff-one);
+                    }
+                }
             }
         }
     }
@@ -852,6 +871,12 @@ span.channel_badge {
             border-radius: var(--br-mid);
             aspect-ratio: 1 / 1;
             font-size: 20px;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            &:hover {
+                background-color: var(--diff-one);
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 import { createSignal } from "solid-js";
 import { state, setState, unreads, setUnreads, setLoaded } from "../App"
+import { createStore } from "solid-js/store";
 
+export const [serverEmojis, setServerEmojis] = createStore({});
 
 export const connections = new Map();
 
@@ -405,10 +407,11 @@ function handlePacket(connection, packet) {
       syncActive(connection);
       break;
 
-    case "emoji_list":
-      connection.state.emojis = packet.emojis ?? [];
-      syncActive(connection);
-      break;
+      case "emoji_list":
+        connection.state.emojis = packet.emojis ?? [];
+        setServerEmojis(connection.src, connection.state.emojis);
+        syncActive(connection);
+        break;
 
     case "users_list":
       connection.state.members =
