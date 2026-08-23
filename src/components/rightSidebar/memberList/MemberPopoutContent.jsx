@@ -63,6 +63,20 @@ export default function MemberProfile(props) {
           </div>
         </Show>
         <div classList={{ "popup_content": true, loading: profile.loading }}>
+          <video
+            src={`https://avatars.rotur.dev/.backgrounds/${props.username}`}
+            autoplay
+            loop
+            playsinline
+            aria-hidden="true"
+            class="profile_video_background"
+            style="opacity: 0.65; filter: brightness(0.45);"
+            onError={(e) => {
+              if (profile()?.system === "orion") {
+                e.currentTarget.src = "https://cdn.pixabay.com/video/2022/05/24/117923-713330886.mp4";
+              }
+            }}
+          />
           <img
             src={`https://avatars.rotur.dev/.banners/${props.username}`}
             alt=""

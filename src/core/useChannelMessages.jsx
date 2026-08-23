@@ -407,8 +407,7 @@ export function createChannelMessages({
       produce(messages => {
         const message = messages.find(m => m.id === event.id);
         if (!message) return;
-
-        message.content = event.content;
+        message.content = event.message.content;
         message.edited = true;
       })
     );

@@ -140,9 +140,10 @@ export function Embed(props) {
 
         {embed.title && <div class="embed_title">{embed.title}</div>}
 
+        {/* FIXED: Use renderTokens instead of parseMarkdown to avoid circular loop */}
         {embed.description && (
           <div class="embed_description">
-            {parseMarkdown(embed.description)}
+            {renderTokens(tokenizeMarkdown(embed.description))}
           </div>
         )}
 
@@ -294,7 +295,6 @@ function renderToken(token, depth = 0) {
 
     case "url": {
       const provider = getEmbedProvider(token.url);
-      console.log("provider found:", provider);
       if (provider) {
         const Custom = provider.Component;
         return <Custom key={key} url={token.url} />;
@@ -608,6 +608,25 @@ function renderToken(token, depth = 0) {
   }
 }
 
+function renderTokens(tokens) {
+  keyCounter = 0;
+  const parts = [];
+
+  tokens?.forEach((token, i) => {
+    const rendered = renderToken(token);
+    if (rendered) {
+      parts.push(rendered);
+    }
+
+    if (token.type === "paragraph" && i !== tokens.length - 1) {
+      parts.push(<br key={getKey()} />);
+      parts.push(<br key={getKey()} />);
+    }
+  });
+
+  return parts;
+}
+
 function isBigEmojiMessage(input) {
   if (!input) return;
   const trimmed = input.trim();
@@ -668,22 +687,5 @@ export function parseMarkdown(input) {
       });
   }
 
-  keyCounter = 0;
-
-  const tokens = tokenizeMarkdown(input);
-  const parts = [];
-
-  tokens.forEach((token, i) => {
-    const rendered = renderToken(token);
-    if (rendered) {
-      parts.push(rendered);
-    }
-
-    if (token.type === "paragraph" && i !== tokens.length - 1) {
-      parts.push(<br key={getKey()} />);
-      parts.push(<br key={getKey()} />);
-    }
-  });
-
-  return parts;
+  return renderTokens(tokenizeMarkdown(input));
 }

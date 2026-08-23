@@ -6,6 +6,7 @@ import {
   HiOutlineArrowDownTray,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineDocument,
+  HiOutlinePencil,
   HiOutlineXMark,
 } from "solid-icons/hi";
 
@@ -180,7 +181,8 @@ export function Message(props) {
 
           <Show
             when={props.editing}
-            fallback={<div class="message_text">{rendered()}</div>}
+            fallback={<div class="message_text">{rendered()}
+              {props.edited && <HiOutlinePencil />}</div>}
           >
             <textarea
               class="message_edit_textarea"

@@ -33,6 +33,7 @@ import {
 import Autocomplete from "./Autocomplete";
 import { createMentionAutocomplete } from "./mentionAutocomplete";
 import { createChannelAutocomplete } from "./channelAutocomplete";
+import { sendMessage, sendSlashCall } from "../../core/useMessageSigning";
 
 import GiftPopup from "./GiftPopup";
 
@@ -60,7 +61,12 @@ export default function MessageComposer(props) {
     sendSlash,
   } = createSlashCommands();
 
-  const handleSlashSend = () => sendSlash(props.channel, textarea);
+  const handleSlashSend = async () => {
+    const result = sendSlash(props.channel, textarea);
+    if (result?.command && result?.args) {
+      await sendSlashCall(result.command, result.args);
+    }
+  };
 
   let slashNav = {
     moveNext: () => {},
@@ -419,7 +425,8 @@ export default function MessageComposer(props) {
                   return;
                 }
 
-                props.onSend(
+                // CHANGED: Call sendMessage() which handles signing internally
+                sendMessage(
                   content,
                   attachments
                     .filter((a) => a.uploaded)

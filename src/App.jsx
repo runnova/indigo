@@ -58,6 +58,7 @@ import ContextMenu from "./components/Contextmenu.jsx";
 import "./core/ContextMenuDefs.jsx";
 
 import Spotlight from "./components/spotlight/Spotlight.jsx";
+import { updateClockOffset } from "./core/useMessageSigning.js";
 
 export const [emojiPicker, setEmojiPicker] = createStore({
   open: false,
@@ -264,6 +265,8 @@ export async function switchToChannel(server, channel, threadId) {
 export const [thirdBarCollapsed, setThirdBarCollapsed] = createSignal(false);
 function App() {
   conn = useServerConnection();
+
+  tempState.conn = conn;
   bindVoiceEvents(conn);
 
   onMount(() => {
@@ -484,6 +487,15 @@ function App() {
       });
     }
   }
+
+  createEffect(() => {
+    if (conn.status() !== "ready") return;
+
+    const handshake = conn.handshake?.val;
+    if (handshake?.server_time) {
+      updateClockOffset(handshake.server_time, Date.now());
+    }
+  });
 
   function selectChannel(channelName) {
     setState("current", "channel", channelName);
@@ -782,20 +794,6 @@ function App() {
                         <MessageComposer
                           channel={state.current.channel}
                           thread={state.current.thread}
-                          onSend={(content, attachments) => {
-                            conn.send({
-                              cmd: "message_new",
-                              channel: state.current.channel,
-                              thread: state.current.thread?.id,
-                              content,
-                              attachments,
-                              ...(state.replying && {
-                                reply_to: state.replying.id,
-                              }),
-                            });
-
-                            if (state.replying) setState("replying", null);
-                          }}
                         />
                       </>
                     )}

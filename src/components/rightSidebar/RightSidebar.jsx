@@ -33,7 +33,7 @@ export default function RightSidebar(props) {
           width: thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
           "min-width": thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
           "max-width": thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
-          overflow: "hidden",
+          "overflow-x": "hidden",
           "border-left": thirdBarCollapsed() ? "none" : undefined,
         }}
       >

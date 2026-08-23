@@ -140,15 +140,15 @@ function GiftEmbed(props) {
 }
 
 registerEmbedProvider({
-  test: (url) => url.includes("beam.rotur.dev/#beam="),
+  test: (url) => url?.includes("beam.rotur.dev/#beam="),
   Component: BeamEmbed,
 });
 registerEmbedProvider({
-  test: (url) => url.includes("rotur.dev/gift?code="),
+  test: (url) => url?.includes("rotur.dev/gift?code="),
   Component: GiftEmbed,
 });
 registerEmbedProvider({
-  test: (url) => url.includes("rotur.dev/gift/"),
+  test: (url) => url?.includes("rotur.dev/gift/"),
   Component: GiftEmbed,
 });
 
