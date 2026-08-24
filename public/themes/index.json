@@ -40,6 +40,16 @@
     "type": "theme"
   },
   {
+    "id": "oxygen",
+    "name": "Oxygen light",
+    "author": "darkdot & stormy",
+    "version": "1.0.0",
+    "description": "A semi realistic light theme inspired by KDE oxygen",
+    "file": "oxygen.css",
+    "preview": "#f0f0f0",
+    "type": "theme"
+  },
+  {
     "id": "aqua",
     "name": "Aqua",
     "author": "darkdot",

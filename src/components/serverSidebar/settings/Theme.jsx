@@ -1,6 +1,6 @@
 import { For, createSignal, onMount } from "solid-js";
 import "./theme.css";
-import { HiOutlineCheck, HiOutlineMagnifyingGlass } from "solid-icons/hi";
+import { HiOutlineMagnifyingGlass } from "solid-icons/hi";
 
 import { addTheme, removeTheme, listThemes, resetThemes } from "../../../themeManager";
 
@@ -136,10 +136,6 @@ export default function ThemeSettings() {
                 </div>
 
                 <div class="mod-action x">
-                  <div class="price">
-                    {isEnabled(theme) && <HiOutlineCheck />}
-                  </div>
-
                   <input
                     type="button"
                     class="getbtn"
@@ -172,10 +168,6 @@ export default function ThemeSettings() {
                     </div>
 
                     <div class="col x buyCont">
-                      <div class="price">
-                        {isEnabled(theme) && <HiOutlineCheck />}
-                      </div>
-
                       <input
                         type="button"
                         class="getbtn"

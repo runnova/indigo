@@ -1,0 +1,39 @@
+:root {
+    --bg-one: #f0f0f0;
+    --bg-two: #DEDAD6;
+    --bg-three: #D7CFCF;
+    --bg-four: #ffffff;
+    --hl-one: #47A9E8;
+    --hl-two: #47A9E8;
+    --hl-three: #1678b8;
+    --hl-four: #47A9E8;
+    --border: 0px 0px 0 1px rgb(255 255 255 / 20%);
+    --fg-one: #000000;
+    --fg-two: #000000;
+    --fg-dim: #000000b7;
+    --fg-three: rgb(254 164 255);
+}
+
+.server_single,
+.server_group,
+.inpgrp button,
+.text_box,
+.user_display,
+.picker_tabs button,
+.channel_item--active
+{
+    box-shadow:
+        0 -1px 10px #ffffffab inset,
+        0 2px 0px #00000038 !important;
+}
+
+.server_group  {
+    border-radius: var(--br-mid);
+    & .server_single {
+        box-shadow: none;
+    }
+}
+
+.topbar, .member_popout, .message-actions, .searchbox {
+    box-shadow: 0 -1px 10px #ffffffab inset, 0 2px 0px #00000038;
+}

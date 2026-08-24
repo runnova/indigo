@@ -501,7 +501,7 @@ iframe#rotur-auth {
 
     & img.banner {
         width: 100%;
-        border-radius: var(--br-tiny);
+        border-radius: 0;
     }
 
     & .dropdown {
@@ -650,6 +650,7 @@ iframe#rotur-auth {
     gap: 0.3em;
     position: relative;
     box-shadow: var(--border);
+    overflow: hidden;
 
     & .banner {
         width: 100%;
