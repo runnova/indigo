@@ -11,35 +11,28 @@
 - add reaction from actions doesnt work
 
 # Planned
-1. context menu
-   1. user
-      - block user
-      - add/remove friend
-2. message list
-   1. individual message
-      - edited label
-   2. virtual scrolling
-      - downward virtual scrolling
-3. user list
-   1. real time status (8.1) and RPC
-4. user popup
-   1. dms shortcut
-5. settings
-   1. general
-      - toggles
-         - edited messages
-      - methods
-         - idle connection
-         - load attachment
-         - show nicknames
-         - blocked user messages
-   2. themes
-      - background wallpaper setting
-   3. JS plugins
-6. message compose box
-   1. emoji picker
-      - sticker search
-      - show custom emojis from all connected servers
-7. DMs server
-   1. ui functionality instead of bot
-   2. better dms server icon
+- message signing
+
+- ping sound
+- status indicator dots
+- better emoji shortcode parsing
+- attachment right click
+- right click gif info
+- block user
+- add/remove friend
+- edited label
+- downward virtual scrolling
+- real time status (8.1) and RPC
+- dms shortcut in profile popout
+- toggles
+    - edited messages
+- methods
+    - idle connection
+    - load attachment
+    - show nicknames
+    - blocked user messages
+- background wallpaper setting
+- JS plugins
+- sticker search
+- ui functionality instead of bot
+- better dms server icon

@@ -209,7 +209,7 @@ SystemContextMenu.init([
               console.log(el.dataset.id, msg);
               addFakeMessage({
                 user: "Indigo",
-                avatar: "/icon_small.svg",
+                avatar: `${import.meta.env.BASE_URL}icon_small.svg`,
                 content: `\`\`\`json\n${JSON.stringify(msg, null, 2)}\n\`\`\`\n-# Only you can see this.`,
               });
             },

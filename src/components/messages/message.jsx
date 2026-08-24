@@ -11,6 +11,13 @@ import {
 } from "solid-icons/hi";
 
 export function Message(props) {
+  // Determine username and avatar based on webhook presence
+  const displayUsername = () =>
+    props.webhook?.name || props.username;
+
+  const displayAvatar = () =>
+    props.webhook?.avatar || props.avatar;
+
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
       ? props.content
@@ -19,9 +26,13 @@ export function Message(props) {
   if (props.reply) {
     props.reply.username = props.reply.user;
   }
-  const member = tempState?.conn
-    ?.members()
-    ?.find((user) => user.username === props.username);
+
+  // Only look up member if not a webhook message
+  const member = !props.webhook
+    ? tempState?.conn
+        ?.members()
+        ?.find((user) => user.username === props.username)
+    : null;
   const gradient = member?.gradient;
   const [editValue, setEditValue] = createSignal("");
 
@@ -119,16 +130,16 @@ export function Message(props) {
         ) : (
           <div
             className="pfpWO"
-            onClick={(e) => openPopout(props, e.currentTarget)}
+            onClick={(e) => props.webhook ? null : openPopout(props, e.currentTarget)}
           >
             <img
-              src={props.avatar}
+              src={displayAvatar()}
               alt=""
               class={`pfp ${!props.renderOverlay ? "overlayless" : ""}`}
               loading="lazy"
             />
 
-            {props.renderOverlay && (
+            {props.renderOverlay && !props.webhook && (
               <img
                 src={`https://avatars.rotur.dev/.overlay/${props.username}`}
                 alt=""
@@ -143,10 +154,9 @@ export function Message(props) {
           {!props.grouped && (
             <div class="message_meta x">
               <div
-                class="username"
-
+                class={`username ${props.webhook ? "webhook" : ""}`}
                 style={
-                  Array.isArray(gradient)
+                  !props.webhook && Array.isArray(gradient)
                     ? {
                         background: `linear-gradient(90deg, ${gradient.join(", ")})`,
                         "-webkit-background-clip": "text",
@@ -154,13 +164,15 @@ export function Message(props) {
                         "background-clip": "text",
                         color: "transparent",
                       }
-                    : {
+                    : !props.webhook
+                    ? {
                         color: member?.color,
                       }
+                    : {}
                 }
-                onClick={(e) => openPopout(props, e.currentTarget)}
+                onClick={(e) => !props.webhook && openPopout(props, e.currentTarget)}
               >
-                {props.username}
+                {displayUsername()}
               </div>
 
               <div class="time">{props.time}</div>

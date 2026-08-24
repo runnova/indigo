@@ -413,6 +413,34 @@ export default function MessageComposer(props) {
                 }
               }
 
+              // Edit last message with up arrow when textarea is empty
+              if (
+                e.key === "ArrowUp" &&
+                textarea.value.trim() === "" &&
+                !mention.hasSuggestions() &&
+                !channelAc.hasSuggestions()
+              ) {
+                e.preventDefault();
+
+                const messages = tempState.virtMsgList?.messages?.() ?? [];
+                const currentUsername = tempState?.conn?.me()?.username;
+
+                // Find the last message that belongs to the current user
+                const lastOwnMessage = messages.findLast(
+                  (m) => m.user === currentUsername
+                );
+
+                if (lastOwnMessage && !state.editing?.id) {
+                  setState("editing", {
+                    id: lastOwnMessage.id,
+                    user: lastOwnMessage.user,
+                    content: lastOwnMessage.content,
+                  });
+                  tempState.virtMsgList?.scrollToMessage?.(lastOwnMessage.id);
+                }
+                return;
+              }
+
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
 

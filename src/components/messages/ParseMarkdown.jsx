@@ -1,13 +1,16 @@
-import { For, createResource, Show } from "solid-js";
+import { For, createResource, createSignal, Show } from "solid-js";
 import { setState, state, tempState } from "../../App";
 import { setPreview } from "../../App";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { twemojiUrl } from "./twemoji.js";
-const markdownCache = new Map();
-
 import { switchToChannel } from "../../App";
 import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
 import { getEmbedProvider } from "./embeds/registry.jsx";
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.css';
+
+const markdownCache = new Map();
+import { parseMarkdown as tokenizeMarkdown } from "./markdown_tokenizer.js";
 
 function getParsedMarkdown(id, content) {
   if (markdownCache.has(id)) {
@@ -71,35 +74,6 @@ function ServerInviteEmbed(props) {
   );
 }
 
-function readMaskedLink(text, start) {
-  if (text[start] !== "[") return null;
-
-  let i = start + 1;
-  while (i < text.length && text[i] !== "]") i++;
-  if (text[i] !== "]" || text[i + 1] !== "(") return null;
-
-  const label = text.slice(start + 1, i);
-
-  i += 2;
-
-  let depth = 1;
-  const urlStart = i;
-
-  while (i < text.length && depth > 0) {
-    if (text[i] === "(") depth++;
-    else if (text[i] === ")") depth--;
-    i++;
-  }
-
-  if (depth !== 0) return null;
-
-  return {
-    label,
-    url: text.slice(urlStart, i - 1),
-    end: i,
-  };
-}
-
 export function Embed(props) {
   const embed = props.embed;
   if (embed.type == "image") return;
@@ -140,7 +114,6 @@ export function Embed(props) {
 
         {embed.title && <div class="embed_title">{embed.title}</div>}
 
-        {/* FIXED: Use renderTokens instead of parseMarkdown to avoid circular loop */}
         {embed.description && (
           <div class="embed_description">
             {renderTokens(tokenizeMarkdown(embed.description))}
@@ -194,7 +167,6 @@ function EmbeddedLink(props) {
         const type = data().type;
 
         if (type.startsWith("image/")) {
-          console.log("d");
           return (
             <img
               src={props.url}
@@ -235,12 +207,58 @@ function EmbeddedLink(props) {
     </Show>
   );
 }
-import { parseMarkdown as tokenizeMarkdown } from "./markdown_tokenizer.js";
 
 let keyCounter = 0;
 
 function getKey() {
   return `key_${keyCounter++}`;
+}
+
+function syntaxHighlight(code, language) {
+  if (!language) {
+    return code;
+  }
+
+  try {
+    return hljs.highlight(code, { language }).value;
+  } catch (e) {
+    return hljs.highlightAuto(code).value;
+  }
+}
+
+function CodeBlockDisplay(props) {
+  const [copied, setCopied] = createSignal(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(props.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const highlightedCode = syntaxHighlight(props.code, props.language);
+
+  return (
+    <div class="code_block_container">
+      <div class="code_block_header">
+        <span class="code_block_language">
+          {props.language || 'text'}
+        </span>
+        <button
+          class="code_block_copy"
+          onClick={handleCopy}
+          title="Copy code"
+        >
+          {copied() ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre class="code_block_content">
+        <code
+          class={`hljs lang-${props.language || 'text'}`}
+          innerHTML={highlightedCode}
+        />
+      </pre>
+    </div>
+  );
 }
 
 function renderToken(token, depth = 0) {
@@ -256,6 +274,13 @@ function renderToken(token, depth = 0) {
   switch (token.type) {
     case "text":
       return token.value;
+
+    case "italic":
+      return (
+        <i key={key}>
+          {token.children?.map((t) => renderToken(t, depth + 1))}
+        </i>
+      );
 
     case "bold":
       return (
@@ -281,9 +306,11 @@ function renderToken(token, depth = 0) {
 
     case "codeBlock":
       return (
-        <pre key={key} class="code_block">
-          <code class={`lang-${token.language}`}>{token.code}</code>
-        </pre>
+        <CodeBlockDisplay
+          key={key}
+          code={token.code}
+          language={token.language}
+        />
       );
 
     case "link":
@@ -304,6 +331,7 @@ function renderToken(token, depth = 0) {
       }
       return <EmbeddedLink key={key} url={token.url} />;
     }
+
     case "emoji":
       return (
         <img
@@ -329,8 +357,10 @@ function renderToken(token, depth = 0) {
         />
       );
     }
+
     case "newline":
       return <br key={key} />;
+
     case "sticker":
       return (
         <img
@@ -340,6 +370,7 @@ function renderToken(token, depth = 0) {
           alt=""
         />
       );
+
     case "timestamp": {
       const date = new Date(token.unix * 1000);
 

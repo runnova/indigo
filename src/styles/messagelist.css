@@ -405,6 +405,7 @@
     background-color: var(--hl-four);
     padding: 2px 5px;
     border-radius: var(--br-mid);
+    color: var(--fg-one);
     & > .pfp {
         height: 1em;
         display: inline;

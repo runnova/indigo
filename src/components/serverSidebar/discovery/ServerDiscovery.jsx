@@ -54,7 +54,7 @@ export default function ServerDiscovery(props) {
           <div class="discovery_grid">
             <For each={filteredServers()}>
               {(server) => (
-                <div class="discovery_card">
+                <div class="dd">
                   <img
                     src={server.icon}
                     alt={server.name}

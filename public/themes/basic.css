@@ -1,0 +1,35 @@
+:root {
+    --bg-one: #181818;
+    --bg-two: #242424;
+    --bg-three: #2d2929;
+    --bg-four: #101010;
+    --hl-one: #2878aa;
+    --hl-two: #3d94c4;
+    --hl-three: #12577f;
+    --hl-four: #55acd8;
+    --border: 0px 0px 0 1px rgb(255 255 255 / 10%);
+    --fg-one: #ffffff;
+    --fg-two: #e8e8e8;
+    --fg-dim: #ffffffb7;
+    --fg-three: rgb(210 115 212);
+}
+
+& .first_bar {
+    background-color: var(--bg-one);
+    & .channel_list {
+        & .channel_item.x,
+        & .channel_thread_item {
+            background-color: var(--bg-one);
+            &.channel_item--active {
+                background-color: var(--hl-two);
+            }
+        }
+    }
+}
+
+.server_info > .header {
+    & > .dropdown {
+        background-color: var(--bg-one) !important;
+        box-shadow: 0 -2px 1em 1em var(--bg-one) !important;
+    }
+}

@@ -277,7 +277,7 @@ export function VirtualMessageList(props) {
   function scrollToBottom(instant = false) {
     scrollEl.scrollTo({
       top: scrollEl.scrollHeight,
-      behavior: instant ? "instant" : "smooth",
+      behavior: "instant",
     });
   }
   const [oldestVisibleId, setOldestVisibleId] = createSignal(null);
@@ -522,6 +522,7 @@ export function VirtualMessageList(props) {
                             id={msg().id}
                             renderOverlay={renderOverlay}
                             reactions={msg().reactions}
+                            webhook={msg().webhook}
                             attachments={msg()?.attachments}
                             embeds={msg().embeds}
                             grouped={grouped && !replyMessage() && !interaction}

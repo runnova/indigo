@@ -59,9 +59,15 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
-
     if (endMarker && text.slice(i, i + endMarker.length) === endMarker) {
       break;
+    }
+
+    const italicMatch = tryParseItalic(text, i);
+    if (italicMatch) {
+      tokens.push(italicMatch.token);
+      i = italicMatch.end;
+      continue;
     }
 
     const boldMatch = tryParseBold(text, i);
@@ -198,6 +204,7 @@ function isSpecialChar(text, i) {
   const next = text[i + 1];
 
   if (char === '*' && next === '*') return true;
+  if (char === '*') return true;
   if (char === '_' && next === '_') return true;
   if (char === '~' && next === '~') return true;
   if (char === '`') return true;
@@ -212,6 +219,22 @@ function isSpecialChar(text, i) {
   if (NATIVE_EMOJI_REGEX.test(text.slice(i))) return true;
 
   return false;
+}
+
+function tryParseItalic(text, i) {
+  if (text[i] !== '*') return null;
+  if (text[i + 1] === '*') return null;
+
+  const j = text.indexOf('*', i + 1);
+  if (j === -1) return null;
+
+  const content = text.slice(i + 1, j);
+  const { tokens } = parseInlineContent(content, 0);
+
+  return {
+    token: { type: 'italic', children: tokens },
+    end: j + 1
+  };
 }
 
 function tryParseBold(text, i) {
@@ -384,7 +407,6 @@ function tryParseEmoji(text, i) {
   };
 }
 
-// :shortcode: -> nativeEmoji token (converted to unicode char, rendered as twemoji when enabled)
 function tryParseShortcodeEmoji(text, i) {
   if (text[i] !== ':') return null;
 
@@ -436,6 +458,7 @@ function tryParseSticker(text, i) {
     end: j
   };
 }
+
 function tryParseChannel(text, i) {
   if (!text.slice(i).startsWith('originChats://')) return null;
 
@@ -462,7 +485,6 @@ function tryParseChannel(text, i) {
     };
   }
 
-  // host/channel/threadId
   return {
     token: { type: 'channel', host: parts[0], name: parts[1], threadId: parts[2] },
     end: j
@@ -489,6 +511,8 @@ function tryParseRoleMention(text, i) {
 
 function tryParseMention(text, i) {
   if (text[i] !== '@') return null;
+
+  if (i > 0 && !isWhitespace(text[i - 1])) return null;
 
   let j = i + 1;
   while (j < text.length && isAlphanumeric(text[j])) {

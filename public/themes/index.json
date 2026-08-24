@@ -42,11 +42,21 @@
   {
     "id": "oxygen",
     "name": "Oxygen light",
-    "author": "darkdot & stormy",
+    "author": "darkdot",
     "version": "1.0.0",
     "description": "A semi realistic light theme inspired by KDE oxygen",
     "file": "oxygen.css",
     "preview": "#f0f0f0",
+    "type": "theme"
+  },
+  {
+    "id": "basic",
+    "name": "Basic dark",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "a very basic looking dark theme.",
+    "file": "basic.css",
+    "preview": "#1E1E1E",
     "type": "theme"
   },
   {

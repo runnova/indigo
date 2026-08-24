@@ -1299,7 +1299,7 @@ img.channel_icon_image {
 
 .browser_tabs button.active {
     background: var(--hl-four);
-    color: var(--hl-two);
+    color: var(--fg-one);
 }
 
 .browser_content {
@@ -2215,7 +2215,7 @@ img.big_emoji {
     margin-top: 0.5em;
     background: none;
     border: none;
-    color: var(--hl-two);
+    color: var(--fg-one);
     cursor: pointer;
     padding: 0;
     font-size: 0.85rem;
@@ -2243,7 +2243,7 @@ img.big_emoji {
     background-color: var(--diff-two);
     border-radius: var(--br-big);
     padding: 1px 8px;
-    color: var(--hl-two);
+    color: var(--fg-one);
     padding-left: 13px;
 }
 
