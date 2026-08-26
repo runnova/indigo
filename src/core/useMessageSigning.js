@@ -162,3 +162,45 @@ export async function sendSlashCall(command, args) {
     tempState.conn.send(basePayload);
   }
 }
+export async function verifyMessage(message) {
+  if (
+    !message?.author_id ||
+    !message?.key_id ||
+    !message?.signature ||
+    message.signed_at === undefined
+  ) {
+    return "unsigned";
+  }
+
+  const signingUrl = getSigningUrl();
+
+  if (!signingUrl) {
+    return "unavailable";
+  }
+
+  try {
+    const valid = await tempState.rotur.signing.verify(
+      {
+        author_id: message.author_id,
+        key_id: message.key_id,
+        signature: message.signature,
+        username: message.user,
+      },
+      [
+        "originchats.message.v1",
+        message.author_id,
+        typeof message.content === "string" ? message.content : "",
+        Array.isArray(message.attachments)
+          ? message.attachments
+          : [],
+        message.signed_at,
+        signingUrl,
+      ],
+    );
+
+    return valid ? "verified" : "invalid";
+  } catch (error) {
+    console.error("Failed to verify message:", error);
+    return "unavailable";
+  }
+}

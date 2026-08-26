@@ -22,6 +22,7 @@ import {
   setState,
   setEmojiPicker,
 } from "./App.jsx";
+import { verifyMessage } from "./core/useMessageSigning.js";
 
 const [fakeMessages, setFakeMessages] = createSignal([]);
 let fakeId = 0;
@@ -532,6 +533,7 @@ export function VirtualMessageList(props) {
                             ephemeral={msg().ephemeral}
                             deleted={msg()?.deleted}
                             editing={state.editing?.id === msg()?.id}
+                            signed={verifyMessage(msg())}
                             onDismiss={() =>
                               setFakeMessages((messages) =>
                                 messages.filter((m) => m.id !== msg().id),

@@ -289,7 +289,7 @@
 .reaction_single {
     display: flex;
     align-items: center;
-    gap: 0.3em;
+    gap: 0.5em;
     padding: 0.3em 0.5em;
     border-radius: var(--br-mid);
     border: 1px solid var(--diff-three);
@@ -300,6 +300,9 @@
 .reaction_single .inline_emoji {
     max-width: 50px;
     height: 18px;
+    &.twemoji {
+        height: 15px;
+    }
 }
 
 .reaction_single img {

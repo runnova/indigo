@@ -1,11 +1,13 @@
-import { For, Show, createMemo, createSignal, createEffect } from "solid-js";
+import { For, Show, createMemo, createSignal, createEffect, createResource } from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
+import { twemojiUrl } from "./twemoji.js";
 import {
   HiOutlineArrowDownTray,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineDocument,
+  HiOutlineExclamationTriangle,
   HiOutlinePencil,
   HiOutlineXMark,
 } from "solid-icons/hi";
@@ -68,7 +70,7 @@ export function Message(props) {
 
     return `${(size / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
   };
-
+  const [signed] = createResource(() => props.signed, (value) => value);
   return (
     <div
       class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
@@ -173,7 +175,7 @@ export function Message(props) {
                 {displayUsername()}
               </div>
 
-              <div class="time">{props.time}</div>
+              <div class="time">{props.time} </div> {(signed() == "verified")?"" : <HiOutlineExclamationTriangle style={{color: "yellow"}}></HiOutlineExclamationTriangle>}
 
               <Show when={props.fake}>
                 <button class="fake-dismiss" onClick={props.onDismiss}>
@@ -359,6 +361,14 @@ export function Message(props) {
                           class="inline_emoji"
                           src={emoji.replace("originChats://", "https://")}
                           alt=""
+                        />
+                      ) : state.settings.twemoji && /\p{Extended_Pictographic}/u.test(emoji) ? (
+                        <img
+                          class="inline_emoji twemoji"
+                          src={twemojiUrl(emoji)}
+                          alt={emoji}
+                          draggable={false}
+                          loading="lazy"
                         />
                       ) : (
                         <span>{emoji}</span>
