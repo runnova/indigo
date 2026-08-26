@@ -85,10 +85,7 @@ export function ForumView(props) {
 
 function ForumThreadList(props) {
   const WEEK = 7 * 24 * 60 * 60;
-
-  // "search" mode: input acts as a filter over existing threads
-  // "compose" mode: input becomes the new thread's title, plus a body textarea
-  const [mode, setMode] = createSignal("search"); // "search" | "compose"
+ const [mode, setMode] = createSignal("search"); // "search" | "compose"
   const [query, setQuery] = createSignal("");
   const [postBody, setPostBody] = createSignal("");
   const [submitting, setSubmitting] = createSignal(false);
@@ -130,16 +127,12 @@ function ForumThreadList(props) {
   };
 
   const enterComposeMode = () => {
-    setMode("compose");
-    // keep whatever was typed in the search box as the starting title
-    queueMicrotask(() => inputRef?.focus());
+    setMode("compose");queueMicrotask(() => inputRef?.focus());
   };
 
   const cancelDraft = () => {
     setMode("search");
     setPostBody("");
-    // keep query text so the user's search isn't lost, but you could
-    // clear it instead with setQuery("") if that's the desired UX
   };
 
   const submitPost = () => {
@@ -156,8 +149,6 @@ function ForumThreadList(props) {
       content: body,
     });
 
-    // Optimistically reset back to search mode; the new thread will
-    // arrive via the ws event / createForumThreads refresh.
     setSubmitting(false);
     setMode("search");
     setQuery("");

@@ -11,7 +11,6 @@ import {
 } from "solid-icons/hi";
 
 export function Message(props) {
-  // Determine username and avatar based on webhook presence
   const displayUsername = () =>
     props.webhook?.name || props.username;
 
@@ -27,7 +26,6 @@ export function Message(props) {
     props.reply.username = props.reply.user;
   }
 
-  // Only look up member if not a webhook message
   const member = !props.webhook
     ? tempState?.conn
         ?.members()

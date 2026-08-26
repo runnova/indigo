@@ -87,3 +87,12 @@
     object-fit: cover;
     z-index: -1;
 }
+
+.badges{
+    flex-wrap: wrap;
+    margin-top: .5em;
+    & svg {
+    width: 30pt;
+    transform: scale(2);
+}
+}

@@ -1,37 +1,54 @@
 import { tempState, state, setState } from "../App";
 
 let clockOffset = 0;
+let lastRtt = null;
+let smoothedRtt = null;
 
-/**
- * Update the clock offset based on server response round-trip time
- * This keeps the client's estimated server time in sync
- */
 export function updateClockOffset(serverTime, roundTripStart) {
   const roundTripTime = Date.now() - roundTripStart;
-  const estimatedServerNow = serverTime + roundTripTime / 2;
-  clockOffset = estimatedServerNow - Date.now();
+  if (roundTripTime < 0 || roundTripTime > 10000) return;
+
+  const estimatedServerNowMs = serverTime + roundTripTime / 2;
+  const newOffset = estimatedServerNowMs - Date.now();
+
+  if (smoothedRtt === null) {
+    clockOffset = newOffset;
+    smoothedRtt = roundTripTime;
+  } else {
+    const alpha = 0.3;
+    smoothedRtt = smoothedRtt * (1 - alpha) + roundTripTime * alpha;
+
+    const quality = Math.max(0.15, Math.min(1, smoothedRtt / Math.max(roundTripTime, 1)));
+    clockOffset = clockOffset * (1 - quality) + newOffset * quality;
+  }
+  lastRtt = roundTripTime;
+}
+export function getLastRtt() {
+  return lastRtt;
+}
+
+export function sendPing() {
+  if (!hasCapability("ping") && tempState?.conn?.status?.() !== "ready") return;
+  const sentAt = Date.now();
+  tempState.conn.send({ cmd: "ping", sent_at: sentAt / 1000 });
+  return sentAt;
 }
 
 function getEstimatedServerTime() {
-  return Date.now() + clockOffset;
+  return (Date.now() + clockOffset) / 1000;
 }
 
 function hasCapability(name) {
-  return !!tempState?.conn?.handshake?.val?.capabilities?.includes(name);
+  return !!tempState?.conn?.serverInfo()?.capabilities?.includes(name);
 }
 
 function getSigningUrl() {
-  return tempState?.conn?.handshake?.val?.signing_url;
+  return tempState?.conn?.serverInfo()?.signing_url;
 }
 
-/**
- * Sign a message_new payload using Rotur SDK
- * Creates a cryptographic proof that this message came from the current identity
- */
 export async function signMessageNew(payload, timestamp, signingUrl) {
   const content = typeof payload.content === "string" ? payload.content : "";
   const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
-
   const proof = await tempState.rotur.signing.sign((authorId) => [
     "originchats.message.v1",
     authorId,
@@ -40,17 +57,11 @@ export async function signMessageNew(payload, timestamp, signingUrl) {
     timestamp,
     signingUrl,
   ]);
-
-  return { ...payload, timestamp, ...proof };
+  return { ...payload, timestamp, signed_at: timestamp, ...proof };
 }
 
-/**
- * Sign a slash_call payload using Rotur SDK
- * Includes a nonce to prevent replay attacks
- */
 export async function signSlashCall(payload, timestamp, signingUrl) {
   const nonce = crypto.randomUUID();
-
   const proof = await tempState.rotur.signing.sign((authorId) => [
     "originchats.slash.v1",
     authorId,
@@ -60,14 +71,9 @@ export async function signSlashCall(payload, timestamp, signingUrl) {
     signingUrl,
     nonce,
   ]);
-
   return { ...payload, timestamp, nonce, ...proof };
 }
 
-/**
- * Send a message with or without signing based on server capabilities
- * If message_signatures_v1 is available, the message will be cryptographically signed
- */
 export async function sendMessage(content, attachments) {
   const basePayload = {
     cmd: "message_new",
@@ -77,34 +83,24 @@ export async function sendMessage(content, attachments) {
     attachments,
     ...(state.replying && { reply_to: state.replying.id }),
   };
-
   if (hasCapability("message_signatures_v1")) {
     const timestamp = getEstimatedServerTime();
     const signingUrl = getSigningUrl();
-
     try {
       const signed = await signMessageNew(basePayload, timestamp, signingUrl);
       tempState.conn.send(signed);
     } catch (error) {
       console.error("Failed to sign message:", error);
-      // Fall back to unsigned send on signing failure
       tempState.conn.send(basePayload);
     }
   } else {
-    // No signing capability, send unsigned
     tempState.conn.send(basePayload);
   }
-
-  // Clear reply state after sending
   if (state.replying) {
     setState("replying", null);
   }
 }
 
-/**
- * Send a slash command with or without signing based on server capabilities
- * If slash_signatures_v1 is available, the command will be cryptographically signed
- */
 export async function sendSlashCall(command, args) {
   const basePayload = {
     cmd: "slash_call",
@@ -112,21 +108,17 @@ export async function sendSlashCall(command, args) {
     channel: state.current.channel,
     args,
   };
-
   if (hasCapability("slash_signatures_v1")) {
     const timestamp = getEstimatedServerTime();
     const signingUrl = getSigningUrl();
-
     try {
       const signed = await signSlashCall(basePayload, timestamp, signingUrl);
       tempState.conn.send(signed);
     } catch (error) {
       console.error("Failed to sign slash command:", error);
-      // Fall back to unsigned send on signing failure
       tempState.conn.send(basePayload);
     }
   } else {
-    // No signing capability, send unsigned
     tempState.conn.send(basePayload);
   }
 }

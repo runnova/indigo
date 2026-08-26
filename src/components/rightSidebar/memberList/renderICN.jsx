@@ -1,117 +1,57 @@
-export function renderICN(code, canvas) {
-    const ctx = canvas.getContext('2d');
-    ctx.save();
+import { iconToSvg } from "rotur-sdk";
 
-    let scale = 1;
-    let moveX = 0;
-    let moveY = 0;
+const ALLOWED_TAGS = new Set(["svg", "path", "line", "circle", "rect", "polyline", "polygon"]);
+const ALLOWED_ATTRS = new Set([
+  "xmlns",
+  "viewBox",
+  "d",
+  "x",
+  "y",
+  "x1",
+  "y1",
+  "x2",
+  "y2",
+  "cx",
+  "cy",
+  "r",
+  "width",
+  "height",
+  "points",
+  "stroke",
+  "stroke-width",
+  "stroke-linecap",
+  "stroke-linejoin",
+  "fill",
+]);
 
-    ctx.translate(canvas.width / 2 - 2, canvas.height / 2 - 2);
-    ctx.lineCap = 'round';
-    let last = { x: 0, y: 0 };
-    const cmds = code.trim().split(/\s+/);
-    let color = '#000', weight = 1;
+export function renderICN(code) {
+  const raw = iconToSvg(code);
+  const doc = new DOMParser().parseFromString(raw, "image/svg+xml");
 
-    const S = v => v * scale;
-    const TX = x => S(x + moveX);
-    const TY = y => -S(y + moveY);
+  if (doc.querySelector("parsererror")) return "";
 
-    for (let i = 0; i < cmds.length; i++) {
-        const cmd = cmds[i];
+  const root = doc.documentElement;
 
-        if (cmd === 'scale') scale = parseFloat(cmds[++i]);
-        else if (cmd === 'move') { moveX = parseFloat(cmds[++i]); moveY = parseFloat(cmds[++i]); }
+  if (root.tagName !== "svg") return "";
 
-        else if (cmd === 'c') color = cmds[++i];
-        else if (cmd === 'w') weight = parseFloat(cmds[++i]) * scale;
+  const walk = (el) => {
+    for (const child of Array.from(el.children)) {
+      if (!ALLOWED_TAGS.has(child.tagName)) {
+        child.remove();
+        continue;
+      }
 
-        else if (cmd === 'line') {
-            const x1 = TX(parseFloat(cmds[++i])), y1 = TY(parseFloat(cmds[++i])), x2 = TX(parseFloat(cmds[++i])), y2 = TY(parseFloat(cmds[++i]));
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = weight;
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-            last = { x: parseFloat(cmds[i - 1]), y: parseFloat(cmds[i]) };
-        }
-
-        else if (cmd === 'cont') {
-            const x = parseFloat(cmds[++i]), y = parseFloat(cmds[++i]);
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = weight;
-            ctx.moveTo(TX(last.x), TY(last.y));
-            ctx.lineTo(TX(x), TY(y));
-            ctx.stroke();
-            last = { x, y };
-        }
-
-        else if (cmd === 'square') {
-            const x = parseFloat(cmds[++i]), y = parseFloat(cmds[++i]), w = parseFloat(cmds[++i]), h = parseFloat(cmds[++i]);
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = weight;
-            ctx.strokeRect(TX(x) - S(w / 2), TY(y) - S(h / 2), S(w), S(h));
-        }
-
-        else if (cmd === 'dot') {
-            const x = TX(parseFloat(cmds[++i])), y = TY(parseFloat(cmds[++i]));
-            ctx.beginPath();
-            ctx.fillStyle = color;
-            ctx.arc(x, y, weight / 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        else if (cmd === 'cutcircle') {
-            const x0 = parseFloat(cmds[++i]), y0 = parseFloat(cmds[++i]);
-            const radius = parseFloat(cmds[++i]) * scale;
-            let angleICN = parseFloat(cmds[++i]);
-            let filledICN = parseFloat(cmds[++i]);
-            let circleAngle = (angleICN * 10) - filledICN;
-            let oldX = TX(x0) + Math.sin(circleAngle * Math.PI / 180) * radius;
-            let oldY = TY(y0) - Math.cos(circleAngle * Math.PI / 180) * radius;
-            const steps = Math.floor(filledICN / 3) + 1;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = weight;
-            for (let j = 0; j < steps - 1; j++) {
-                circleAngle += 6;
-                const newX = TX(x0) + Math.sin(circleAngle * Math.PI / 180) * radius;
-                const newY = TY(y0) - Math.cos(circleAngle * Math.PI / 180) * radius;
-                ctx.beginPath();
-                ctx.moveTo(oldX, oldY);
-                ctx.lineTo(newX, newY);
-                ctx.stroke();
-                oldX = newX;
-                oldY = newY;
-            }
-        }
-
-        else if (cmd === 'ellipse') {
-            const x = parseFloat(cmds[++i]), y = parseFloat(cmds[++i]), width = parseFloat(cmds[++i]), hm = parseFloat(cmds[++i]), dir = parseFloat(cmds[++i]) * Math.PI / 180;
-            ctx.save();
-            ctx.translate(TX(x), TY(y));
-            ctx.rotate(dir);
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = weight;
-            ctx.scale(1, hm);
-            ctx.arc(0, 0, S(width / 2), 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-        }
-
-        else if (cmd === 'curve') {
-            const x1 = TX(parseFloat(cmds[++i])), y1 = TY(parseFloat(cmds[++i])), x2 = TX(parseFloat(cmds[++i])), y2 = TY(parseFloat(cmds[++i])), cx = TX(parseFloat(cmds[++i])), cy = TY(parseFloat(cmds[++i]));
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = weight;
-            ctx.moveTo(x1, y1);
-            ctx.quadraticCurveTo(cx, cy, x2, y2);
-            ctx.stroke();
-            last = { x: parseFloat(cmds[i - 1]), y: parseFloat(cmds[i]) };
-        }
+      walk(child);
     }
 
-    ctx.restore();
+    for (const attr of Array.from(el.attributes)) {
+      if (!ALLOWED_ATTRS.has(attr.name)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  };
+
+  walk(root);
+
+  return new XMLSerializer().serializeToString(root);
 }

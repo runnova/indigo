@@ -136,23 +136,13 @@ export default function MemberProfile(props) {
 
           <div style={{ "margin": ".3em", "gap": ".3em" }} className="y">
             <Show when={profile()?.badges?.length}>
-              <div class="badges">
-                {profile().badges.map((badge) => {
-                  let canvas;
-
-                  onMount(() => {
-                    if (canvas) renderICN(badge.icon, canvas);
-                  });
-
-                  return (
-                    <canvas
-                      ref={canvas}
-                      width="24"
-                      height="24"
-                      title={badge.description}
-                    />
-                  );
-                })}
+              <div class="badges x">
+                {profile().badges.map((badge) => (
+                  <span
+                    title={badge.description}
+                    innerHTML={renderICN(badge.icon)}
+                  />
+                ))}
               </div>
             </Show>
 

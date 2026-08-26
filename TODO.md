@@ -12,27 +12,26 @@
 
 # Planned
 - message signing
-
-- ping sound
-- status indicator dots
+- shortcodes autocomplete
 - better emoji shortcode parsing
-- attachment right click
-- right click gif info
 - block user
-- add/remove friend
-- edited label
 - downward virtual scrolling
 - real time status (8.1) and RPC
+- show edited tag on edited messages
+
 - dms shortcut in profile popout
-- toggles
-    - edited messages
+- add/remove friend
+- JS plugins
+- ping sound
+- attachment right click
+- status indicator dots
+
+- ui DMs functionality instead of bot
+- background wallpaper setting
+- better dms server icon
+- right click gif info
 - methods
     - idle connection
     - load attachment
     - show nicknames
     - blocked user messages
-- background wallpaper setting
-- JS plugins
-- sticker search
-- ui functionality instead of bot
-- better dms server icon

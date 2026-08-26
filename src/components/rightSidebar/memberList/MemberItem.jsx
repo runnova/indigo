@@ -18,9 +18,14 @@ export default function MemberItem(props) {
     () => props.online && props.user.username,
     async username => {
       if (!username) return null;
-
       try {
-        return await tempState.rotur.status.get(username);
+        const response = await fetch(
+          `https://api.rotur.dev/v2/status/live?name=${encodeURIComponent(username)}`
+        );
+
+        if (!response.ok) return null;
+
+        return await response.json();
       } catch {
         return null;
       }

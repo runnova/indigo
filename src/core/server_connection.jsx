@@ -323,6 +323,8 @@ function handlePacket(connection, packet) {
         auth_mode: val.auth_mode ?? "rotur",
         validator_key: val.validator_key ?? null,
         capabilities: val.capabilities ?? [],
+        signing_url: val.signing_url ?? null,
+        server_time: val.server_time ?? null,
       };
 
       connection.state.status = "authenticating";

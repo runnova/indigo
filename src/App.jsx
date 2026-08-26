@@ -263,23 +263,25 @@ export async function switchToChannel(server, channel, threadId) {
 }
 
 export const [thirdBarCollapsed, setThirdBarCollapsed] = createSignal(false);
+export const [urlDeepLinkActive, setUrlDeepLinkActive] = createSignal(false);
 function App() {
   conn = useServerConnection();
 
   tempState.conn = conn;
   bindVoiceEvents(conn);
 
-  onMount(() => {
+  onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const serverSrc = params.get("s");
     const channel = params.get("c");
     const thread = params.get("t");
 
     if (serverSrc) {
-      switchToChannel(serverSrc, channel || null, thread || undefined);
+      setUrlDeepLinkActive(true);
+      await switchToChannel(serverSrc, channel || null, thread || undefined);
+      setUrlDeepLinkActive(false);
     }
   });
-
   let deepLinkThreadApplied = false;
   createEffect(() => {
     if (deepLinkThreadApplied) return;
@@ -360,8 +362,9 @@ function App() {
 
   createEffect(() => {
     clearTimeout(restoreTimeout);
-    // open default or persisted channel
     if (conn.status() !== "ready") return;
+
+    if (urlDeepLinkActive()) return;
 
     const channels = conn.channels();
     if (!channels.length) return;
@@ -491,9 +494,9 @@ function App() {
   createEffect(() => {
     if (conn.status() !== "ready") return;
 
-    const handshake = conn.handshake?.val;
+    const handshake = conn.serverInfo();
     if (handshake?.server_time) {
-      updateClockOffset(handshake.server_time, Date.now());
+      updateClockOffset(handshake.server_time * 1000, Date.now());
     }
   });
 
