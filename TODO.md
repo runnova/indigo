@@ -1,4 +1,4 @@
-# Known Issues
+o # Known Issues
 - scrolling back down doesnt load newer messages.
 - CORS. it needs to be able to proxy attatchments
 
@@ -11,7 +11,6 @@
 - add reaction from actions doesnt work
 
 # Planned
-- message signing
 - shortcodes autocomplete
 - better emoji shortcode parsing
 - block user
@@ -31,7 +30,5 @@
 - better dms server icon
 - right click gif info
 - methods
-    - idle connection
-    - load attachment
     - show nicknames
     - blocked user messages

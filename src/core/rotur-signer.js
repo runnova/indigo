@@ -105,7 +105,7 @@ class RoturSigner {
     ];
 
     const messageJson = JSON.stringify(messageStructure);
-    const messageBytes = new TextEncoder().encode(messageJson);
+    const messageBytes = signingBytes(messageStructure);
 
     const key = await this._cryptoKeyPromise;
     const sigBuf = await crypto.subtle.sign("Ed25519", key, messageBytes);
