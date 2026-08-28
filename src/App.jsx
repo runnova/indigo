@@ -8,6 +8,7 @@ import {
 } from "solid-js";
 
 import { createStore } from "solid-js/store";
+import Tooltip from "./components/utility/tooltip/Tooltip.jsx";
 
 import {
   HiOutlineHashtag,
@@ -103,6 +104,7 @@ const defaultState = {
     displayChannelName: true,
     parseMarkdown: true,
     twemoji:true,
+    customProfileThemes:true,
   },
 };
 export const [unreads, setUnreads] = createStore({
@@ -314,6 +316,8 @@ function App() {
   );
 
   createEffect(() => {
+    if (urlDeepLinkActive()) return;
+
     const src = state.current.server?.src;
     const channel = state.current.channel;
     const thread = state.current.thread?.id;
@@ -381,6 +385,7 @@ function App() {
     ) {
       restoreTimeout = setTimeout(() => {
         setState("current", "channel", savedChannel);
+         setState("current", "thread", null)
       }, 500);
     }
   });
@@ -503,6 +508,7 @@ function App() {
   function selectChannel(channelName) {
     setState("current", "channel", channelName);
     setState("current", "channel_type", "");
+    setState("current", "thread", null);
 
     const serverSrc = state.current.server?.src;
     if (serverSrc) {
@@ -848,6 +854,7 @@ function App() {
       </Show>
       <ContextMenu />
       <Spotlight />
+      <Tooltip />
     </div>
   );
 }

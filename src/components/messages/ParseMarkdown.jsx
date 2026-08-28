@@ -339,6 +339,8 @@ function renderToken(token, depth = 0) {
           class="inline_emoji"
           src={`https://${token.host}/emojis/${token.id}`}
           alt=""
+          data-tooltip={`${(token.host.startsWith("api.rotur")) ? "User" : "Server"} Emoji: Emoji from ${token.host}`}
+          data-tooltip-icon={`https://${token.host}/emojis/${token.id}`}
         />
       );
 
@@ -354,6 +356,8 @@ function renderToken(token, depth = 0) {
           alt={token.char}
           draggable={false}
           loading="lazy"
+          data-tooltip="System Emoji: This is a default emoji"
+          data-tooltip-icon={twemojiUrl(token.char)}
         />
       );
     }
@@ -368,6 +372,8 @@ function renderToken(token, depth = 0) {
           class="inline_sticker"
           src={`https://${token.host}/stickers/${token.id}`}
           alt=""
+          data-tooltip={`${(token.host.startsWith("api.rotur")) ? "User" : "Server"} Sticker: Sticker from ${token.host}`}
+          data-tooltip-icon={`https://${token.host}/stickers/${token.id}`}
         />
       );
 
@@ -693,6 +699,8 @@ export function parseMarkdown(input) {
               class="inline_emoji big_emoji"
               src={`https://${match[1]}/emojis/${match[2]}`}
               alt=""
+              data-tooltip={`${(match[1].startsWith("api.rotur")) ? "User" : "Server"} Emoji: Emoji from ${match[1]}`}
+              data-tooltip-icon={`https://${match[1]}/emojis/${match[2]}`}
             />
           );
         }
@@ -706,6 +714,8 @@ export function parseMarkdown(input) {
               alt={token}
               draggable={false}
               loading="lazy"
+              data-tooltip="System Emoji: This is a default emoji"
+              data-tooltip-icon={twemojiUrl(token)}
             />
           );
         }

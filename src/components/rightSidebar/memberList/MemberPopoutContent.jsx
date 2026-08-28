@@ -38,23 +38,22 @@ export default function MemberProfile(props) {
 
   const [showAllRoles, setShowAllRoles] = createSignal(false);
 
-  const [status] = createResource(
-    () => props.username,
-    async username => {
-      if (!username) return null;
-      try {
-        return await tempState.rotur.status.get(username);
-      } catch {
-        return null;
-      }
-    }
-  );
+  const status = () => profile()?.status;
+  console.log(status())
   return (
     <>
       <div
         className="member_popout y"
         style={{
-          "--accent": profile()?.theme?.accent || "transparent"
+          "--accent": profile()?.theme?.accent || "transparent",
+          ...(tempState.settings?.customProfileThemes ? {
+            "--fg-one": profile()?.theme?.text || "#ffffff",
+            "--hl-one": profile()?.theme?.accent || "rgb(141, 42, 255)",
+            "--bg-one": profile()?.theme?.background || "#010101",
+            "--bg-two": profile()?.theme?.primary || "#0D0D0D",
+            "--bg-three": profile()?.theme?.secondary || "#1d1d1d",
+            "--bg-four": profile()?.theme?.tertiary || "#3a3a3a",
+          } : {})
         }}
       >
         <Show when={profile.loading}>
@@ -71,12 +70,8 @@ export default function MemberProfile(props) {
             aria-hidden="true"
             class="profile_video_background"
             style="opacity: 0.65; filter: brightness(0.45);"
-            onError={(e) => {
-              if (profile()?.system === "orion") {
-                e.currentTarget.src = "https://cdn.pixabay.com/video/2022/05/24/117923-713330886.mp4";
-              }
-            }}
           />
+
           <img
             src={`https://avatars.rotur.dev/.banners/${props.username}`}
             alt=""
@@ -102,6 +97,16 @@ export default function MemberProfile(props) {
                 alt=""
                 class="overlay"
               />
+              {status() && (
+                <span
+                  class="status_dot"
+                  classList={{
+                    online: status().presence === "online",
+                    idle: status().presence === "idle",
+                    offline: status().presence === "offline" || !status().presence
+                  }}
+                />
+              )}
             </div>
 
             <div class="data y" style={{ "margin": ".5em 0wa" }}>
@@ -139,7 +144,7 @@ export default function MemberProfile(props) {
               <div class="badges x">
                 {profile().badges.map((badge) => (
                   <span
-                    title={badge.description}
+                  data-tooltip={badge.name + ": " + badge.description}
                     innerHTML={renderICN(badge.icon)}
                   />
                 ))}

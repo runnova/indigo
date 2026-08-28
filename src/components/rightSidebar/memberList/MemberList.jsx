@@ -96,6 +96,7 @@ export default function MemberList(props) {
                 <MemberItem
                   user={user}
                   online={onlineUsers().has(user.username)}
+                  status={user.status}
                   roles={props.conn.roles?.()}
                   getHoistedRole={getHoistedRole}
                   owner={owner() == user.username}

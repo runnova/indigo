@@ -403,12 +403,23 @@ export function createChannelMessages({
   function handleMessageEdit(event) {
     if (event.id == null) return;
 
-    setMessages(
-      produce(messages => {
-        const message = messages.find(m => m.id === event.id);
-        if (!message) return;
-        message.content = event.message.content;
-        message.edited = true;
+    const incoming = event.message ?? event.val ?? event.data ?? {};
+
+    setMessages(prev =>
+      prev.map(message => {
+        if (message.id !== event.id) return message;
+
+        return {
+          ...message,
+          content: incoming.content ?? message.content,
+          attachments: incoming.attachments ?? message.attachments ?? [],
+          edited: true,
+          edited_by: incoming.edited_by ?? null,
+          author_id: incoming.author_id ?? null,
+          key_id: incoming.key_id ?? null,
+          signature: incoming.signature ?? null,
+          signed_at: incoming.signed_at ?? null,
+        };
       })
     );
 

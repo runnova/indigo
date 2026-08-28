@@ -2,18 +2,14 @@ import { Show, createResource } from "solid-js";
 import { openPopout } from "./popout";
 import { tempState } from "../../../App";
 import { HiOutlinePlay } from "solid-icons/hi";
-
 export default function MemberItem(props) {
   props.user = tempState?.conn?.members()?.find(
     user => user.username === props.user.username
   );
-
   const roleId = () =>
     props.getHoistedRole(props.user) ?? props.user.roles?.[0];
-
   const role = () =>
     props.roles?.[roleId()];
-
   const [status] = createResource(
     () => props.online && props.user.username,
     async username => {
@@ -22,16 +18,13 @@ export default function MemberItem(props) {
         const response = await fetch(
           `https://api.rotur.dev/v2/status/live?name=${encodeURIComponent(username)}`
         );
-
         if (!response.ok) return null;
-
         return await response.json();
       } catch {
         return null;
       }
     }
   );
-
   return (
     <div
       class="member_item x"
@@ -47,7 +40,6 @@ export default function MemberItem(props) {
           class={"pfp " + (!props.renderOverlay ? "overlayless" : "")}
           loading="lazy"
         />
-
         {props.renderOverlay && (
           <img
             src={`https://avatars.rotur.dev/.overlay/${props.user.username}`}
@@ -56,8 +48,18 @@ export default function MemberItem(props) {
             loading="lazy"
           />
         )}
+        {props.status && (
+          <span
+            class="status_dot"
+            title={props.status.status}
+            classList={{
+              online: props.status.status === "online",
+              idle: props.status.status === "idle",
+              offline: props.status.status === "dnd" || !props.status.status
+            }}
+          />
+        )}
       </div>
-
       <div class="data y">
         <span
           style={
@@ -82,7 +84,6 @@ export default function MemberItem(props) {
             />
           ) : null}
         </span>
-
         <Show when={props.online}>
           <small>
             {

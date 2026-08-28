@@ -11,6 +11,7 @@ import {
   HiOutlinePencil,
   HiOutlineXMark,
 } from "solid-icons/hi";
+import { sendMessageEdit } from "../../core/useMessageSigning.js";
 
 export function Message(props) {
   const displayUsername = () =>
@@ -146,7 +147,7 @@ export function Message(props) {
                 class="overlay"
                 loading="lazy"
               />
-            )}
+              )}
           </div>
         )}
 
@@ -203,7 +204,7 @@ export function Message(props) {
               rows={Math.max(2, editValue().split("\n").length)}
               autofocus
               ref={editTextarea}
-              onKeyDown={(e) => {
+              onKeyDown={async (e) => {
                 if (e.key === "Escape") {
                   setState("editing", null);
                 }
@@ -211,12 +212,8 @@ export function Message(props) {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
 
-                  tempState.conn.send({
-                    cmd: "message_edit",
-                    id: props.id,
-                    channel: state.current.channel,
-                    content: editValue(),
-                  });
+                  const current = props;
+                  await sendMessageEdit(props.id, { content: editValue() }, current);
 
                   setState("editing", null);
                 }

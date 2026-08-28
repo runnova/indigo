@@ -66,10 +66,10 @@ body {
   font-size: 15px;
   margin: 0;
   user-select: none;
+  font-family: system-ui, sans-serif;
 }
 
 .main {
-  font-family: system-ui, sans-serif;
   padding: 0em;
   height: 100%;
   width: 100%;

@@ -1,0 +1,93 @@
+[data-tooltip]:hover {
+    outline: 1px solid var(--diff-three);
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 999999;
+
+  display: flex;
+  align-items: flex-start;
+  gap: .65em;
+
+  max-width:300px;
+
+  padding: .7em .85em;
+
+  box-sizing: border-box;
+
+  background: var(--bg-two);
+  color: var(--fg-one);
+
+  border: 1px solid var(--diff-three);
+  border-radius: var(--br-mid);
+  box-shadow: var(--border);
+
+  pointer-events: none;
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition:
+    opacity .12s ease,
+    visibility .12s ease;
+}
+
+.tooltip[data-visible="true"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip-icon {
+  flex: 0 0 auto;
+
+  width: 22.5pt;
+  height: 22.5pt;
+
+  display: grid;
+  place-items: center;
+
+  margin-top: .05em;
+}
+
+.tooltip-icon svg,
+.tooltip-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.tooltip-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: .2em;
+}
+
+.tooltip-title {
+  color: var(--fg-one);
+
+  font-size: .9em;
+  font-weight: 600;
+  line-height: 1.25;
+
+  overflow-wrap: anywhere;
+}
+
+.tooltip-description {
+  color: var(--fg-two);
+
+  font-size: .82em;
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
+}
+
+.tooltip-icon[hidden],
+.tooltip-description[hidden] {
+  display: none;
+}

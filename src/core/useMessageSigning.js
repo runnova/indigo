@@ -204,3 +204,45 @@ export async function verifyMessage(message) {
     return "unavailable";
   }
 }
+export async function signMessageEdit(payload, signedAt, signingUrl) {
+  const content = typeof payload.content === "string" ? payload.content : "";
+  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
+
+  const proof = await tempState.rotur.signing.sign((authorId) => [
+    "originchats.message.v1",
+    authorId,
+    content,
+    attachments,
+    signedAt,
+    signingUrl,
+  ]);
+
+  return { ...payload, timestamp: signedAt, signed_at: signedAt, ...proof };
+}
+
+export async function sendMessageEdit(id, edit, current) {
+  const nextContent = edit.content ?? current.content;
+  const nextAttachments = edit.attachments ?? current.attachments ?? [];
+
+  const basePayload = {
+    cmd: "message_edit",
+    id,
+    channel: state.current.channel,
+    content: nextContent,
+    attachments: nextAttachments,
+  };
+
+  if (hasCapability("message_signatures_v1")) {
+    const timestamp = getServerTime();
+    const signingUrl = getSigningUrl();
+    try {
+      const signed = await signMessageEdit(basePayload, timestamp, signingUrl);
+      tempState.conn.send(signed);
+    } catch (error) {
+      console.error("Failed to sign message edit:", error);
+      tempState.conn.send(basePayload);
+    }
+  } else {
+    tempState.conn.send(basePayload);
+  }
+}

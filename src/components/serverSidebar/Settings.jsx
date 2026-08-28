@@ -84,6 +84,10 @@ function GeneralSettings() {
         <div class="settings_section_label">Temporarily keep deleted messages</div>
         <SettingCheckbox setting="messageLogger" />
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">Strictly follow the user theme in popouts</div>
+        <SettingCheckbox setting="customProfileThemes" />
+      </div>
 
       <h2 class="settings_title">Performance</h2>
 

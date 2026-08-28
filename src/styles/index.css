@@ -2362,3 +2362,25 @@ img.big_emoji {
 hr.channelPageList {
     margin: 0 auto;
 }
+
+.status_dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50%;
+  border: 2px solid var(--bg-one);
+}
+
+.status_dot.online {
+  background: #43b581;
+}
+
+.status_dot.idle {
+  background: #faa61a;
+}
+
+.status_dot.offline {
+  background: #f04747;
+}

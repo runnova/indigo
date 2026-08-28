@@ -413,7 +413,6 @@ export default function MessageComposer(props) {
                 }
               }
 
-              // Edit last message with up arrow when textarea is empty
               if (
                 e.key === "ArrowUp" &&
                 textarea.value.trim() === "" &&
@@ -425,7 +424,6 @@ export default function MessageComposer(props) {
                 const messages = tempState.virtMsgList?.messages?.() ?? [];
                 const currentUsername = tempState?.conn?.me()?.username;
 
-                // Find the last message that belongs to the current user
                 const lastOwnMessage = messages.findLast(
                   (m) => m.user === currentUsername
                 );
@@ -453,7 +451,6 @@ export default function MessageComposer(props) {
                   return;
                 }
 
-                // CHANGED: Call sendMessage() which handles signing internally
                 sendMessage(
                   content,
                   attachments

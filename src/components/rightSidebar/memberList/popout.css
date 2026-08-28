@@ -97,3 +97,7 @@
         margin-left: 2pt;
 }
 }
+
+.popup_content {
+    color: var(--fg-one);
+}

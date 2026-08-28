@@ -258,8 +258,8 @@
 
 .inline_emoji {
     max-width: 50px;
-    height: 1em;
-    transform: translateY(3px);
+    height: 10pt;
+    transform: translateY(3px) scale(1.5);
     margin: 0 0.3em;
     border-radius: 0;
 }
