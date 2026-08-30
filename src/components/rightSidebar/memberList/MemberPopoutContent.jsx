@@ -1,7 +1,7 @@
 import { Show, createSignal, createEffect, onMount, createResource, For } from "solid-js";
 import "./popout.css"
 import { parseMarkdown } from "../../messages/ParseMarkdown"
-import { HiOutlineBanknotes, HiOutlineCalendar, HiOutlineUser } from "solid-icons/hi";
+import { HiOutlineBanknotes, HiOutlineCalendar, HiOutlineEllipsisVertical, HiOutlineUser, HiOutlineUserMinus, HiOutlineUserPlus } from "solid-icons/hi";
 import { renderICN } from "./renderICN";
 import { ActivityCard } from "./ActivityCard";
 
@@ -46,7 +46,7 @@ export default function MemberProfile(props) {
         className="member_popout y"
         style={{
           "--accent": profile()?.theme?.accent || "transparent",
-          ...(tempState.settings?.customProfileThemes ? {
+          ...(state.settings?.customProfileThemes ? {
             "--fg-one": profile()?.theme?.text || "#ffffff",
             "--hl-one": profile()?.theme?.accent || "rgb(141, 42, 255)",
             "--bg-one": profile()?.theme?.background || "#010101",
@@ -71,7 +71,24 @@ export default function MemberProfile(props) {
             class="profile_video_background"
             style="opacity: 0.65; filter: brightness(0.45);"
           />
-
+          <div class="icon_ball_button">
+            {() => {
+              if (tempState.conn.me().friends.includes("Mist")) {
+                return (<HiOutlineUserMinus></HiOutlineUserMinus>);
+              } else {
+                return (<HiOutlineUserPlus></HiOutlineUserPlus>);
+              }
+            }}
+          </div>
+          <div class="dropdown">
+            <div class="icon_ball_button dropdown_button">
+              <HiOutlineEllipsisVertical></HiOutlineEllipsisVertical>
+            </div>
+            <div class="dropdown_content">
+              <button>Direct Message</button>
+              <button>Block User</button>
+            </div>
+          </div>
           <img
             src={`https://avatars.rotur.dev/.banners/${props.username}`}
             alt=""
@@ -144,8 +161,9 @@ export default function MemberProfile(props) {
               <div class="badges x">
                 {profile().badges.map((badge) => (
                   <span
-                  data-tooltip={badge.name + ": " + badge.description}
+                    data-tooltip={badge.name + ": " + badge.description}
                     innerHTML={renderICN(badge.icon)}
+                    data-tooltip-icon={renderICN(badge.icon)}
                   />
                 ))}
               </div>

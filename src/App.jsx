@@ -453,9 +453,10 @@ function App() {
     }
   });
   const [fadeOut, setFadeOut] = createSignal(false);
-  createEffect(() => {
+  createEffect(async () => {
     if (loaded.done) {
       setFadeOut(true);
+      tempState.conn.me().friends = (await tempState?.rotur.friends.list())?.friends
 
       setTimeout(() => {
         setShowLoader(false);
