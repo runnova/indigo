@@ -2365,10 +2365,10 @@ hr.channelPageList {
 
 .status_dot {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px !important;
-  height: 10px !important;
+  bottom: 5%;
+  right:  5%;
+  width: 25% !important;
+  height:25% !important;
   border-radius: 50%;
   border: 2px solid var(--bg-one);
 }

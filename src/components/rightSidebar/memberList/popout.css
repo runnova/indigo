@@ -101,3 +101,25 @@
 .popup_content {
     color: var(--fg-one);
 }
+
+.float_top_right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: .8em;
+    gap: .2em;
+}
+
+.icon_ball_button {
+    background-color: var(--bg-two);
+    opacity: .5;
+    border-radius: var(--br-big);
+    padding: 5pt;
+    display: inline-flex;
+}
+
+.dropdown {
+    & .dropdown_content {
+        display: none;
+    }
+}

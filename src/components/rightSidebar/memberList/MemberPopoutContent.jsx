@@ -71,22 +71,24 @@ export default function MemberProfile(props) {
             class="profile_video_background"
             style="opacity: 0.65; filter: brightness(0.45);"
           />
-          <div class="icon_ball_button">
-            {() => {
-              if (tempState.conn.me().friends.includes("Mist")) {
-                return (<HiOutlineUserMinus></HiOutlineUserMinus>);
-              } else {
-                return (<HiOutlineUserPlus></HiOutlineUserPlus>);
-              }
-            }}
-          </div>
-          <div class="dropdown">
-            <div class="icon_ball_button dropdown_button">
-              <HiOutlineEllipsisVertical></HiOutlineEllipsisVertical>
+          <div className="float_top_right x">
+            <div class="icon_ball_button">
+              {() => {
+                if (tempState.conn.me().friends.includes("Mist")) {
+                  return (<HiOutlineUserMinus></HiOutlineUserMinus>);
+                } else {
+                  return (<HiOutlineUserPlus></HiOutlineUserPlus>);
+                }
+              }}
             </div>
-            <div class="dropdown_content">
-              <button>Direct Message</button>
-              <button>Block User</button>
+            <div class="dropdown">
+              <div class="icon_ball_button dropdown_button">
+                <HiOutlineEllipsisVertical></HiOutlineEllipsisVertical>
+              </div>
+              <div class="dropdown_content">
+                <button>Direct Message</button>
+                <button>Block User</button>
+              </div>
             </div>
           </div>
           <img
