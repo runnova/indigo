@@ -1,7 +1,12 @@
 import { Show, createResource } from "solid-js";
 import { openPopout } from "./popout";
 import { tempState } from "../../../App";
-import { HiOutlinePlay } from "solid-icons/hi";
+import {
+  HiOutlinePlay,
+  HiOutlineComputerDesktop,
+  HiOutlineDevicePhoneMobile,
+  HiOutlineCommandLine
+} from "solid-icons/hi"
 export default function MemberItem(props) {
   props.user = tempState?.conn?.members()?.find(
     user => user.username === props.user.username
@@ -83,6 +88,18 @@ export default function MemberItem(props) {
               class="owner_crown"
             />
           ) : null}
+          {props.onlineData?.devices?.map(devices => {
+            const icons = {
+              computer: HiOutlineComputerDesktop,
+              mobile: HiOutlineDevicePhoneMobile,
+              console: HiOutlineCommandLine,
+              terminal: HiOutlineCommandLine
+            };
+
+            const Icon = icons[devices];
+
+            return Icon ? <Icon class="client_icon" /> : null;
+          })}
         </span>
         <Show when={props.online}>
           <small>

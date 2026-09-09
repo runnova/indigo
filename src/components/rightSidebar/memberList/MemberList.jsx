@@ -7,11 +7,13 @@ export default function MemberList(props) {
 
   return user.roles?.find(id => roles[id]?.hoisted);
 };
+  const onlineUsers = createMemo(() => {
+    const users = tempState.conn.membersOnline();
 
-  const onlineUsers = createMemo(
-    () => new Set(props.conn.membersOnline().map(u => u.username))
-  );
-
+    return new Map(
+      Array.from(users).map(user => [user.username, user])
+    );
+  });
   const memberSections = createMemo(() => {
     const online = onlineUsers();
     const roles = props.conn.roles?.() ?? {};
@@ -96,6 +98,7 @@ export default function MemberList(props) {
                 <MemberItem
                   user={user}
                   online={onlineUsers().has(user.username)}
+                  onlineData={onlineUsers().get(user.username)}
                   status={user.status}
                   roles={props.conn.roles?.()}
                   getHoistedRole={getHoistedRole}

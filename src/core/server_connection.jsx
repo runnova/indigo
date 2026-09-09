@@ -108,6 +108,8 @@ export async function authenticate({
 
   return {
     cmd: "auth",
+    client: "Indigo",
+    device: "computer",
     validator,
   };
 }

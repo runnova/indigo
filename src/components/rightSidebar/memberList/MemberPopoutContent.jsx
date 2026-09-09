@@ -115,6 +115,7 @@ export default function MemberProfile(props) {
                 src={`https://api.rotur.dev/cosmetics/overlays/${profile()?.status?.data?.overlay}.gif`}
                 alt=""
                 class="overlay"
+                onError={(e) => e.currentTarget.style.display = "none"}
               />
               {status() && (
                 <span
