@@ -142,6 +142,10 @@ function GeneralSettings() {
         <div class="settings_section_label">Display channel name above display name</div>
         <SettingCheckbox setting="displayChannelName" />
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">Use client name / domain</div>
+        <SettingInput setting="clientName" />
+      </div>
     </>
   );
 }

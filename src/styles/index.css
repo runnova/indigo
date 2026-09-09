@@ -1095,7 +1095,7 @@ img.channel_icon_image {
 
     & .settings_content {
         overflow-y: auto;
-        padding-bottom: 3em !important;
+        padding-bottom: 7em !important;
     }
 }
 

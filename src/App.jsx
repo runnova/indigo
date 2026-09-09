@@ -104,7 +104,8 @@ const defaultState = {
     displayChannelName: true,
     parseMarkdown: true,
     twemoji:true,
-    customProfileThemes:true,
+    customProfileThemes: true,
+    clientName: "Indigo"
   },
 };
 export const [unreads, setUnreads] = createStore({

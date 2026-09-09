@@ -108,7 +108,7 @@ export async function authenticate({
 
   return {
     cmd: "auth",
-    client: "Indigo",
+    client: state.settings.clientName || "Indigo",
     device: "computer",
     validator,
   };
