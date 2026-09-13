@@ -5,38 +5,37 @@ import {
   HiOutlinePlay,
   HiOutlineComputerDesktop,
   HiOutlineDevicePhoneMobile,
-  HiOutlineCommandLine
-} from "solid-icons/hi"
+  HiOutlineCommandLine,
+} from "solid-icons/hi";
 export default function MemberItem(props) {
-  props.user = tempState?.conn?.members()?.find(
-    user => user.username === props.user.username
-  );
+  props.user = tempState?.conn
+    ?.members()
+    ?.find((user) => user.username === props.user.username);
   const roleId = () =>
     props.getHoistedRole(props.user) ?? props.user.roles?.[0];
-  const role = () =>
-    props.roles?.[roleId()];
+  const role = () => props.roles?.[roleId()];
   const [status] = createResource(
     () => props.online && props.user.username,
-    async username => {
+    async (username) => {
       if (!username) return null;
       try {
         const response = await fetch(
-          `https://api.rotur.dev/v2/status/live?name=${encodeURIComponent(username)}`
+          `https://api.rotur.dev/v2/status/live?name=${encodeURIComponent(username)}`,
         );
         if (!response.ok) return null;
         return await response.json();
       } catch {
         return null;
       }
-    }
+    },
   );
   return (
     <div
       class="member_item x"
       style={{
-        opacity: props.online ? 1 : 0.5
+        opacity: props.online ? 1 : 0.5,
       }}
-      onClick={e => openPopout(props.user, e.currentTarget, status)}
+      onClick={(e) => openPopout(props.user, e.currentTarget, status)}
     >
       <div class="pfpWO">
         <img
@@ -60,7 +59,7 @@ export default function MemberItem(props) {
             classList={{
               online: props.status.status === "online",
               idle: props.status.status === "idle",
-              offline: props.status.status === "dnd" || !props.status.status
+              offline: props.status.status === "dnd" || !props.status.status,
             }}
           />
         )}
@@ -74,10 +73,10 @@ export default function MemberItem(props) {
                   "-webkit-background-clip": "text",
                   "-webkit-text-fill-color": "transparent",
                   "background-clip": "text",
-                  color: "transparent"
+                  color: "transparent",
                 }
               : {
-                  color: role()?.color
+                  color: role()?.color,
                 }
           }
         >
@@ -88,30 +87,35 @@ export default function MemberItem(props) {
               class="owner_crown"
             />
           ) : null}
-          {props.onlineData?.devices?.map(devices => {
+          {role()?.icon && (
+            <img class="inline_emoji" src={role()?.icon} alt="" />
+          )}
+          {props.onlineData?.devices?.map((devices) => {
             const icons = {
               computer: HiOutlineComputerDesktop,
               mobile: HiOutlineDevicePhoneMobile,
               console: HiOutlineCommandLine,
-              terminal: HiOutlineCommandLine
+              terminal: HiOutlineCommandLine,
             };
 
             const Icon = icons[devices];
 
-            return Icon ? <Icon class="client_icon" data-tooltip={props.onlineData.clients[0]} /> : null;
+            return Icon ? (
+              <Icon
+                class="client_icon"
+                data-tooltip={props.onlineData.clients[0]}
+              />
+            ) : null;
           })}
         </span>
         <Show when={props.online}>
           <small>
-            {
-              status()?.activities?.length ?
-              <HiOutlinePlay/>: ""
-            }
+            {status()?.activities?.length ? <HiOutlinePlay /> : ""}
             {status.loading
               ? "Loading..."
               : status()?.activities?.length
-                ? `${status().activities[0].title} ${ (status()?.status) ? `\u2022 ${status()?.status}` : ""}`
-                : status()?.status ?? ""}
+                ? `${status().activities[0].title} ${status()?.status ? `\u2022 ${status()?.status}` : ""}`
+                : (status()?.status ?? "")}
           </small>
         </Show>
       </div>

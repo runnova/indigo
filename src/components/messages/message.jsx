@@ -72,6 +72,52 @@ export function Message(props) {
     return `${(size / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
   };
   const [signed] = createResource(() => props.signed, (value) => value);
+
+  // Get user data with proper reactivity
+  const user = createMemo(() =>
+    !props.webhook
+      ? tempState?.conn
+          ?.members()
+          ?.find((member) => member.username === props.username)
+      : null
+  );
+
+  // Get the user's role icon
+  const roleIcon = createMemo(() => {
+    const currentUser = user();
+    if (!currentUser || props.webhook) return null;
+
+    const roles = tempState?.conn?.roles?.();
+    if (!roles || !currentUser.roles) return null;
+
+    // First, try to find a role whose color matches the user's color
+    const colorMatchingRole = currentUser.roles.find(roleId => {
+      const roleData = roles[roleId];
+      return roleData?.color === currentUser.color;
+    });
+
+    if (colorMatchingRole) {
+      const icon = roles[colorMatchingRole]?.icon;
+      if (icon) return icon;
+    }
+
+    // Fall back to the role with the highest position that has an icon
+    // Sort roles by position descending
+    const sortedRoles = [...currentUser.roles].sort((roleIdA, roleIdB) => {
+      const posA = roles[roleIdA]?.position ?? -1;
+      const posB = roles[roleIdB]?.position ?? -1;
+      return posB - posA;
+    });
+
+    // Return icon from first role that has one
+    for (const roleId of sortedRoles) {
+      const icon = roles[roleId]?.icon;
+      if (icon) return icon;
+    }
+
+    return null;
+  });
+
   return (
     <div
       class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
@@ -173,7 +219,9 @@ export function Message(props) {
                 }
                 onClick={(e) => !props.webhook && openPopout(props, e.currentTarget)}
               >
-                {displayUsername()}
+                {displayUsername()} {roleIcon() && (
+                  <img class="inline_emoji" src={roleIcon()} alt="" />
+                )}
               </div>
 
               <div class="time">{props.time} </div> {(signed() == "verified")?"" : <HiOutlineExclamationTriangle style={{color: "yellow"}}></HiOutlineExclamationTriangle>}
