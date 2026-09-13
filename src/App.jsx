@@ -861,6 +861,26 @@ function App() {
   );
 }
 
+export function logout() {
+  const settings = JSON.parse(localStorage.getItem("settings") || "{}");
+
+  if (settings.type === "token") {
+    localStorage.setItem(
+      "settings",
+      JSON.stringify({
+        ...settings,
+        token: null,
+      }),
+    );
+  } else {
+    localStorage.removeItem("settings");
+  }
+
+  tempState.conn.close?.();
+  tempState.rotur.logout()
+  window.location.reload();
+}
+
 export default App;
 
 // :3

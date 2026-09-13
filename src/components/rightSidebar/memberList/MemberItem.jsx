@@ -98,7 +98,7 @@ export default function MemberItem(props) {
 
             const Icon = icons[devices];
 
-            return Icon ? <Icon class="client_icon" /> : null;
+            return Icon ? <Icon class="client_icon" data-tooltip={props.onlineData.clients[0]} /> : null;
           })}
         </span>
         <Show when={props.online}>

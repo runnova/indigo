@@ -532,6 +532,7 @@ export function VirtualMessageList(props) {
                             fake={msg().__fake}
                             ephemeral={msg().ephemeral}
                             deleted={msg()?.deleted}
+                            edited={msg()?.edited}
                             editing={state.editing?.id === msg()?.id}
                             signed={verifyMessage(msg())}
                             onDismiss={() =>

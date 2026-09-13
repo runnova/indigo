@@ -1,11 +1,12 @@
 import { createSignal, For, onMount } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { setState, state } from "../../App";
+import { logout, setState, state } from "../../App";
 
 import {
   HiOutlineCog6Tooth,
   HiOutlinePaintBrush,
   HiOutlinePencilSquare,
+  HiOutlineUser,
 } from "solid-icons/hi";
 
 import ThemeSettings from "./settings/Theme"
@@ -166,6 +167,17 @@ function AboutSettings() {
   );
 }
 
+function YouSettings() {
+  return (
+    <>
+      <p>Logged in as {tempState.conn.me()?.username}</p>
+      <button onclick={() => {
+        logout()
+      }}>Log Out or Switch Accounts</button>
+    </>
+  );
+}
+
 const tabs = [
   {
     id: "general",
@@ -184,6 +196,12 @@ const tabs = [
     title: "Customize",
     icon: HiOutlinePencilSquare,
     component: Customize,
+  },
+  {
+    id: "you",
+    title: "Account",
+    icon: HiOutlineUser,
+    component: YouSettings
   },
   {
     id: "about",

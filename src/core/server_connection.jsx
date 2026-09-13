@@ -30,41 +30,14 @@ export async function fetchRoturValidator(validatorKey, roturToken) {
   if (!data.validator) throw new Error("Rotur response missing validator field");
   return data.validator;
 }
-
 async function requestRoturToken() {
-  const styleUrl = "assets/roturstyle.css";
-
-  const css = await fetch(styleUrl).then(r => r.text());
-  const dataUri = `data:text/css;charset=utf-8,${encodeURIComponent(css)}`;
-
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement("iframe");
-
-    iframe.id = "rotur-auth";
-    iframe.src =
-      `https://rotur.dev/auth?system=orion&styles=${encodeURIComponent(dataUri)}`;
-
-    document.body.appendChild(iframe);
-
-    const handler = (event) => {
-      if (
-        event.origin === "https://rotur.dev" &&
-        event.data?.type === "rotur-auth-token"
-      ) {
-        window.removeEventListener("message", handler);
-        iframe.remove();
-        resolve(event.data.token);
-      }
-    };
-
-    window.addEventListener("message", handler);
-
-    iframe.addEventListener("error", () => {
-      window.removeEventListener("message", handler);
-      iframe.remove();
-      reject(new Error("Rotur auth failed"));
-    });
+  await tempState.rotur.login({
+    system: "orion",
+    timeout: 60_000,
+    requires: "full"
   });
+
+  return tempState.rotur.token;
 }
 
 export async function authenticate({

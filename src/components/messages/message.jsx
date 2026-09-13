@@ -195,7 +195,7 @@ export function Message(props) {
           <Show
             when={props.editing}
             fallback={<div class="message_text">{rendered()}
-              {props.edited && <HiOutlinePencil />}</div>}
+              {props.edited && <HiOutlinePencil className="edited_marker" />}</div>}
           >
             <textarea
               class="message_edit_textarea"
