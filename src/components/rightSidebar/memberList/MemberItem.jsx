@@ -64,7 +64,7 @@ export default function MemberItem(props) {
           />
         )}
       </div>
-      <div class="data y">
+      <div class="data y fill">
         <span
           style={
             role()?.gradient
@@ -90,7 +90,10 @@ export default function MemberItem(props) {
           {role()?.icon && (
             <img class="inline_emoji" src={role()?.icon} alt="" />
           )}
-          {props.onlineData?.devices?.map((devices) => {
+          {[
+            ...(props.onlineData?.clients ?? []),
+            ...(props.onlineData?.devices ?? []),
+          ].map((item) => {
             const icons = {
               computer: HiOutlineComputerDesktop,
               mobile: HiOutlineDevicePhoneMobile,
@@ -98,12 +101,39 @@ export default function MemberItem(props) {
               terminal: HiOutlineCommandLine,
             };
 
-            const Icon = icons[devices];
+            if (item === "indigo") {
+              return (
+                <img
+                  class="client_icon"
+                  src="https://runnova.github.io/indigo/icon_small.svg"
+                  data-tooltip={item}
+                />
+              );
+            }
+
+            if (item === "originchats.com") {
+              return (
+                <img
+                  class="client_icon"
+                  src="https://originchats.com/dms.png"
+                  data-tooltip={item}
+                />
+              );
+            }
+
+
+            if (item === "bot") {
+              return (
+                <svg class="client_icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+              );
+            }
+
+            const Icon = icons[item];
 
             return Icon ? (
               <Icon
                 class="client_icon"
-                data-tooltip={props.onlineData.clients[0]}
+                data-tooltip={item}
               />
             ) : null;
           })}

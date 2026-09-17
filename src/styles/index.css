@@ -552,7 +552,7 @@ iframe#rotur-auth {
         max-width: calc(100% - 0.4em);
         margin: 0 0.3em;
 
-        & * {
+        &>* {
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -2275,16 +2275,17 @@ img.big_emoji {
 }
 
 .owner_crown,.client_icon {
-    margin-left: 5px;
-    width: 14px;
+    margin-left: 0.5em;
+    width: 10px;
     height: 10px;
-    transform: scale(1.3);
+    transform: scale(1.6);
 }
 
 .owner_crown {
     height: 14px;
     color: rgb(255, 200, 0);
 }
+
 .client_icon {
     color: inherit;
 }

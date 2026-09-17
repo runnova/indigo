@@ -1,7 +1,3 @@
-[data-tooltip]:hover {
-    outline: 1px solid var(--diff-three);
-}
-
 .tooltip {
   position: fixed;
   z-index: 999999;
@@ -12,14 +8,13 @@
 
   max-width:300px;
 
-  padding: .7em .85em;
+  padding: .3em .5em;
 
   box-sizing: border-box;
 
   background: var(--bg-two);
   color: var(--fg-one);
 
-  border: 1px solid var(--diff-three);
   border-radius: var(--br-mid);
   box-shadow: var(--border);
 
