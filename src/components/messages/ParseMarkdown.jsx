@@ -1,13 +1,13 @@
 import { For, createResource, createSignal, Show } from "solid-js";
-import { setState, state, tempState } from "../../App";
 import { setPreview } from "../../App";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { twemojiUrl } from "./twemoji.js";
 import { switchToChannel } from "../../App";
-import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
 import { getEmbedProvider } from "./embeds/registry.jsx";
-import hljs from 'highlight.js';
-import 'highlight.js/styles/atom-one-dark.css';
+import hljs from "highlight.js";
+import "highlight.js/styles/atom-one-dark.css";
+import { setState, state, tempState, openMessageLink } from "../../App";
+import { HiOutlineChatBubbleLeft } from "solid-icons/hi";
 
 const markdownCache = new Map();
 import { parseMarkdown as tokenizeMarkdown } from "./markdown_tokenizer.js";
@@ -240,20 +240,14 @@ function CodeBlockDisplay(props) {
   return (
     <div class="code_block_container">
       <div class="code_block_header">
-        <span class="code_block_language">
-          {props.language || 'text'}
-        </span>
-        <button
-          class="code_block_copy"
-          onClick={handleCopy}
-          title="Copy code"
-        >
-          {copied() ? 'Copied' : 'Copy'}
+        <span class="code_block_language">{props.language || "text"}</span>
+        <button class="code_block_copy" onClick={handleCopy} title="Copy code">
+          {copied() ? "Copied" : "Copy"}
         </button>
       </div>
       <pre class="code_block_content">
         <code
-          class={`hljs lang-${props.language || 'text'}`}
+          class={`hljs lang-${props.language || "text"}`}
           innerHTML={highlightedCode}
         />
       </pre>
@@ -277,9 +271,7 @@ function renderToken(token, depth = 0) {
 
     case "italic":
       return (
-        <i key={key}>
-          {token.children?.map((t) => renderToken(t, depth + 1))}
-        </i>
+        <i key={key}>{token.children?.map((t) => renderToken(t, depth + 1))}</i>
       );
 
     case "bold":
@@ -339,7 +331,7 @@ function renderToken(token, depth = 0) {
           class="inline_emoji"
           src={`https://${token.host}/emojis/${token.id}`}
           alt=""
-          data-tooltip={`${(token.host.startsWith("api.rotur")) ? "User" : "Server"} Emoji: Emoji from ${token.host}`}
+          data-tooltip={`${token.host.startsWith("api.rotur") ? "User" : "Server"} Emoji: Emoji from ${token.host}`}
           data-tooltip-icon={`https://${token.host}/emojis/${token.id}`}
         />
       );
@@ -372,10 +364,40 @@ function renderToken(token, depth = 0) {
           class="inline_sticker"
           src={`https://${token.host}/stickers/${token.id}`}
           alt=""
-          data-tooltip={`${(token.host.startsWith("api.rotur")) ? "User" : "Server"} Sticker: Sticker from ${token.host}`}
+          data-tooltip={`${token.host.startsWith("api.rotur") ? "User" : "Server"} Sticker: Sticker from ${token.host}`}
           data-tooltip-icon={`https://${token.host}/stickers/${token.id}`}
         />
       );
+
+    case "messageLink": {
+      const isCurrentServer =
+        tempState.conn?.serverInfo?.()?.src === token.host;
+
+      const local = isCurrentServer
+        ? state.messages?.[token.channel]?.find((m) => m.id === token.id)
+        : null;
+
+      const preview = local
+        ? `${local.user}: ${(local.content || "").slice(0, 120)}`
+        : `Jump to message in #${token.channel}`;
+
+      return (
+        <a
+          key={key}
+          href="#"
+          class="channel_link message_link"
+          data-tooltip={preview}
+          onClick={(e) => {
+            e.preventDefault();
+            openMessageLink(token);
+          }}
+        >
+          <HiOutlineChatBubbleLeft /> Message in { " "}
+          {isCurrentServer ? "" : `${token.host} • `}#{token.channel}
+          {local ? ` • ${local.user}` : ""}
+        </a>
+      );
+    }
 
     case "timestamp": {
       const date = new Date(token.unix * 1000);
@@ -699,13 +721,16 @@ export function parseMarkdown(input) {
               class="inline_emoji big_emoji"
               src={`https://${match[1]}/emojis/${match[2]}`}
               alt=""
-              data-tooltip={`${(match[1].startsWith("api.rotur")) ? "User" : "Server"} Emoji: Emoji from ${match[1]}`}
+              data-tooltip={`${match[1].startsWith("api.rotur") ? "User" : "Server"} Emoji: Emoji from ${match[1]}`}
               data-tooltip-icon={`https://${match[1]}/emojis/${match[2]}`}
             />
           );
         }
 
-        if (state.settings.twemoji && /\p{Extended_Pictographic}/u.test(token)) {
+        if (
+          state.settings.twemoji &&
+          /\p{Extended_Pictographic}/u.test(token)
+        ) {
           return (
             <img
               key={getKey()}

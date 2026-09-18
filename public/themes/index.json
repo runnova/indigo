@@ -4,9 +4,19 @@
     "name": "Clean Dark",
     "author": "darkdot",
     "version": "1.0.0",
-    "description": "A clean dark theme.",
+    "description": "A clean dark theme inspired by Official Client.",
     "file": "official.css",
     "preview": "#bd93f9",
+    "type": "theme"
+  },
+  {
+    "id": "graphite",
+    "name": "Graphite Dark",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "A dark theme with a bluish tint inspired by Graphite client.",
+    "file": "graphite.css",
+    "preview": "#1E2E60",
     "type": "theme"
   },
   {

@@ -1,4 +1,11 @@
-import { For, Show, createMemo, createSignal, createEffect, createResource } from "solid-js";
+import {
+  For,
+  Show,
+  createMemo,
+  createSignal,
+  createEffect,
+  createResource,
+} from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
@@ -15,11 +22,9 @@ import { sendMessageEdit } from "../../core/useMessageSigning.js";
 import { timeAgo } from "../Utility.jsx";
 
 export function Message(props) {
-  const displayUsername = () =>
-    props.webhook?.name || props.username;
+  const displayUsername = () => props.webhook?.name || props.username;
 
-  const displayAvatar = () =>
-    props.webhook?.avatar || props.avatar;
+  const displayAvatar = () => props.webhook?.avatar || props.avatar;
 
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
@@ -72,14 +77,17 @@ export function Message(props) {
 
     return `${(size / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
   };
-  const [signed] = createResource(() => props.signed, (value) => value);
+  const [signed] = createResource(
+    () => props.signed,
+    (value) => value,
+  );
 
   const user = createMemo(() =>
     !props.webhook
       ? tempState?.conn
           ?.members()
           ?.find((member) => member.username === props.username)
-      : null
+      : null,
   );
 
   const roleIcon = createMemo(() => {
@@ -89,7 +97,7 @@ export function Message(props) {
     const roles = tempState?.conn?.roles?.();
     if (!roles || !currentUser.roles) return null;
 
-    const colorMatchingRole = currentUser.roles.find(roleId => {
+    const colorMatchingRole = currentUser.roles.find((roleId) => {
       const roleData = roles[roleId];
       return roleData?.color === currentUser.color;
     });
@@ -172,7 +180,9 @@ export function Message(props) {
         ) : (
           <div
             className="pfpWO"
-            onClick={(e) => props.webhook ? null : openPopout(props, e.currentTarget)}
+            onClick={(e) =>
+              props.webhook ? null : openPopout(props, e.currentTarget)
+            }
           >
             <img
               src={displayAvatar()}
@@ -188,7 +198,7 @@ export function Message(props) {
                 class="overlay"
                 loading="lazy"
               />
-              )}
+            )}
           </div>
         )}
 
@@ -207,26 +217,38 @@ export function Message(props) {
                         color: "transparent",
                       }
                     : !props.webhook
-                    ? {
-                        color: member?.color,
-                      }
-                    : {}
+                      ? {
+                          color: member?.color,
+                        }
+                      : {}
                 }
-                onClick={(e) => !props.webhook && openPopout(props, e.currentTarget)}
+                onClick={(e) =>
+                  !props.webhook && openPopout(props, e.currentTarget)
+                }
               >
-                {displayUsername()} {roleIcon() && (
-                  <img class="inline_emoji" src={roleIcon().icon} data-tooltip={roleIcon()?.name + ": Role Icon"} data-tooltip-icon={roleIcon()?.icon} />
+                {displayUsername()}{" "}
+                {roleIcon() && (
+                  <img
+                    class="inline_emoji"
+                    src={roleIcon().icon}
+                    data-tooltip={roleIcon()?.name + ": Role Icon"}
+                    data-tooltip-icon={roleIcon()?.icon}
+                  />
                 )}
               </div>
-
-              <div class="time">{props.time} </div> {(signed() == "verified")?"" : <HiOutlineExclamationTriangle style={{color: "yellow"}}></HiOutlineExclamationTriangle>}
-
+              <div class="time">{props.time} </div>{" "}
+              {signed() == "verified" ? (
+                ""
+              ) : (
+                <HiOutlineExclamationTriangle
+                  style={{ color: "yellow" }}
+                ></HiOutlineExclamationTriangle>
+              )}
               <Show when={props.fake}>
                 <button class="fake-dismiss" onClick={props.onDismiss}>
                   Dismiss <HiOutlineXMark />
                 </button>
               </Show>
-
               <Show when={props.ephemeral}>
                 <button class="fake-dismiss" onClick={dismissEphemeral}>
                   Dismiss <HiOutlineXMark />
@@ -237,8 +259,17 @@ export function Message(props) {
 
           <Show
             when={props.editing}
-            fallback={<div class="message_text">{rendered()}
-              {props.edited && <HiOutlinePencil data-tooltip={ "Edited:"+timeAgo(props.edited_at)  } className="edited_marker" />}</div>}
+            fallback={
+              <div class="message_text">
+                {rendered()}
+                {props.edited && (
+                  <HiOutlinePencil
+                    data-tooltip={"Edited:" + timeAgo(props.edited_at)}
+                    className="edited_marker"
+                  />
+                )}
+              </div>
+            }
           >
             <textarea
               class="message_edit_textarea"
@@ -256,7 +287,11 @@ export function Message(props) {
                   e.preventDefault();
 
                   const current = props;
-                  await sendMessageEdit(props.id, { content: editValue() }, current);
+                  await sendMessageEdit(
+                    props.id,
+                    { content: editValue() },
+                    current,
+                  );
 
                   setState("editing", null);
                 }
@@ -402,7 +437,8 @@ export function Message(props) {
                           src={emoji.replace("originChats://", "https://")}
                           alt=""
                         />
-                      ) : state.settings.twemoji && /\p{Extended_Pictographic}/u.test(emoji) ? (
+                      ) : state.settings.twemoji &&
+                        /\p{Extended_Pictographic}/u.test(emoji) ? (
                         <img
                           class="inline_emoji twemoji"
                           src={twemojiUrl(emoji)}

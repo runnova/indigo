@@ -77,7 +77,7 @@ export default function MemberItem(props) {
                   color: "transparent",
                 }
               : {
-                  color: role()?.color,
+                  color: props.user.color,
                 }
           }
         >

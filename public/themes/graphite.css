@@ -1,0 +1,45 @@
+:root {
+  --bg-one: #090a0b;
+  --bg-two: #0B0C0E;
+  --bg-three: #0F1115;
+  --bg-four: #1E2E60;
+
+  --hl-one: #429aff;
+  --hl-two: #A3C7FC;
+  --hl-three: #45475A;
+  --hl-four: #244A76;
+
+  --fg-one: rgb(179, 203, 249);
+
+  --br-big: 14px;
+  --br-mid: 10px;
+  --br-tiny: 8px;
+  --br-min: 5px
+}
+
+path {
+    stroke-width: 3px;
+}
+
+.first_bar {
+  border-right: 1px solid var(--diff-three);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--diff-three);
+}
+
+.text_box,
+.user_display {
+  box-shadow: var(--border);
+  background-color: var(--bg-three);
+}
+
+.server_single>.unread_badge {
+  bottom: -3px;
+  left: auto;
+  right: -3px;
+  background-color: var(--fg-one);
+  padding: 6px;
+  width: 0;
+}

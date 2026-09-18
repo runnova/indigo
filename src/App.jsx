@@ -28,9 +28,7 @@ import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
-import {
-  VirtualMessageList
-} from "./scrolling";
+import { VirtualMessageList } from "./scrolling";
 import { ForumView } from "./components/forumView/ForumView";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
@@ -45,9 +43,7 @@ import useAppInitialization from "./core/useAppInitialization.js";
 
 import { Rotur } from "rotur-sdk";
 import "./themeManager";
-import {
-  addTheme
-} from "./themeManager";
+import { addTheme } from "./themeManager";
 addTheme(`${import.meta.env.BASE_URL}themes/fun.css`);
 
 import "https://embed.rotur.dev/embed.js";
@@ -57,7 +53,7 @@ import { bindVoiceEvents } from "./core/voiceClient.js";
 import ContextMenu from "./components/Contextmenu.jsx";
 
 import "./core/ContextMenuDefs.jsx";
-import "./core/Hotkeys.jsx"
+import "./core/Hotkeys.jsx";
 
 import Spotlight from "./components/spotlight/Spotlight.jsx";
 import { updateClockOffset } from "./core/useMessageSigning.js";
@@ -70,9 +66,7 @@ export const [emojiPicker, setEmojiPicker] = createStore({
 });
 
 const defaultState = {
-  servers: [
-    { src: "dms.mistium.com", icon: null, name: "dms" }
-  ],
+  servers: [{ src: "dms.mistium.com", icon: null, name: "dms" }],
   serverGroups: [],
   current: {
     channel: null,
@@ -104,9 +98,9 @@ const defaultState = {
     thirdBarWidth: 320,
     displayChannelName: true,
     parseMarkdown: true,
-    twemoji:true,
+    twemoji: true,
     customProfileThemes: true,
-    clientName: "Indigo"
+    clientName: "Indigo",
   },
 };
 export const [unreads, setUnreads] = createStore({
@@ -210,6 +204,32 @@ function preloadChannelMessages(channelName) {
       if (!resolved) resolve([]);
     }, 5000);
   });
+}
+
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+export async function openMessageLink({ host, channel, threadId, id }) {
+  const alreadyThere =
+    state.current.server?.src === host &&
+    state.current.channel === channel &&
+    (state.current.thread?.id ?? null) === (threadId ?? null);
+
+  if (!alreadyThere) {
+    await switchToChannel(host, channel, threadId);
+    await sleep(300);
+  }
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const list = tempState.virtMsgList;
+    if (list?.jumpToMessage) {
+      try {
+        const result = await list.jumpToMessage(id);
+        if (result !== false) return;
+      } catch {}
+    }
+    await sleep(250);
+  }
 }
 
 export async function switchToChannel(server, channel, threadId) {
@@ -387,7 +407,7 @@ function App() {
     ) {
       restoreTimeout = setTimeout(() => {
         setState("current", "channel", savedChannel);
-         setState("current", "thread", null)
+        setState("current", "thread", null);
       }, 500);
     }
   });
@@ -458,7 +478,9 @@ function App() {
   createEffect(async () => {
     if (loaded.done) {
       setFadeOut(true);
-      tempState.conn.me().friends = (await tempState?.rotur.friends.list())?.friends
+      tempState.conn.me().friends = (
+        await tempState?.rotur.friends.list()
+      )?.friends;
 
       setTimeout(() => {
         setShowLoader(false);
@@ -671,7 +693,10 @@ function App() {
                         state.thirdBarContext === "selfroles" ? "active" : ""
                       }
                       onClick={() => {
-                        if (state.thirdBarContext === "selfroles" && !thirdBarCollapsed()) {
+                        if (
+                          state.thirdBarContext === "selfroles" &&
+                          !thirdBarCollapsed()
+                        ) {
                           setThirdBarCollapsed(true);
                         } else {
                           setState("thirdBarContext", "selfroles");
@@ -687,7 +712,10 @@ function App() {
                         state.thirdBarContext === "inbox" ? "active" : ""
                       }
                       onClick={() => {
-                        if (state.thirdBarContext === "inbox" && !thirdBarCollapsed()) {
+                        if (
+                          state.thirdBarContext === "inbox" &&
+                          !thirdBarCollapsed()
+                        ) {
                           setThirdBarCollapsed(true);
                         } else {
                           setState("thirdBarContext", "inbox");
@@ -703,7 +731,10 @@ function App() {
                         state.thirdBarContext === "pinned" ? "active" : ""
                       }
                       onClick={() => {
-                        if (state.thirdBarContext === "pinned" && !thirdBarCollapsed()) {
+                        if (
+                          state.thirdBarContext === "pinned" &&
+                          !thirdBarCollapsed()
+                        ) {
                           setThirdBarCollapsed(true);
                         } else {
                           setState("thirdBarContext", "pinned");
@@ -719,7 +750,10 @@ function App() {
                         state.thirdBarContext === "members" ? "active" : ""
                       }
                       onClick={() => {
-                        if (state.thirdBarContext === "members" && !thirdBarCollapsed()) {
+                        if (
+                          state.thirdBarContext === "members" &&
+                          !thirdBarCollapsed()
+                        ) {
                           setThirdBarCollapsed(true);
                         } else {
                           setState("thirdBarContext", "members");
@@ -878,7 +912,7 @@ export function logout() {
   }
 
   tempState.conn.close?.();
-  tempState.rotur.logout()
+  tempState.rotur.logout();
   window.location.reload();
 }
 

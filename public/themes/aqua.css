@@ -32,9 +32,8 @@
 .server_single--active,
 .browser_tabs button.active,
 .discovery_join,
-.server_tooltip,
 .emoji_category.active,
-nav button.active {
+nav button.active, .message-actions, .mention {
   box-shadow: 0 0 5px var(--hl-two) inset, 0 3px 3px #000000ab;
   position: relative;
 
@@ -56,7 +55,6 @@ nav button.active {
   overflow-y: auto;
 
   &>.channel_item {
-    padding: .7em 1em;
     border-radius: var(--br-mid);
     min-width: 150px;
     background-color: var(--bg-two);

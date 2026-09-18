@@ -168,6 +168,13 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
+    const messageLinkMatch = tryParseMessageLink(text, i);
+    if (messageLinkMatch) {
+      tokens.push(messageLinkMatch.token);
+      i = messageLinkMatch.end;
+      continue;
+    }
+
     const textStart = i;
     while (
       i < text.length &&
@@ -371,6 +378,36 @@ function tryParseChannelLink(text, i) {
       name: match[2]
     },
     end: i + match[0].length
+  };
+}
+
+function tryParseMessageLink(text, i) {
+  const prefix = 'originChats:<message>//';
+  if (!text.startsWith(prefix, i)) return null;
+
+  let j = i + prefix.length;
+  while (j < text.length && !isWhitespace(text[j])) j++;
+
+  const raw = text.slice(i + prefix.length, j).replace(/[.,!?;:)\]]+$/, '');
+  j = i + prefix.length + raw.length;
+
+  const parts = raw.split('/');
+  if (parts.length < 3 || parts.length > 4) return null;
+  if (!/^[a-zA-Z0-9.:-]+$/.test(parts[0])) return null;
+  if (!parts.every(Boolean)) return null;
+
+  const id = parts[parts.length - 1];
+  if (!/^[a-zA-Z0-9-]+$/.test(id)) return null;
+
+  return {
+    token: {
+      type: 'messageLink',
+      host: parts[0],
+      channel: parts[1],
+      threadId: parts.length === 4 ? parts[2] : undefined,
+      id,
+    },
+    end: j,
   };
 }
 
