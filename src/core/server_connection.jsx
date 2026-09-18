@@ -21,13 +21,25 @@ function saveToken(token) {
   localStorage.setItem("rotur_embed_token", token);
   location.reload();
 }
-
 export async function fetchRoturValidator(validatorKey, roturToken) {
-  const url = `https://api.rotur.dev/generate_validator?auth=${encodeURIComponent(roturToken)}&key=${encodeURIComponent(validatorKey)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Rotur validator request failed: ${res.status}`);
+  const url = `https://api.rotur.dev/generate_validator?key=${encodeURIComponent(validatorKey)}`;
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${roturToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Rotur validator request failed: ${res.status}`);
+  }
+
   const data = await res.json();
-  if (!data.validator) throw new Error("Rotur response missing validator field");
+
+  if (!data.validator) {
+    throw new Error("Rotur response missing validator field");
+  }
+
   return data.validator;
 }
 async function requestRoturToken() {

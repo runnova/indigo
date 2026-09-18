@@ -16,12 +16,7 @@ import {
 import { Message } from "./components/messages/message.jsx";
 import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./core/useChannelMessages.jsx";
-import {
-  tempState,
-  state,
-  setState,
-  setEmojiPicker,
-} from "./App.jsx";
+import { tempState, state, setState, setEmojiPicker } from "./App.jsx";
 import { verifyMessage } from "./core/useMessageSigning.js";
 
 const [fakeMessages, setFakeMessages] = createSignal([]);
@@ -137,6 +132,7 @@ export function VirtualMessageList(props) {
     });
     return true;
   }
+
   function isNearBottom() {
     if (!scrollEl) return true;
     return (
@@ -161,34 +157,88 @@ export function VirtualMessageList(props) {
     isNearBottom,
     threadId: () => props.threadId,
   });
-  props.onReady?.({
-    scrollToMessage,
-    scrollToBottom,
-    jumpToMessage,
-  });
 
   const messages = createMemo(() => [...realMessages(), ...fakeMessages()]);
 
   createMessageLookup(messages);
 
+  const getAllMessages = () => messages();
+
+  props.onReady?.({
+    scrollToMessage,
+    scrollToBottom,
+    jumpToMessage,
+    getAllMessages,
+    messages,
+  });
+
+  createEffect(() => {
+    const handleKeyDown = (e) => {
+      const isInputFocused =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target?.contentEditable === "true";
+      if (
+        e.key !== "ArrowUp" ||
+        isInputFocused ||
+        state.replying ||
+        state.editing
+      ) {
+        return;
+      }
+      e.preventDefault();
+      const username = tempState.conn?.me?.()?.username;
+      const allMessages = messages();
+      if (!username || !allMessages.length) return;
+      const lastOwnMessage = allMessages
+        .slice()
+        .reverse()
+        .find(
+          (message) =>
+            message.user === username && !message.deleted && !message.ephemeral,
+        );
+      if (!lastOwnMessage) return;
+      scrollToMessage(lastOwnMessage.id);
+      setState("editing", {
+        id: lastOwnMessage.id,
+        user: lastOwnMessage.user,
+        content: lastOwnMessage.content,
+      });
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    onCleanup(() => {
+      document.removeEventListener("keydown", handleKeyDown);
+    });
+  });
   function stickToBottomThroughMediaLoad() {
     if (!scrollEl) return;
     const media = scrollEl.querySelectorAll("img, video");
     let pending = 0;
+    let scrollTimeout;
 
     media.forEach((el) => {
       const notReady = el.tagName === "IMG" ? !el.complete : el.readyState < 1;
       if (!notReady) return;
       pending++;
+
       const onLoad = () => {
         pending--;
-        if (scrollLocked()) scrollToBottom(false);
+
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          if (scrollLocked() && pending === 0) {
+            scrollToBottom(false);
+          }
+        }, 50);
+
         el.removeEventListener("load", onLoad);
         el.removeEventListener("loadeddata", onLoad);
       };
       el.addEventListener("load", onLoad);
       el.addEventListener("loadeddata", onLoad);
     });
+
+    onCleanup(() => clearTimeout(scrollTimeout));
   }
 
   const SECTION_SIZE = 15;
@@ -196,6 +246,7 @@ export function VirtualMessageList(props) {
 
   const [scrollLocked, setScrollLocked] = createSignal(true);
   const [sectionList, setSectionList] = createSignal([]);
+
   function rebuildSectionsFromMessages(forceFresh = false) {
     const msgs = messages();
     const totalCap = SECTION_SIZE * MAX_SECTIONS;
@@ -249,6 +300,7 @@ export function VirtualMessageList(props) {
 
     setSectionList(result);
   }
+
   function appendMessageToSections(msg) {
     setSectionList((prev) => {
       const last = prev[prev.length - 1];
@@ -281,6 +333,7 @@ export function VirtualMessageList(props) {
       behavior: "instant",
     });
   }
+
   const [oldestVisibleId, setOldestVisibleId] = createSignal(null);
 
   function onScroll() {
@@ -323,6 +376,7 @@ export function VirtualMessageList(props) {
       }
     }),
   );
+
   createEffect(
     on(lastUpdate, (update) => {
       if (!update) return;
@@ -354,7 +408,7 @@ export function VirtualMessageList(props) {
         return;
       }
 
-      rebuildSectionsFromMessages(true);
+      rebuildSectionsFromMessages(false);
 
       if (update.type === "jump") {
         setPendingJumpId(update.targetId);
@@ -389,7 +443,9 @@ export function VirtualMessageList(props) {
       }
     }),
   );
+
   const renderOverlay = state.settings.profileOverlays;
+
   return (
     <>
       <Show when={props.onBack}>
@@ -405,7 +461,11 @@ export function VirtualMessageList(props) {
               <HiOutlineUserMinus /> Leave
             </button>
           ) : (
-            <button class="forum-back-btn x" onClick={props.onJoin} style={{color: "var(--peace)"}}>
+            <button
+              class="forum-back-btn x"
+              onClick={props.onJoin}
+              style={{ color: "var(--peace)" }}
+            >
               <HiOutlineUserPlus /> Join
             </button>
           )}
@@ -454,9 +514,9 @@ export function VirtualMessageList(props) {
                       const TEN_MINUTES_MS = 10 * 60 * 1000;
 
                       const previousTimestamp = previous
-                        ? (Number(previous.timestamp) > 1e12
-                            ? Number(previous.timestamp)
-                            : Number(previous.timestamp) * 1000)
+                        ? Number(previous.timestamp) > 1e12
+                          ? Number(previous.timestamp)
+                          : Number(previous.timestamp) * 1000
                         : 0;
 
                       const grouped =
@@ -533,13 +593,29 @@ export function VirtualMessageList(props) {
                             ephemeral={msg().ephemeral}
                             deleted={msg()?.deleted}
                             edited={msg()?.edited}
+                            edited_at={msg()?.edited_at}
                             editing={state.editing?.id === msg()?.id}
                             signed={verifyMessage(msg())}
-                            onDismiss={() =>
+                            onDismiss={() => {
+                              const id = msg().id;
+
                               setFakeMessages((messages) =>
-                                messages.filter((m) => m.id !== msg().id),
-                              )
-                            }
+                                messages.filter((message) => message.id !== id),
+                              );
+
+                              setSectionList((sections) =>
+                                sections
+                                  .map((section) => ({
+                                    ...section,
+                                    messages: section.messages.filter(
+                                      (message) => message.id !== id,
+                                    ),
+                                  }))
+                                  .filter(
+                                    (section) => section.messages.length > 0,
+                                  ),
+                              );
+                            }}
                           />
                         </div>
                       );

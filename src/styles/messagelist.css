@@ -34,6 +34,10 @@
     border-radius: var(--br-mid);
     transition: background-color 0.2s;
 
+    &:has(.pfpWO) {
+        padding-bottom: 0;
+    }
+
     &:hover {
         background-color: var(--diff-one);
 
@@ -55,6 +59,7 @@
 
     &.grouped {
         padding: 0.3em 0.5em;
+        padding-bottom: 0;
 
         & .message_text {
             margin: 0;
@@ -62,7 +67,7 @@
     }
 
     & .message_text {
-        margin-top: 0.3em;
+        line-height: 1.5;
         user-select: text;
     }
 
@@ -71,13 +76,6 @@
         align-items: center;
         color: var(--fg-dim);
         user-select: text;
-    }
-
-    & .username {
-        cursor: pointer;
-        &:hover {
-            text-decoration: underline;
-        }
     }
 
     & .message_content {
@@ -197,6 +195,10 @@
     transition: background 0.4s ease;
     content-visibility: auto;
     contain-intrinsic-size: 65px;
+
+    &.is-grouped .message_single {
+        padding-top: 0em;
+    }
 }
 
 .vml-item--highlighted {
@@ -274,9 +276,9 @@
 
 .reply_author > img {
     height: 10px !important;
-    transform: scale(2);
+    transform: scale(1.5);
     border-radius: 1em !important;
-    margin: 0 0.7em 0em 0.5em;
+    margin-right: .5em;
 }
 
 .messageReactions {
@@ -330,7 +332,7 @@
     text-decoration: none;
     color: inherit;
     max-width: 520px;
-    margin-top: .3em;
+    margin-top: 0.3em;
 
     & > * {
         white-space: pre-wrap;
@@ -443,22 +445,42 @@
 
 .server_invite {
     align-items: center;
-    gap: .5em;
+    gap: 0.5em;
     & .server_invite_icon {
         width: 50px;
     }
 
     & .server_invite_join {
-        padding: .5em 1em;
+        padding: 0.5em 1em;
         background: var(--hl-three);
         border-radius: var(--br-min);
     }
 }
 
 .edited_marker {
-    opacity: .5;
+    opacity: 0.5;
     width: 10pt;
-    transform: scale(.8) translateY(3pt);
+    transform: scale(0.8) translateY(3pt);
     height: 10pt;
-    margin-left: .5em;
+    margin-left: 0.5em;
+}
+
+.username {
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    &:hover {
+        text-decoration: underline;
+    }
+
+    & .inline_emoji {
+        height: 10pt;
+        transform: scale(1.2);
+        margin: 0 0.2em;
+
+        &:first-child {
+            margin-left: 0.3em;
+        }
+    }
 }

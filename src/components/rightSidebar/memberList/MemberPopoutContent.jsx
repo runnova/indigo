@@ -112,7 +112,7 @@ export default function MemberProfile(props) {
                 class="pfp"
               />
               <img
-                src={`https://api.rotur.dev/cosmetics/overlays/${profile()?.status?.data?.overlay}.gif`}
+                src={`https://avatars.rotur.dev/.overlay/${props.username}`}
                 alt=""
                 class="overlay"
                 onError={(e) => e.currentTarget.style.display = "none"}

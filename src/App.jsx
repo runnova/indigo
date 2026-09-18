@@ -57,6 +57,7 @@ import { bindVoiceEvents } from "./core/voiceClient.js";
 import ContextMenu from "./components/Contextmenu.jsx";
 
 import "./core/ContextMenuDefs.jsx";
+import "./core/Hotkeys.jsx"
 
 import Spotlight from "./components/spotlight/Spotlight.jsx";
 import { updateClockOffset } from "./core/useMessageSigning.js";

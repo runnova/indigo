@@ -66,6 +66,7 @@ export default function MemberItem(props) {
       </div>
       <div class="data y fill">
         <span
+          className="username"
           style={
             role()?.gradient
               ? {
@@ -88,7 +89,7 @@ export default function MemberItem(props) {
             />
           ) : null}
           {role()?.icon && (
-            <img class="inline_emoji" src={role()?.icon} alt="" />
+            <img class="inline_emoji" src={role()?.icon} alt="" data-tooltip={role()?.name + ": Role Icon"} data-tooltip-icon={role()?.icon} />
           )}
           {[
             ...(props.onlineData?.clients ?? []),

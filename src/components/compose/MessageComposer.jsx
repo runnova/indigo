@@ -290,7 +290,7 @@ export default function MessageComposer(props) {
             ref={textarea}
             rows={1}
             placeholder={`Message #${props.channel}`}
-            class="fill"
+            class="fill message_composer_input"
             style={{
               resize: "none",
               "min-height": `${MIN_TEXTAREA_HEIGHT}px`,
@@ -341,9 +341,37 @@ export default function MessageComposer(props) {
                   return;
                 }
 
-                if (e.key === "ArrowUp") {
+                if (
+                  e.key === "ArrowUp" &&
+                  textarea.value.trim() === "" &&
+                  !mention.hasSuggestions() &&
+                  !channelAc.hasSuggestions()
+                ) {
                   e.preventDefault();
-                  slashNav.movePrev();
+
+                  const messages = tempState.virtMsgList?.messages?.() ?? [];
+                  const currentUsername = tempState?.conn?.me?.()?.username;
+
+                  const lastOwnMessage = messages
+                    .slice()
+                    .reverse()
+                    .find(
+                      (m) =>
+                        m.user === currentUsername &&
+                        !m.deleted &&
+                        !m.ephemeral
+                    );
+
+                  if (lastOwnMessage && !state.editing?.id) {
+                    setState("editing", {
+                      id: lastOwnMessage.id,
+                      user: lastOwnMessage.user,
+                      content: lastOwnMessage.content,
+                    });
+
+                    tempState.virtMsgList?.scrollToMessage?.(lastOwnMessage.id);
+                  }
+
                   return;
                 }
 

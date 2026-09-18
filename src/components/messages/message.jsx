@@ -12,6 +12,7 @@ import {
   HiOutlineXMark,
 } from "solid-icons/hi";
 import { sendMessageEdit } from "../../core/useMessageSigning.js";
+import { timeAgo } from "../Utility.jsx";
 
 export function Message(props) {
   const displayUsername = () =>
@@ -73,7 +74,6 @@ export function Message(props) {
   };
   const [signed] = createResource(() => props.signed, (value) => value);
 
-  // Get user data with proper reactivity
   const user = createMemo(() =>
     !props.webhook
       ? tempState?.conn
@@ -82,7 +82,6 @@ export function Message(props) {
       : null
   );
 
-  // Get the user's role icon
   const roleIcon = createMemo(() => {
     const currentUser = user();
     if (!currentUser || props.webhook) return null;
@@ -90,29 +89,25 @@ export function Message(props) {
     const roles = tempState?.conn?.roles?.();
     if (!roles || !currentUser.roles) return null;
 
-    // First, try to find a role whose color matches the user's color
     const colorMatchingRole = currentUser.roles.find(roleId => {
       const roleData = roles[roleId];
       return roleData?.color === currentUser.color;
     });
 
     if (colorMatchingRole) {
-      const icon = roles[colorMatchingRole]?.icon;
-      if (icon) return icon;
+      const role = roles[colorMatchingRole];
+      if (role?.icon) return { icon: role.icon, name: role.name };
     }
 
-    // Fall back to the role with the highest position that has an icon
-    // Sort roles by position descending
     const sortedRoles = [...currentUser.roles].sort((roleIdA, roleIdB) => {
       const posA = roles[roleIdA]?.position ?? -1;
       const posB = roles[roleIdB]?.position ?? -1;
       return posB - posA;
     });
 
-    // Return icon from first role that has one
     for (const roleId of sortedRoles) {
-      const icon = roles[roleId]?.icon;
-      if (icon) return icon;
+      const role = roles[roleId];
+      if (role?.icon) return { icon: role.icon, name: role.name };
     }
 
     return null;
@@ -220,7 +215,7 @@ export function Message(props) {
                 onClick={(e) => !props.webhook && openPopout(props, e.currentTarget)}
               >
                 {displayUsername()} {roleIcon() && (
-                  <img class="inline_emoji" src={roleIcon()} alt="" />
+                  <img class="inline_emoji" src={roleIcon().icon} data-tooltip={roleIcon()?.name + ": Role Icon"} data-tooltip-icon={roleIcon()?.icon} />
                 )}
               </div>
 
@@ -243,7 +238,7 @@ export function Message(props) {
           <Show
             when={props.editing}
             fallback={<div class="message_text">{rendered()}
-              {props.edited && <HiOutlinePencil className="edited_marker" />}</div>}
+              {props.edited && <HiOutlinePencil data-tooltip={ "Edited:"+timeAgo(props.edited_at)  } className="edited_marker" />}</div>}
           >
             <textarea
               class="message_edit_textarea"
