@@ -20,11 +20,9 @@ import {
 } from "solid-icons/hi";
 import { sendMessageEdit } from "../../core/useMessageSigning.js";
 import { timeAgo } from "../Utility.jsx";
+import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
 
 export function Message(props) {
-  const displayUsername = () => props.webhook?.name || props.username;
-
-  const displayAvatar = () => props.webhook?.avatar || props.avatar;
 
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
@@ -42,6 +40,10 @@ export function Message(props) {
     : null;
   const gradient = member?.gradient;
   const [editValue, setEditValue] = createSignal("");
+
+  const displayUsername = () => props.webhook?.name || member.nickname || props.username;
+
+  const displayAvatar = () => props.webhook?.avatar || props.avatar;
 
   createEffect(() => {
     if (props.editing) {
@@ -175,7 +177,13 @@ export function Message(props) {
       <div class="actual_message x">
         {props.grouped ? (
           <div class="message_spacer">
-            <div class="time">{props.time}</div>
+            <div
+              class="time"
+              data-tooltip={`${timeAgo(props.timeRaw)} • ${(new Date(props.timeRaw)).toLocaleString()}`}
+            >
+              {props.time}
+            </div>
+
           </div>
         ) : (
           <div
@@ -236,12 +244,14 @@ export function Message(props) {
                   />
                 )}
               </div>
-              <div class="time">{props.time} </div>{" "}
+              <div class="time"
+                data-tooltip={`${timeAgo(props.timeRaw)}: ${(new Date(props.timeRaw)).toLocaleString()}`}>{props.time} </div>{" "}
               {signed() == "verified" ? (
                 ""
               ) : (
                 <HiOutlineExclamationTriangle
-                  style={{ color: "yellow" }}
+                    style={{ color: "yellow" }}
+                    data-tooltip="Unsigned"
                 ></HiOutlineExclamationTriangle>
               )}
               <Show when={props.fake}>
@@ -421,7 +431,8 @@ export function Message(props) {
                   return (
                     <div
                       class="reaction_single"
-                      title={users.join(", ")}
+                      data-tooltip={users.join(", \n")}
+                      data-tooltip-icon={emoji}
                       onClick={() => {
                         tempState.conn.send({
                           cmd: "message_react_add",

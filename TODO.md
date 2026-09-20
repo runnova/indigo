@@ -23,7 +23,6 @@ o # Known Issues
 - JS plugins
 - ping sound
 - attachment right click
-- status indicator dots
 
 - ui DMs functionality instead of bot
 - background wallpaper setting

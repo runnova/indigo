@@ -290,9 +290,8 @@ export function VirtualMessageList(props) {
       const sameShape =
         !forceFresh &&
         existing &&
-        existing.id === firstId &&
         existing.messages.length === chunk.length &&
-        existing.messages[existing.messages.length - 1]?.id === lastId;
+        existing.messages.every((m, idx) => m === chunk[idx]);
 
       result.push(sameShape ? existing : { id: firstId, messages: chunk });
       i += SECTION_SIZE;
@@ -572,6 +571,7 @@ export function VirtualMessageList(props) {
                               msg()?.avatar ??
                               `https://avatars.rotur.dev/${msg()?.user}`
                             }
+                            timeRaw={timestamp}
                             time={
                               msg()?.time ??
                               new Date(timestamp).toLocaleTimeString([], {

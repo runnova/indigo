@@ -327,6 +327,7 @@ export default function ServerBar(props) {
                       data-context="server_group"
                       data-group-id={item.group.id}
                       data-tooltip={item.group.name + ": Server Group"}
+                      data-tooltip-position="right"
                     >
                       <div class="server_group_mini_grid">
                         <For each={(item.group.servers ?? []).slice(0, 4)}>
@@ -373,6 +374,7 @@ export default function ServerBar(props) {
                       data-context="server_group"
                       data-group-id={item.group.id}
                       data-tooltip={item.group.name + ": Server Group"}
+                      data-tooltip-position="right"
                     >
                       <HiOutlineChevronDown class="server_group_toggle_icon" />
                     </div>
@@ -441,6 +443,7 @@ export default function ServerBar(props) {
                                   : ""
                               }`}
                               data-tooltip={server().name + ": " + server().src}
+                              data-tooltip-position="right"
                             >
                               <img
                                 src={server().icon ?? fallbackIcon}
@@ -472,6 +475,7 @@ export default function ServerBar(props) {
           class="server_single"
           onClick={() => setDialogOpen(true)}
           data-tooltip="Add Server"
+          data-tooltip-position="right"
         >
           <img
             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='%233DA35D'%3E%3Cpath d='M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z'/%3E%3C/svg%3E"
@@ -483,12 +487,14 @@ export default function ServerBar(props) {
           onClick={() => showSpotlight(true)}
           style={{ "margin-top": "auto" }}
           data-tooltip={"Spotlight: CTRL + /"}
+          data-tooltip-position="right"
         >
           <HiOutlineMagnifyingGlass class="add_server" />
         </div>
         <div
           class="server_single"
           data-tooltip={"Settings"}
+          data-tooltip-position="right"
           onClick={() => setSettingsDialogOpen(true)}
         >
           <HiOutlineAdjustmentsHorizontal class="add_server" />
