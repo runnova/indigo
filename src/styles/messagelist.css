@@ -6,7 +6,7 @@
 
 .attachments {
     overflow: hidden;
-    margin-top: 0.3em;
+    margin: 0.5em 0;
     gap: 0.5em;
     display: flex;
     flex-direction: row;

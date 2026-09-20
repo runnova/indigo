@@ -94,6 +94,7 @@ const defaultState = {
     showNicknames: "nickname",
     blockedMessages: "collapsed",
     messageLogger: false,
+    serverBarWidth: 66,
     firstBarWidth: 260,
     thirdBarWidth: 320,
     displayChannelName: true,
@@ -157,6 +158,8 @@ export const [state, setState] = createStore({
   },
 });
 
+const [serverBarWidth, setServerBarWidth] = createSignal(66);
+
 const [firstBarWidth, setFirstBarWidth] = createSignal(
   state.settings.firstBarWidth,
 );
@@ -171,6 +174,10 @@ createEffect(() => {
 
 createEffect(() => {
   setState("settings", "thirdBarWidth", thirdBarWidth());
+});
+
+createEffect(() => {
+  setState("settings", "serverBarWidth", serverBarWidth());
 });
 
 export var tempState = {};
@@ -258,14 +265,17 @@ export async function switchToChannel(server, channel, threadId) {
       });
     }
     await new Promise((resolve) => {
+      let interval;
+
       const check = () => {
         if (conn.status() === "ready") {
           clearInterval(interval);
           resolve();
         }
       };
+
+      interval = setInterval(check, 50);
       check();
-      const interval = setInterval(check, 50);
     });
   } else {
     setState("current", "server", normalizedServer);
@@ -561,6 +571,14 @@ function App() {
 
   return (
     <div class="main x">
+    <div
+      class="server_bar_wrapper"
+      style={{
+        width: `${serverBarWidth()}px`,
+        "min-width": `${serverBarWidth()}px`,
+        "max-width": `${serverBarWidth()}px`,
+      }}
+    >
       <ServerBar
         servers={state.servers}
         groups={state.serverGroups}
@@ -572,6 +590,28 @@ function App() {
         onReorder={(servers) => setState("servers", servers)}
         onGroupsChange={(groups) => setState("serverGroups", groups)}
       />
+      </div>
+      <div
+      class="resize_handle server_bar_resize"
+      onMouseDown={(e) => {
+        const start = e.clientX;
+        const startWidth = serverBarWidth();
+
+        const move = (ev) => {
+          setServerBarWidth(
+            Math.max(56, Math.min(180, startWidth + ev.clientX - start)),
+          );
+        };
+
+        const up = () => {
+          window.removeEventListener("mousemove", move);
+          window.removeEventListener("mouseup", up);
+        };
+
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", up);
+      }}
+    />
       <div class="server_content x fill">
         <Show when={showLoader()}>
           <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>

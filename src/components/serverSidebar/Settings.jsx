@@ -1,16 +1,17 @@
 import { createSignal, For, onMount } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { logout, setState, state } from "../../App";
+import { logout, setState, state, tempState } from "../../App";
 
 import {
+  HiOutlineArrowLeftStartOnRectangle,
   HiOutlineCog6Tooth,
   HiOutlinePaintBrush,
   HiOutlinePencilSquare,
   HiOutlineUser,
 } from "solid-icons/hi";
 
-import ThemeSettings from "./settings/Theme"
-import appIcon from "/icon_small.svg"
+import ThemeSettings from "./settings/Theme";
+import appIcon from "/icon_small.svg";
 import Customize from "./settings/Customize.jsx";
 
 function AppIcon(props) {
@@ -78,15 +79,21 @@ function GeneralSettings() {
         <SettingCheckbox setting="parseMarkdown" />
       </div>
       <div class="settings_item x">
-        <div class="settings_section_label">Use twemoji instead of system emojis</div>
+        <div class="settings_section_label">
+          Use twemoji instead of system emojis
+        </div>
         <SettingCheckbox setting="twemoji" />
       </div>
       <div class="settings_item x">
-        <div class="settings_section_label">Temporarily keep deleted messages</div>
+        <div class="settings_section_label">
+          Temporarily keep deleted messages
+        </div>
         <SettingCheckbox setting="messageLogger" />
       </div>
       <div class="settings_item x">
-        <div class="settings_section_label">Strictly follow the user theme in popouts</div>
+        <div class="settings_section_label">
+          Strictly follow the user theme in popouts
+        </div>
         <SettingCheckbox setting="customProfileThemes" />
       </div>
 
@@ -140,7 +147,9 @@ function GeneralSettings() {
         <SettingCheckbox setting="ownerCrown" />
       </div>
       <div class="settings_item x">
-        <div class="settings_section_label">Display channel name above display name</div>
+        <div class="settings_section_label">
+          Display channel name above display name
+        </div>
         <SettingCheckbox setting="displayChannelName" />
       </div>
       <div class="settings_item x">
@@ -152,17 +161,46 @@ function GeneralSettings() {
 }
 
 function AboutSettings() {
-  onMount(
-    window.roturEmbed.scan);
+  onMount(window.roturEmbed.scan);
   return (
     <>
       <h2>Indigo Client</h2>
       <p>
-        The cooler <a href="https://originchats.com?ref=runnova">OriginChats</a> client. Currently under development.
-
-
-      </p><p>Licensed under MPL 3.0. You can <a href="https://github.com/runnova/indigo/pulls">contribute</a>  too! issues go <a href="https://github.com/runnova/indigo/issues">here</a>.</p>
-      <div data-rotur-tip="darkdot" data-amount="1"></div>
+        The cooler <a href="https://originchats.com?ref=runnova">OriginChats</a>{" "}
+        client, built in SolidJS and vanila Javascript.
+      </p>
+      <p>
+        Licensed under MPL 3.0. You can{" "}
+        <a href="https://github.com/runnova/indigo/pulls">contribute</a> too!
+        issues go <a href="https://github.com/runnova/indigo/issues">here</a>.
+      </p>
+      <p>
+        Proudly ships less bugs than official client! ❤️
+      </p>
+      <div class="theme-actions">
+        <button
+          class="hl"
+          onclick={() => {
+            window.open("https://rotur.dev/pay/darkdot", "_blank");
+          }}
+        >
+          Tip Indigo
+        </button>
+        <button
+          onclick={() => {
+            window.open("https://github.com/runnova/indigo", "_blank");
+          }}
+        >
+          View Source
+        </button>
+        <button
+          onclick={() => {
+            window.open("https://darkdotblog.blogspot.com/2026/09/how-can-i-help-make-indigo-better.html", "_blank");
+          }}
+        >
+          Make indigo better
+        </button>
+      </div>
     </>
   );
 }
@@ -171,9 +209,23 @@ function YouSettings() {
   return (
     <>
       <p>Logged in as {tempState.conn.me()?.username}</p>
-      <button onclick={() => {
-        logout()
-      }}>Log Out or Switch Accounts</button>
+      <div class="theme-actions">
+        <button
+          class="hl"
+          onclick={() => {
+            logout();
+          }}
+        >
+          Log Out or Switch Accounts
+        </button>
+        <button
+          onclick={() => {
+            window.open("https://rotur.dev/me/profile", "_blank");
+          }}
+        >
+          Edit Profile
+        </button>
+      </div>
     </>
   );
 }
@@ -201,32 +253,46 @@ const tabs = [
     id: "you",
     title: "Account",
     icon: HiOutlineUser,
-    component: YouSettings
+    component: YouSettings,
   },
   {
     id: "about",
     title: "About",
     icon: AppIcon,
     component: AboutSettings,
-  }
+  },
 ];
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = createSignal("general");
 
-  const currentTab = () =>
-    tabs.find((tab) => tab.id === activeTab());
+  const currentTab = () => tabs.find((tab) => tab.id === activeTab());
 
   return (
     <>
       <div className="dialog_header">
-        <div className="x" style={{gap: ".3em", "align-items": "center", "padding-left": ".5em"}}>
+        <div
+          className="x"
+          style={{
+            gap: ".3em",
+            "align-items": "center",
+            "padding-left": ".5em",
+          }}
+        >
           <HiOutlineCog6Tooth />
           <span>Settings</span>
         </div>
       </div>
-      <div class="fill x" style={{ "height": "100%" }}>
-        <nav class="y" style={{ "gap": ".3em", "padding": ".5em", "background-color": "var(--bg-two)", "min-width": "200px" }}>
+      <div class="fill x" style={{ height: "100%" }}>
+        <nav
+          class="y"
+          style={{
+            gap: ".3em",
+            padding: ".5em",
+            "background-color": "var(--bg-two)",
+            "min-width": "200px",
+          }}
+        >
           <For each={tabs}>
             {(tab) => {
               const Icon = tab.icon;
@@ -235,8 +301,9 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  class={`icon_button text ${activeTab() === tab.id ? "active" : ""
-                    }`}
+                  class={`icon_button text ${
+                    activeTab() === tab.id ? "active" : ""
+                  }`}
                 >
                   <Icon class="tab-icon" />
                   <span>{tab.title}</span>
@@ -246,9 +313,10 @@ export default function SettingsPage() {
           </For>
         </nav>
 
-        <main class="fill settings_content" style={{ "padding": "0 2em" }}>
+        <main class="fill settings_content" style={{ padding: "0 2em" }}>
           <Dynamic component={currentTab()?.component} />
         </main>
-      </div></>
+      </div>
+    </>
   );
 }

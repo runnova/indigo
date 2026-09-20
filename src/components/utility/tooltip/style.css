@@ -16,7 +16,7 @@
   color: var(--fg-one);
 
   border-radius: var(--br-mid);
-  box-shadow: var(--border);
+border: 1px solid var(--diff-three);
 
   pointer-events: none;
 

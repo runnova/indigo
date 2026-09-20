@@ -28,15 +28,6 @@
   background-color: var(--bg-three);
 }
 
-.server_single>.unread_badge {
-  bottom: -3px;
-  left: auto;
-  right: -3px;
-  background-color: var(--fg-one);
-  padding: 6px;
-  width: 0;
-}
-
 .pfp {
   border-radius: 5em !important;
 }
