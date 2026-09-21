@@ -1,6 +1,6 @@
 # Indigo Client
 The cooler [OriginChats](https://originchats.com) client. Currently under development.<br>
-Licensed under MPL 3.0. You can [contribute](https://github.com/runnova/indigo/pulls) too! (issues go [here](https://github.com/runnova/indigo/issues))
+Licensed under MPL 2.0. You can [contribute](https://github.com/runnova/indigo/pulls) too! (issues go [here](https://github.com/runnova/indigo/issues))
 
 <hr>
 
