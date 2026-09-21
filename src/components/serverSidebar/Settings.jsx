@@ -96,6 +96,10 @@ function GeneralSettings() {
         </div>
         <SettingCheckbox setting="customProfileThemes" />
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">Show send button</div>
+        <SettingCheckbox setting="showSendButton" />
+      </div>
 
       <h2 class="settings_title">Performance</h2>
 
@@ -174,9 +178,7 @@ function AboutSettings() {
         <a href="https://github.com/runnova/indigo/pulls">contribute</a> too!
         issues go <a href="https://github.com/runnova/indigo/issues">here</a>.
       </p>
-      <p>
-        Proudly ships less bugs than official client! ❤️
-      </p>
+      <p>Proudly ships less bugs than official client! ❤️</p>
       <div class="theme-actions">
         <button
           class="hl"
@@ -195,7 +197,10 @@ function AboutSettings() {
         </button>
         <button
           onclick={() => {
-            window.open("https://darkdotblog.blogspot.com/2026/09/how-can-i-help-make-indigo-better.html", "_blank");
+            window.open(
+              "https://darkdotblog.blogspot.com/2026/09/how-can-i-help-make-indigo-better.html",
+              "_blank",
+            );
           }}
         >
           Make indigo better

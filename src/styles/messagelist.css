@@ -15,13 +15,13 @@
     & > * {
         object-fit: cover;
         border-radius: var(--br-mid);
-        width: 200px;
+        width: 250px;
         height: 200px;
     }
 
     & > :only-child {
-        max-width: 350px;
-        max-height: 350px;
+        max-width: 450px;
+        max-height: 450px;
         width: auto;
         height: auto;
         object-fit: contain;
@@ -146,13 +146,20 @@
     flex-direction: row;
     overflow: hidden;
     z-index: 10;
+    padding: .2em;
 
     & button {
-        padding: 0.2em 0.5em;
+        padding: 0.3em;
+        border-radius: var(--br-mid);
         aspect-ratio: 1/1;
         transition: box-shadow 0.2s;
         display: inline-flex;
         align-items: center;
+
+        &>svg {
+            width: 1.2em;
+            height: 1.2em;
+        }
 
         &:hover {
             background-color: var(--bg-four);

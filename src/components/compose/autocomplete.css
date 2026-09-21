@@ -2,11 +2,12 @@
     background-color: var(--bg-three);
     border-radius: var(--br-mid);
     margin-bottom: .3em;
+    padding: .2em;
     &>.autocomplete_item {
         padding: .5em;
         border-radius: var(--br-mid);
         &.active, &:hover {
-            background-color: var(--diff-one);
+            background-color: var(--diff-three);
         }
     }
 }

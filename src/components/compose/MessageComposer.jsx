@@ -14,6 +14,7 @@ import {
   HiOutlineGift,
   HiOutlineFaceSmile,
   HiOutlinePencil,
+  HiOutlinePaperAirplane,
 } from "solid-icons/hi";
 import Typing from "./Typing";
 import {
@@ -66,6 +67,25 @@ export default function MessageComposer(props) {
     if (result?.command && result?.args) {
       await sendSlashCall(result.command, result.args);
     }
+  };
+
+  const handleSend = () => {
+    if (!textarea) return;
+
+    const content = buildContent(textarea.value.trim());
+
+    if (!content && attachments.filter((a) => a.uploaded).length === 0) {
+      return;
+    }
+
+    sendMessage(
+      content,
+      attachments.filter((a) => a.uploaded).map((a) => a.serverAttachment),
+    );
+
+    setAttachments([]);
+    textarea.value = "";
+    autoResize();
   };
 
   let slashNav = {
@@ -469,26 +489,7 @@ export default function MessageComposer(props) {
 
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-
-                const content = buildContent(e.currentTarget.value.trim());
-
-                if (
-                  !content &&
-                  attachments.filter((a) => a.uploaded).length === 0
-                ) {
-                  return;
-                }
-
-                sendMessage(
-                  content,
-                  attachments
-                    .filter((a) => a.uploaded)
-                    .map((a) => a.serverAttachment),
-                );
-
-                setAttachments([]);
-                e.currentTarget.value = "";
-                autoResize();
+                handleSend();
               }
             }}
           />
@@ -499,6 +500,13 @@ export default function MessageComposer(props) {
             onClose={() => closeSlash(textarea)}
           />
           <SlashSendButton slashState={slashState} onSend={handleSlashSend} />
+
+          <Show when={!slashState.command && state.settings.showSendButton}>
+            <button class="icon_button" onClick={handleSend}>
+              <HiOutlinePaperAirplane />
+            </button>
+          </Show>
+
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"

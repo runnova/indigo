@@ -41,7 +41,7 @@ export function Message(props) {
   const gradient = member?.gradient;
   const [editValue, setEditValue] = createSignal("");
 
-  const displayUsername = () => props.webhook?.name || member.nickname || props.username;
+  const displayUsername = () => props.webhook?.name || member?.nickname || props.username;
 
   const displayAvatar = () => props.webhook?.avatar || props.avatar;
 

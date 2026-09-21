@@ -5,15 +5,15 @@ export function MessageActions(props) {
   return (
     <div
       class="message_actions">
-      <button onClick={() => props.onReply?.()}>
+      <button onClick={() => props.onReply?.()} data-tooltip="Reply">
         <HiOutlineChatBubbleOvalLeft />
       </button>
 
-      <button onClick={() => props.onReact?.()}>
+      <button onClick={() => props.onReact?.()} data-tooltip="React">
         <HiOutlineFaceSmile />
       </button>
 
-      <button
+      <button data-tooltip="Copy Text"
         onClick={() => {
           navigator.clipboard.writeText(props.content);
         }}
@@ -22,13 +22,13 @@ export function MessageActions(props) {
       </button>
 
       {props.canEdit && (
-        <button onClick={() => props.onEdit?.()}>
+        <button data-tooltip="Edit" onClick={() => props.onEdit?.()}>
           <HiOutlinePencil />
         </button>
       )}
 
       {props.canDelete && (
-        <button onClick={() => props.onDelete?.()}>
+        <button data-tooltip="Delete" onClick={() => props.onDelete?.()}>
           <HiOutlineTrash />
         </button>
       )}

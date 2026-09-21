@@ -4,7 +4,7 @@ import "./autocomplete.css"
 export default function Autocomplete(props) {
   return (
     <Show when={props.items().length > 0}>
-      <div class="autocomplete_popup">
+      <div class="autocomplete_popup textbox_popup">
         <For each={props.items()}>
           {(item, i) => (
             <div

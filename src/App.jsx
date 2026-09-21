@@ -102,6 +102,7 @@ const defaultState = {
     twemoji: true,
     customProfileThemes: true,
     clientName: "Indigo",
+    showSendButton: true,
   },
 };
 export const [unreads, setUnreads] = createStore({

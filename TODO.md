@@ -1,4 +1,4 @@
-o # Known Issues
+# Known Issues
 - scrolling back down doesnt load newer messages.
 - CORS. it needs to be able to proxy attatchments
 

@@ -1,12 +1,26 @@
-import { For, createMemo } from "solid-js";
+import { For, createMemo, createSignal } from "solid-js";
 import MemberItem from "./MemberItem";
 
 export default function MemberList(props) {
-  const getHoistedRole = (user) => {
-  const roles = props.conn.roles?.() ?? {};
+  const [collapsedSections, setCollapsedSections] = createSignal(new Set());
 
-  return user.roles?.find(id => roles[id]?.hoisted);
-};
+  const toggleSection = (label) => {
+    setCollapsedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  };
+
+  const getHoistedRole = (user) => {
+    const roles = props.conn.roles?.() ?? {};
+    return user.roles?.find(id => roles[id]?.hoisted);
+  };
+
   const onlineUsers = createMemo(() => {
     const users = tempState.conn.membersOnline();
 
@@ -14,6 +28,7 @@ export default function MemberList(props) {
       Array.from(users).map(user => [user.username, user])
     );
   });
+
   const memberSections = createMemo(() => {
     const online = onlineUsers();
     const roles = props.conn.roles?.() ?? {};
@@ -73,42 +88,70 @@ export default function MemberList(props) {
 
     return sections;
   });
+
   const owner = createMemo(() => {
     if (state.settings.ownerCrown) {
       return props.conn.serverInfo()?.owner?.name;
     }
     return null;
   });
+
   const renderOverlay = state.settings.profileOverlays;
+
   return (
     <div class="members_list y">
       <For each={memberSections()}>
-        {(section) => (
-          <>
-            <div class="member_section_label">
-              {section.label} ({section.users.length})
-            </div>
+        {(section) => {
+          const isCollapsed = () => collapsedSections().has(section.label);
 
-            <For
-              each={[...section.users].sort((a, b) =>
+          return (
+            <>
+              <div
+                class="member_section_label x"
+                classList={{ collapsed: isCollapsed() }}
+                onClick={() => toggleSection(section.label)}
+                role="button"
+                tabIndex="0"
+              >
+                <span class="fill">{section.label} ({section.users.length})</span>
+
+                <svg
+                  class="member_section_chevron"
+                  classList={{ rotated: !isCollapsed() }}
+                  width="10"
+                  height="10"
+                  viewBox="0 0 10 10"
+                >
+                  <path
+                    d="M2 3.5 L5 6.5 L8 3.5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <For each={isCollapsed() ? [] : [...section.users].sort((a, b) =>
                 a.username.localeCompare(b.username)
-              )}
-            >
-              {(user) => (
-                <MemberItem
-                  user={user}
-                  online={onlineUsers().has(user.username)}
-                  onlineData={onlineUsers().get(user.username)}
-                  status={user.status}
-                  roles={props.conn.roles?.()}
-                  getHoistedRole={getHoistedRole}
-                  owner={owner() == user.username}
-                  renderOverlay={renderOverlay}
-                />
-              )}
-            </For>
-          </>
-        )}
+              )}>
+                {(user) => (
+                  <MemberItem
+                    user={user}
+                    online={onlineUsers().has(user.username)}
+                    onlineData={onlineUsers().get(user.username)}
+                    status={user.status}
+                    roles={props.conn.roles?.()}
+                    getHoistedRole={getHoistedRole}
+                    owner={owner() == user.username}
+                    renderOverlay={renderOverlay}
+                  />
+                )}
+              </For>
+            </>
+          );
+        }}
       </For>
     </div>
   );

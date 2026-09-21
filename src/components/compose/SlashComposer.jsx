@@ -246,7 +246,7 @@ export function SlashSuggestions(props) {
 
   return (
     <Show when={props.slashState.active && !props.slashState.command}>
-      <div class="slash_popup x">
+      <div class="slash_popup textbox_popup x">
         <div class="slash_provider_filters y">
           <button
             class={`provider_filter_button default${

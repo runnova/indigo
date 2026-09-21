@@ -1,33 +1,37 @@
 :root {
-  --bg-one: #050505;
-  --bg-two: #080808;
-  --bg-three: #141419;
-  --bg-four: #3a3a3a;
-  --hl-one: #0085cd;
-  --hl-two: #00A6FD;
-  --hl-three: #005685;
-  --hl-four: #24242B;
-  --border: 0px 0px 0 1px rgb(255 255 255 / 20%);
-  --fg-one: #ffffff;
-  --fg-two: #ffffff7a;
-  --fg-dim: #ffffffb7;
-  --fg-three: rgb(207, 164, 255);
+    --bg-one: #080808;
+    --bg-two: #111111;
+    --bg-three: #252525;
+    --bg-four: #3a3a3a;
+    --hl-one: #0085cd;
+    --hl-two: white;
+    --hl-three: #005685;
+    --hl-four: #24242b;
+    --border: 0px 0px 0 1px rgb(255 255 255 / 20%);
+    --fg-one: #ffffff;
+    --fg-two: #ffffff7a;
+    --fg-dim: #ffffffb7;
+    --fg-three: rgb(207, 164, 255);
 }
 
 .first_bar {
-  border-right: 1px solid var(--diff-three);
+    border-right: 1px solid var(--diff-three);
 }
 
 .topbar {
-  border-bottom: 1px solid var(--diff-three);
+    border-bottom: 1px solid var(--diff-three);
+}
+
+.third_bar {
+    background-color: var(--bg-two);
 }
 
 .text_box,
 .user_display {
-  box-shadow: var(--border);
-  background-color: var(--bg-three);
+    outline: 1px solid var(--diff-three);
+    background-color: var(--bg-two);
 }
 
 .pfp {
-  border-radius: 5em !important;
+    border-radius: 5em !important;
 }

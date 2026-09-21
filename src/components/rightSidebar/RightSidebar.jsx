@@ -55,7 +55,7 @@ export default function RightSidebar(props) {
         }}
       >
         <Show when={!thirdBarCollapsed()}>
-          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+          <div style={{ position: "relative", height: "100%" }}>
             <Show when={isLoading()}>
               <div class="loader_overlay">
                 <div class="loader_spinner"></div>
