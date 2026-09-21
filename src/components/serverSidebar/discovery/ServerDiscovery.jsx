@@ -3,6 +3,8 @@ import { HiOutlineMagnifyingGlass } from "solid-icons/hi"
 import { timeAgo } from "../../Utility"
 import "./style.css"
 
+const PINNED_URL = "indigo.host.originchats.com";
+
 async function fetchServerInfo(baseUrl) {
   try {
     const res = await fetch(`https://${baseUrl.replace(/\/$/, "")}/info`);
@@ -14,13 +16,30 @@ async function fetchServerInfo(baseUrl) {
 }
 
 async function fetchServers() {
-  const response = await fetch("https://originchats.com/discovery.json");
+  const urls = [
+    "https://originchats.com/discovery.json",
+    "https://discovery.host.originchats.com/discovery.json",
+  ];
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch servers");
+  const lists = await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        return await response.json();
+      } catch {
+        return [];
+      }
+    })
+  );
+
+  const merged = new Map();
+  for (const list of lists) {
+    for (const entry of list) {
+      merged.set(entry.url, entry);
+    }
   }
-
-  const list = await response.json();
+  const list = [...merged.values()];
 
   const withInfo = await Promise.all(
     list.map(async (entry) => {
@@ -39,19 +58,32 @@ export default function ServerDiscovery(props) {
   const filteredServers = createMemo(() => {
     const query = search().toLowerCase();
 
-    if (!query) return servers() ?? [];
+    const list = !query
+      ? (servers() ?? [])
+      : (servers() ?? []).filter((server) =>
+          [
+            server.info?.server?.name ?? server.name,
+            server.info?.server?.owner?.name ?? server.owner,
+            server.url,
+            ...(server.tags ?? [])
+          ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        );
 
-    return (servers() ?? []).filter((server) =>
-      [
-        server.info?.server?.name ?? server.name,
-        server.info?.server?.owner?.name ?? server.owner,
-        server.url,
-        ...(server.tags ?? [])
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(query)
-    );
+    // Pin the chosen server to the front, regardless of search/sort order.
+    const normalize = (u) => (u ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+    const pinnedIndex = list.findIndex((s) => normalize(s.url) === PINNED_URL);
+
+    if (pinnedIndex > 0) {
+      const copy = [...list];
+      const [pinned] = copy.splice(pinnedIndex, 1);
+      copy.unshift(pinned);
+      return copy;
+    }
+
+    return list;
   });
 
   return (
@@ -90,12 +122,14 @@ export default function ServerDiscovery(props) {
                         alt=""
                         class="discovery_card_banner"
                         onError={() => setBannerFailed(true)}
+                        loading="lazy"
                       />
                     </Show>
 
                     <div class="x">
                       <Show when={icon() && !iconFailed()}>
                         <img
+                          loading="lazy"
                           src={icon()}
                           alt={name()}
                           class="discovery_card_icon"

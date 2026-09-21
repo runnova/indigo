@@ -614,24 +614,6 @@ function App() {
       }}
     />
       <div class="server_content x fill">
-        <Show when={showLoader()}>
-          <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>
-            <div class="logoLoader">
-              <img src={appIcon} alt="Indigo" class="logo" />
-
-              <div class="loaderProgress">
-                <div
-                  class="loaderProgressFill"
-                  style={{
-                    width: `${loadingProgress()}%`,
-                  }}
-                />
-              </div>
-
-              <span class="loaderText">{loadingProgress()}%</span>
-            </div>
-          </div>
-        </Show>
         <div
           class="first_bar bar y"
           style={{
@@ -933,6 +915,24 @@ function App() {
       <ContextMenu />
       <Spotlight />
       <Tooltip />
+      <Show when={showLoader()}>
+        <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>
+          <div class="logoLoader">
+            <img src={appIcon} alt="Indigo" class="logo" />
+
+            <div class="loaderProgress">
+              <div
+                class="loaderProgressFill"
+                style={{
+                  width: `${loadingProgress()}%`,
+                }}
+              />
+            </div>
+
+            <span class="loaderText">{loadingProgress()}%</span>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 }

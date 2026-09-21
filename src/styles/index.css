@@ -814,9 +814,6 @@ span.channel_badge {
 .emoji_button_wrapper {
     position: relative;
 
-    & .icon_button {
-        filter: grayscale(1);
-    }
 }
 
 .emoji_popup {

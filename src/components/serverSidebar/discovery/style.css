@@ -10,9 +10,16 @@
 }
 
 .discovery_grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(345px, 1fr));
-    gap: 1rem;
+  column-count: 3;
+  column-gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .discovery_grid { column-count: 2; }
+}
+
+@media (max-width: 600px) {
+  .discovery_grid { column-count: 1; }
 }
 
 .discovery_card {
@@ -22,6 +29,9 @@
     display: flex;
     flex-direction: row;
     height: fit-content;
+    break-inside: avoid;
+    margin-bottom: 16px;
+    width: 100%;
 }
 
 .discovery_card_icon {

@@ -5,11 +5,12 @@
   --bg-four: #1E2E60;
 
   --hl-one: #429aff;
-  --hl-two: #A3C7FC;
+  --hl-two: #429aff;
   --hl-three: #45475A;
   --hl-four: #244A76;
 
   --fg-one: rgb(179, 203, 249);
+  --fg-dim: #B2C9F8;
 
   --br-big: 14px;
   --br-mid: 10px;
@@ -31,15 +32,6 @@ path {
 
 .text_box,
 .user_display {
-  box-shadow: var(--border);
-  background-color: var(--bg-three);
-}
-
-.server_single>.unread_badge {
-  bottom: -3px;
-  left: auto;
-  right: -3px;
-  background-color: var(--fg-one);
-  padding: 6px;
-  width: 0;
+    outline: 1px solid var(--diff-three);
+    background-color: var(--bg-two);
 }
