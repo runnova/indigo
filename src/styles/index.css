@@ -542,9 +542,19 @@ iframe#rotur-auth {
     padding-left: 0.5em;
     text-transform: capitalize;
     transition: opacity .2s;
+    outline: none;
     &:hover{
         opacity: 1;
     }
+}
+.member_section_chevron {
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+
+.member_section_chevron.rotated {
+  transform: rotate(0deg);
 }
 
 .settings_section_label {
