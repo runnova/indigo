@@ -1,0 +1,107 @@
+.discovery_card_banner {
+    width: 100%;
+    height: 7em;
+    object-fit: cover;
+}
+
+
+.discovery {
+    overflow-y: auto;
+}
+
+.discovery_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(345px, 1fr));
+    gap: 1rem;
+}
+
+.discovery_card {
+    background: var(--bg-two);
+    border-radius: var(--br-mid);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+}
+
+.discovery_card_icon {
+    height: 7em;
+    width: fit-content;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: var(--br-tiny);
+    object-fit: scale-down;
+    margin: 1em;
+    margin-right: 0;
+}
+
+.discovery_card_content {
+    margin: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    position: relative;
+    flex: 1;
+    width: 0;
+
+    & small {
+        max-width: calc(100% - 5em);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.discovery_card_content h3 {
+    margin: 0;
+    max-width: calc(100% - 4em);
+}
+
+.discovery_owner {
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.discovery_tags {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    overflow: hidden;
+    width: calc(100% - 3.5em);
+    overflow-x: auto;
+    padding-bottom: 5px;
+    border-radius: var(--br-mid);
+    position: relative;
+
+    &::after {
+        position: absolute;
+        content: "";
+        width: 10px;
+        height: 100%;
+        top: 0;
+        right: 0;
+        background: linear-gradient(270deg, var(--bg-two), transparent);
+    }
+}
+
+.discovery_tag {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: var(--bg-three);
+    font-size: 0.8rem;
+}
+
+.discovery_join {
+    margin-left: auto;
+    width: fit-content;
+    padding: 0.4em 0.7em;
+    position: absolute;
+    bottom: 0em;
+    right: 0em;
+    background-color: var(--hl-four);
+    border-radius: var(--br-mid);
+    cursor: pointer;
+    &:hover {
+        filter: brightness(120%);
+    }
+}
