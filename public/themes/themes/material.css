@@ -24,3 +24,14 @@
 .popup_content {
     padding: .5em;
 }
+
+.settings_item.x {
+    padding: 1em;
+    background-color: var(--bg-two);
+    margin-bottom: .3em;
+    border-radius: var(--br-mid);
+    &:hover {
+        filter: brightness(1.2);
+        box-shadow: none !important;
+    }
+}

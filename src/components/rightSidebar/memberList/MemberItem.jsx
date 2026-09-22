@@ -55,7 +55,7 @@ export default function MemberItem(props) {
         {props.status && (
           <span
             class="status_dot"
-            title={props.status.status}
+            data-tooltip={props.status.status}
             classList={{
               online: props.status.status === "online",
               idle: props.status.status === "idle",

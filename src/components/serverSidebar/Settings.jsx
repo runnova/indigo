@@ -1,9 +1,9 @@
 import { createSignal, For, onMount } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { logout, setState, state, tempState } from "../../App";
+import { logout, tempState, state, setState } from "../../App";
 
 import {
-  HiOutlineArrowLeftStartOnRectangle,
+  HiOutlineAdjustmentsHorizontal,
   HiOutlineCog6Tooth,
   HiOutlinePaintBrush,
   HiOutlinePencilSquare,
@@ -13,156 +13,43 @@ import {
 import ThemeSettings from "./settings/Theme";
 import appIcon from "/icon_small.svg";
 import Customize from "./settings/Customize.jsx";
+import { GeneralSettings } from "./settings/GeneralSettings.jsx";
+import { ConfigSettings } from "./settings/ConfigSettings.jsx";
 
 function AppIcon(props) {
   return <img src={appIcon} alt="" {...props} />;
 }
 
-function GeneralSettings() {
-  function SettingInput(props) {
+function SettingInput(props) {
     return (
-      <input
-        class="settings_input"
-        value={state.settings[props.setting]}
-        onInput={(e) =>
-          setState("settings", props.setting, e.currentTarget.value)
-        }
-      />
+        <input
+            class="settings_input"
+            value={state.settings[props.setting]}
+            onInput={(e) => setState("settings", props.setting, e.currentTarget.value)} />
     );
-  }
-  function SettingCheckbox(props) {
-    return (
-      <input
-        class="settings_input"
-        type="checkbox"
-        checked={state.settings[props.setting]}
-        onChange={(e) =>
-          setState("settings", props.setting, e.currentTarget.checked)
-        }
-      />
-    );
-  }
-  function SettingSelect(props) {
-    return (
-      <select
-        class="settings_input"
-        value={state.settings[props.setting]}
-        onChange={(e) =>
-          setState("settings", props.setting, e.currentTarget.value)
-        }
-        disabled={props.disabled}
-      >
-        {props.children}
-      </select>
-    );
-  }
-  return (
-    <>
-      <h2 class="settings_title">General</h2>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">DMs server</div>
-        <SettingInput setting="dmsServer" />
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Profile Overlays</div>
-        <SettingCheckbox setting="profileOverlays" />
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Send typing status</div>
-        <SettingCheckbox setting="sendTypingStatus" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">Parse markdown in messages</div>
-        <SettingCheckbox setting="parseMarkdown" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">
-          Use twemoji instead of system emojis
-        </div>
-        <SettingCheckbox setting="twemoji" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">
-          Temporarily keep deleted messages
-        </div>
-        <SettingCheckbox setting="messageLogger" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">
-          Strictly follow the user theme in popouts
-        </div>
-        <SettingCheckbox setting="customProfileThemes" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">Show send button</div>
-        <SettingCheckbox setting="showSendButton" />
-      </div>
-
-      <h2 class="settings_title">Performance</h2>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Idle connections</div>
-        <SettingSelect setting="idleConnections" disabled>
-          <option value="keep">Keep connected</option>
-          <option value="none">No idle connections</option>
-          <option value="dms">Keep DMs connected</option>
-        </SettingSelect>
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Load attachments</div>
-        <SettingSelect setting="loadAttachments" disabled>
-          <option value="all">Load everything</option>
-          <option value="ondemand">Load on demand</option>
-          <option value="whitelist">Server whitelist</option>
-        </SettingSelect>
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Preload channels on hover</div>
-        <SettingCheckbox setting="channelPreload" />
-      </div>
-
-      <h2 class="settings_title">Identity</h2>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Show Nicknames</div>
-        <SettingSelect setting="showNicknames" disabled>
-          <option value="nickname">Nickname</option>
-          <option value="nickname_username">Nickname (Username)</option>
-          <option value="username">Username</option>
-        </SettingSelect>
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Messages from blocked users</div>
-        <SettingSelect setting="blockedMessages" disabled>
-          <option value="collapsed">Show collapsed</option>
-          <option value="show">Always Show</option>
-          <option value="hide">Always Hide</option>
-        </SettingSelect>
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Owner crown</div>
-        <SettingCheckbox setting="ownerCrown" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">
-          Display channel name above display name
-        </div>
-        <SettingCheckbox setting="displayChannelName" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">Use client name / domain</div>
-        <SettingInput setting="clientName" />
-      </div>
-    </>
-  );
 }
+function SettingCheckbox(props) {
+    return (
+        <input
+            class="settings_input"
+            type="checkbox"
+            checked={state.settings[props.setting]}
+            onChange={(e) => setState("settings", props.setting, e.currentTarget.checked)} />
+    );
+}
+function SettingSelect(props) {
+    return (
+        <select
+            class="settings_input"
+            value={state.settings[props.setting]}
+            onChange={(e) => setState("settings", props.setting, e.currentTarget.value)}
+            disabled={props.disabled}
+        >
+            {props.children}
+        </select>
+    );
+}
+export { SettingInput, SettingCheckbox, SettingSelect };
 
 function AboutSettings() {
   onMount(window.roturEmbed.scan);
@@ -241,6 +128,12 @@ const tabs = [
     title: "General",
     icon: HiOutlineCog6Tooth,
     component: GeneralSettings,
+  },
+  {
+    id: "config",
+    title: "Client",
+    icon: HiOutlineAdjustmentsHorizontal,
+    component: ConfigSettings,
   },
   {
     id: "themes",

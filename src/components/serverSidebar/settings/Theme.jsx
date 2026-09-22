@@ -39,8 +39,11 @@ export default function ThemeSettings() {
     setEnabledThemes(await listThemes());
   }
 
-  const themePath = (theme) =>
-    `${import.meta.env.BASE_URL}themes/${theme.file}`;
+  const themePath = (theme) => {
+    const type = theme.type ?? "style";
+    const folder = type === "theme" ? "themes" : "mods";
+    return `${import.meta.env.BASE_URL}themes/${folder}/${theme.file}`;
+  };
 
   onMount(async () => {
     const res = await fetch(`${import.meta.env.BASE_URL}themes/index.json`);

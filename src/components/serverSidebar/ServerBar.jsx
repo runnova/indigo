@@ -4,9 +4,11 @@ import ServerBrowser from "./discovery/ServerBrowser.jsx";
 import Settings from "./Settings";
 import {
   HiOutlineAdjustmentsHorizontal,
+  HiOutlineChatBubbleOvalLeft,
   HiOutlineChevronDown,
   HiOutlineMagnifyingGlass,
 } from "solid-icons/hi";
+
 import {
   genId,
   removeFromAllGroups,
@@ -19,6 +21,81 @@ import {
   getColorValue,
 } from "./groups.js";
 import { showSpotlight } from "../spotlight/Spotlight.jsx";
+import { state } from "../../App.jsx";
+
+const FALLBACK_ICON = HiOutlineChatBubbleOvalLeft;
+function ServerEntry(local) {
+  return (
+    <Show when={local.server()}>
+      <div
+        draggable
+        onClick={() => local.onSelect(local.server())}
+        data-context="server"
+        data-src={local.src}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", local.src);
+          local.setDragSrc({ src: local.src, fromGroupId: local.groupId ?? null });
+        }}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (local.dragSrc()?.src !== local.src) {
+            local.setDragOverServerSrc(local.src);
+          }
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = "move";
+          if (local.dragSrc()?.src !== local.src) {
+            local.setDragOverServerSrc(local.src);
+          }
+        }}
+        onDragLeave={(e) => {
+          e.stopPropagation();
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            local.setDragOverServerSrc(null);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          local.handleDropOnServer(local.src, local.groupId ?? null);
+        }}
+        onDragEnd={() => {
+          local.setDragSrc(null);
+          local.setDragOverServerSrc(null);
+        }}
+        class={`server_single ${
+          local.currentServer?.src === local.src ? "server_single--active" : ""
+        } ${
+          local.dragOverServerSrc() === local.src ? "server_single--drop-target" : ""
+        }`}
+        data-tooltip={local.server().name + ": " + local.server().src}
+        data-tooltip-position="right"
+      >
+        <Show
+          when={local.server().src !== state.settings.dmsServer}
+          fallback={<HiOutlineChatBubbleOvalLeft class="server_icon dms" />}
+        >
+          <img
+            src={local.server().icon ?? FALLBACK_ICON}
+            alt={local.server().name}
+            class="server_icon"
+          />
+        </Show>
+        {!(
+          local.unreads.servers?.[local.src]?.online ||
+          local.currentServer?.src === local.src
+        ) && <span class="server_offline_indicator" />}
+        {local.unreadTotal(local.src) > 0 && (
+          <span class="unread_badge"></span>
+        )}
+      </div>
+    </Show>
+  );
+}
 
 export default function ServerBar(props) {
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -28,7 +105,6 @@ export default function ServerBar(props) {
   const [dragOverGapIndex, setDragOverGapIndex] = createSignal(null);
   const [dragOverServerSrc, setDragOverServerSrc] = createSignal(null);
 
-  const fallbackIcon = `https://icons.veryicon.com/png/o/commerce-shopping/soft-designer-online-tools-icon/group-38.png`;
   const groups = () => props.groups ?? [];
 
   const order = createMemo(() => renderedOrder(props.servers, groups()));
@@ -178,6 +254,34 @@ export default function ServerBar(props) {
     setDragSrc(null);
   }
 
+  // Shared by both the collapsed and expanded group-toggle elements: dropping
+  // a server on either one adds it to that group.
+  function groupToggleHandlers(groupId) {
+    return {
+      onDragEnter: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOverGroupId(groupId);
+      },
+      onDragOver: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOverGroupId(groupId);
+      },
+      onDragLeave: (e) => {
+        e.stopPropagation();
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setDragOverGroupId(null);
+        }
+      },
+      onDrop: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDropOnGroupToggle(groupId);
+      },
+    };
+  }
+
   function GapDrop(index) {
     return (
       <div
@@ -218,71 +322,20 @@ export default function ServerBar(props) {
               when={item.type === "group"}
               fallback={
                 <>
-                  <div
-                    draggable
-                    onClick={() => props.onSelect(item.server)}
-                    data-context="server"
-                    data-src={item.server.src}
-                    onDragStart={(e) => {
-                      e.dataTransfer.effectAllowed = "move";
-                      e.dataTransfer.setData("text/plain", item.server.src);
-                      setDragSrc({ src: item.server.src, fromGroupId: null });
-                    }}
-                    onDragEnter={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (dragSrc()?.src !== item.server.src) {
-                        setDragOverServerSrc(item.server.src);
-                      }
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      e.dataTransfer.dropEffect = "move";
-                      if (dragSrc()?.src !== item.server.src) {
-                        setDragOverServerSrc(item.server.src);
-                      }
-                    }}
-                    onDragLeave={(e) => {
-                      e.stopPropagation();
-                      if (!e.currentTarget.contains(e.relatedTarget)) {
-                        setDragOverServerSrc(null);
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleDropOnServer(item.server.src, null);
-                    }}
-                    onDragEnd={() => {
-                      setDragSrc(null);
-                      setDragOverServerSrc(null);
-                    }}
-                    class={`server_single ${
-                      props.currentServer?.src === item.server.src
-                        ? "server_single--active"
-                        : ""
-                    } ${
-                      dragOverServerSrc() === item.server.src
-                        ? "server_single--drop-target"
-                        : ""
-                    }`}
-                    data-tooltip={item.server.name + ": " + item.server.src}
-                    data-tooltip-position="right"
-                  >
-                    <img
-                      src={item.server.icon ?? fallbackIcon}
-                      alt={item.server.name}
-                      class="server_icon"
-                    />
-                    {!(
-                      props.unreads.servers?.[item.server.src]?.online ||
-                      props?.currentServer?.src === item.server.src
-                    ) && <span class="server_offline_indicator" />}
-                    {props.unreadTotal(item.server.src) > 0 && (
-                      <span class="unread_badge"></span>
-                    )}
-                  </div>
+                  <ServerEntry
+                    src={item.server.src}
+                    server={() => item.server}
+                    groupId={null}
+                    currentServer={props.currentServer}
+                    unreads={props.unreads}
+                    unreadTotal={props.unreadTotal}
+                    onSelect={props.onSelect}
+                    dragSrc={dragSrc}
+                    setDragSrc={setDragSrc}
+                    dragOverServerSrc={dragOverServerSrc}
+                    setDragOverServerSrc={setDragOverServerSrc}
+                    handleDropOnServer={handleDropOnServer}
+                  />
                   {GapDrop(item.gapIndexAfter)}
                 </>
               }
@@ -303,27 +356,7 @@ export default function ServerBar(props) {
                     <div
                       class="server_single server_group_collapsed"
                       onClick={() => toggleCollapse(item.group.id)}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragOverGroupId(item.group.id);
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragOverGroupId(item.group.id);
-                      }}
-                      onDragLeave={(e) => {
-                        e.stopPropagation();
-                        if (!e.currentTarget.contains(e.relatedTarget)) {
-                          setDragOverGroupId(null);
-                        }
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDropOnGroupToggle(item.group.id);
-                      }}
+                      {...groupToggleHandlers(item.group.id)}
                       data-context="server_group"
                       data-group-id={item.group.id}
                       data-tooltip={item.group.name + ": Server Group"}
@@ -335,7 +368,7 @@ export default function ServerBar(props) {
                             <img
                               src={
                                 serverBySrc(props.servers, src)?.icon ??
-                                fallbackIcon
+                                FALLBACK_ICON
                               }
                               alt=""
                               class="server_group_mini_icon"
@@ -350,27 +383,7 @@ export default function ServerBar(props) {
                     <div
                       class="server_group_toggle"
                       onClick={() => toggleCollapse(item.group.id)}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragOverGroupId(item.group.id);
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragOverGroupId(item.group.id);
-                      }}
-                      onDragLeave={(e) => {
-                        e.stopPropagation();
-                        if (!e.currentTarget.contains(e.relatedTarget)) {
-                          setDragOverGroupId(null);
-                        }
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDropOnGroupToggle(item.group.id);
-                      }}
+                      {...groupToggleHandlers(item.group.id)}
                       data-context="server_group"
                       data-group-id={item.group.id}
                       data-tooltip={item.group.name + ": Server Group"}
@@ -380,89 +393,22 @@ export default function ServerBar(props) {
                     </div>
 
                     <For each={item.group.servers ?? []}>
-                      {(src) => {
-                        const server = () => serverBySrc(props.servers, src);
-
-                        return (
-                          <Show when={server()}>
-                            <div
-                              draggable
-                              onClick={() => props.onSelect(server())}
-                              data-context="server"
-                              data-src={src}
-                              onDragStart={(e) => {
-                                e.dataTransfer.effectAllowed = "move";
-                                e.dataTransfer.setData("text/plain", src);
-                                setDragSrc({
-                                  src,
-                                  fromGroupId: item.group.id,
-                                });
-                              }}
-                              onDragEnter={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-
-                                if (dragSrc()?.src !== src) {
-                                  setDragOverServerSrc(src);
-                                }
-                              }}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.dataTransfer.dropEffect = "move";
-
-                                if (dragSrc()?.src !== src) {
-                                  setDragOverServerSrc(src);
-                                }
-                              }}
-                              onDragLeave={(e) => {
-                                e.stopPropagation();
-
-                                if (
-                                  !e.currentTarget.contains(e.relatedTarget)
-                                ) {
-                                  setDragOverServerSrc(null);
-                                }
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleDropOnServer(src, item.group.id);
-                              }}
-                              onDragEnd={() => {
-                                setDragSrc(null);
-                                setDragOverServerSrc(null);
-                              }}
-                              class={`server_single ${
-                                props.currentServer?.src === src
-                                  ? "server_single--active"
-                                  : ""
-                              } ${
-                                dragOverServerSrc() === src
-                                  ? "server_single--drop-target"
-                                  : ""
-                              }`}
-                              data-tooltip={server().name + ": " + server().src}
-                              data-tooltip-position="right"
-                            >
-                              <img
-                                src={server().icon ?? fallbackIcon}
-                                alt={server().name}
-                                class="server_icon"
-                              />
-
-                              {!(
-                                props.unreads.servers?.[src]?.online ||
-                                props.currentServer?.src === src
-                              ) && <span class="server_offline_indicator" />}
-
-                              {props.unreadTotal(src) > 0 && (
-                                <span class="unread_badge"></span>
-                              )}
-                            </div>
-                          </Show>
-                        );
-                      }}
+                      {(src) => (
+                        <ServerEntry
+                          src={src}
+                          server={() => serverBySrc(props.servers, src)}
+                          groupId={item.group.id}
+                          currentServer={props.currentServer}
+                          unreads={props.unreads}
+                          unreadTotal={props.unreadTotal}
+                          onSelect={props.onSelect}
+                          dragSrc={dragSrc}
+                          setDragSrc={setDragSrc}
+                          dragOverServerSrc={dragOverServerSrc}
+                          setDragOverServerSrc={setDragOverServerSrc}
+                          handleDropOnServer={handleDropOnServer}
+                        />
+                      )}
                     </For>
                   </div>
                 </Show>
@@ -479,7 +425,7 @@ export default function ServerBar(props) {
         >
           <img
             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='%233DA35D'%3E%3Cpath d='M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z'/%3E%3C/svg%3E"
-            class="server_icon add_server"
+            class="server_icon add_server legit_add_server"
           />
         </div>
         <div

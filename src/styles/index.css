@@ -19,14 +19,14 @@
 }
 
 .server_bar_wrapper {
-  position: relative;
-  height: 100%;
-  max-width: 7em;
-  flex-shrink: 0;
+    position: relative;
+    height: 100%;
+    max-width: 7em;
+    flex-shrink: 0;
 }
 
 .server_bar_resize {
-  flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .server_group {
@@ -109,7 +109,7 @@
 
 .server_single {
     position: relative;
-    width: calc(100% - .6em);
+    width: calc(100% - 0.6em);
     aspect-ratio: 1 / 1;
     padding: 0.3em;
     height: fit-content;
@@ -129,16 +129,44 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: .2s cubic-bezier(0.075, 0.82, 0.165, 1);
+        transition: 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
     }
 
-    &:hover > .unread_badge, &.server_single--active > .unread_badge {
+    &:hover > .unread_badge,
+    &.server_single--active > .unread_badge {
         bottom: 37%;
         height: 30%;
     }
 
     &:has(.add_server) {
         background-color: var(--bg-three);
+    }
+    &:has(.legit_add_server) {
+        background-color: var(--bg-three);
+        margin-top: 20%;
+        &:after {
+            content: "";
+            background-color: var(--fg-dim);
+            height: 5%;
+            width: 50%;
+            left: 25%;
+            top: -22%;
+            position: absolute;
+        }
+    }
+
+    &:has(.dms) {
+        background-color: var(--bg-three);
+        margin-bottom: 20%;
+        &:after {
+            content: "";
+            background-color: var(--fg-dim);
+            height: 5%;
+            width: 50%;
+            left: 25%;
+            bottom: -22%;
+            position: absolute;
+        }
     }
 
     & > img,
@@ -150,6 +178,13 @@
         &.add_server {
             transform: scale(0.5);
         }
+    }
+
+    & .server_icon.dms {
+        width: 70%;
+        height: 70%;
+        padding: 17%;
+        opacity: 0.5;
     }
 
     &:hover {
@@ -541,25 +576,20 @@ iframe#rotur-auth {
     font-size: small;
     padding-left: 0.5em;
     text-transform: capitalize;
-    transition: opacity .2s;
+    transition: opacity 0.2s;
     outline: none;
-    &:hover{
+    &:hover {
         opacity: 1;
     }
 }
 .member_section_chevron {
-  transition: transform 0.15s ease;
-  flex-shrink: 0;
-  transform: rotate(-90deg);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+    transform: rotate(-90deg);
 }
 
 .member_section_chevron.rotated {
-  transform: rotate(0deg);
-}
-
-.settings_section_label {
-    padding-left: 0.5em;
-    text-transform: capitalize;
+    transform: rotate(0deg);
 }
 
 .dmshome {
@@ -587,7 +617,7 @@ iframe#rotur-auth {
         max-width: calc(100% - 0.4em);
         margin: 0 0.3em;
 
-        &>* {
+        & > * {
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -813,7 +843,6 @@ span.channel_badge {
 
 .emoji_button_wrapper {
     position: relative;
-
 }
 
 .emoji_popup {
@@ -866,7 +895,7 @@ span.channel_badge {
             flex: 1;
             overflow-y: auto;
             display: grid;
-            gap: .5em;
+            gap: 0.5em;
             grid-template-columns: repeat(auto-fill, 30px);
             padding: 0 1em;
             align-content: start;
@@ -886,7 +915,7 @@ span.channel_badge {
                     top: 0;
                     right: 0;
                     &:hover {
-                        border-radius: .2em;
+                        border-radius: 0.2em;
                         background-color: var(--diff-one);
                     }
                 }
@@ -1092,7 +1121,7 @@ img.channel_icon_image {
 .dialog {
     overflow: hidden;
     background-color: var(--bg-one);
-    pointer-events:all;
+    pointer-events: all;
     box-shadow:
         var(--border),
         0 0 1em #000000e8;
@@ -1431,15 +1460,20 @@ img.channel_icon_image {
     padding: 0.5em;
     justify-content: space-between;
     align-items: center;
+    border-radius: var(--br-mid);
 
-    & > .member_section_label {
+    & > .settings_section_label {
         margin: 0;
+        gap: 0.3em;
     }
 
     &:hover,
     &:focus-within {
-        box-shadow: -1px 0px 0 var(--bg-four);
-        background: linear-gradient(90deg, var(--diff-one) 0%, transparent 50%);
+        background-color: var(--diff-one);
+    }
+
+    & small {
+        opacity: 0.5;
     }
 }
 
@@ -1465,6 +1499,37 @@ input[type="radio"].settings_input {
     accent-color: var(--hl-two);
     background-color: var(--bg-two);
     vertical-align: middle;
+}
+
+input[type="checkbox"].settings_input {
+    appearance: none;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--bg-four);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+input[type="checkbox"].settings_input::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    top: 2px;
+    left: 2px;
+    border-radius: 50%;
+    background: var(--fg-one);
+    transition: transform 0.2s ease;
+}
+
+input[type="checkbox"].settings_input:checked {
+    background: var(--hl-one);
+}
+
+input[type="checkbox"].settings_input:checked::before {
+    transform: translateX(18px);
 }
 
 select.settings_input {
@@ -2218,7 +2283,8 @@ img.big_emoji {
     margin-top: 4em;
 }
 
-.owner_crown,.client_icon {
+.owner_crown,
+.client_icon {
     margin: 0 0.3em;
     width: 10px;
     height: 10px;
@@ -2317,50 +2383,52 @@ hr.channelPageList {
 }
 
 .status_dot {
-  position: absolute;
-  bottom: 5%;
-  right:  5%;
-  width: 25% !important;
-  height:25% !important;
-  border-radius: 50%;
-  border: 2px solid var(--bg-one);
+    position: absolute;
+    bottom: -3%;
+    right: -3%;
+    width: 25% !important;
+    height: 25% !important;
+    border-radius: 50%;
+    border: 2px solid var(--bg-one);
 }
 
 .status_dot.online {
-  background: #43b581;
+    background: #43b581;
 }
 
 .status_dot.idle {
-  background: #faa61a;
+    background: #faa61a;
 }
 
 .status_dot.offline {
-  background: #f04747;
+    background: #f04747;
 }
 
 .loader_overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  backdrop-filter: blur(1px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    backdrop-filter: blur(1px);
 }
 
 .loader_spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
