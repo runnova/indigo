@@ -2183,8 +2183,23 @@ img.big_emoji {
 
 .scm-submenu {
     position: absolute;
-    top: 0;
+    top: -.2em;
     left: 100%;
+}
+
+.scm-submenu--left {
+  left: auto;
+  right: 100%;
+}
+.scm-submenu--up {
+  top: auto;
+  bottom:  -.2em;
+}
+
+.scm-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--scm-divider-color, rgba(255, 255, 255, 0.1));
 }
 
 .roles_section {

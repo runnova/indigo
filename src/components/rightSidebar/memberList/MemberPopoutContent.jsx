@@ -4,6 +4,7 @@ import { parseMarkdown } from "../../messages/ParseMarkdown"
 import { HiOutlineBanknotes, HiOutlineCalendar, HiOutlineEllipsisVertical, HiOutlineUser, HiOutlineUserMinus, HiOutlineUserPlus } from "solid-icons/hi";
 import { renderICN } from "./renderICN";
 import { ActivityCard } from "./ActivityCard";
+import SystemContextMenu from "../../Systemcontextmenu";
 
 export function formatTime(ms) {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -39,7 +40,13 @@ export default function MemberProfile(props) {
   const [showAllRoles, setShowAllRoles] = createSignal(false);
 
   const status = () => profile()?.status;
-  console.log(status())
+
+  const dropdownActions = [
+    { label: "Sort by name", fn: () => {} },
+    { label: "Filter", fn: () => {} },
+    { special: "hr" },
+    { label: "Settings", fn: () => {} },
+  ];
   return (
     <>
       <div
@@ -74,22 +81,24 @@ export default function MemberProfile(props) {
           <div className="float_top_right x">
             <div class="icon_ball_button">
               {() => {
-                if (tempState.conn.me().friends.includes("Mist")) {
+                if (tempState?.conn?.me()?.friends?.includes(props.username)) {
                   return (<HiOutlineUserMinus></HiOutlineUserMinus>);
                 } else {
                   return (<HiOutlineUserPlus></HiOutlineUserPlus>);
                 }
               }}
             </div>
-            <div class="dropdown">
-              <div class="icon_ball_button dropdown_button">
+              <div class="icon_ball_button dropdown_button"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  SystemContextMenu.instance.openAt(
+                    dropdownActions,
+                    rect.left,
+                    rect.bottom
+                  );
+                }}>
                 <HiOutlineEllipsisVertical></HiOutlineEllipsisVertical>
               </div>
-              <div class="dropdown_content">
-                <button>Direct Message</button>
-                <button>Block User</button>
-              </div>
-            </div>
           </div>
           <img
             src={`https://avatars.rotur.dev/.banners/${props.username}`}

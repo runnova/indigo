@@ -384,7 +384,6 @@ export default function ServerBar(props) {
                       class="server_group_toggle"
                       onClick={() => toggleCollapse(item.group.id)}
                       {...groupToggleHandlers(item.group.id)}
-                      data-context="server_group"
                       data-group-id={item.group.id}
                       data-tooltip={item.group.name + ": Server Group"}
                       data-tooltip-position="right"

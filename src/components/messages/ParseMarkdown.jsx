@@ -170,6 +170,7 @@ function EmbeddedLink(props) {
           return (
             <img
               src={props.url}
+              data-context="attachment"
               alt=""
               class="embedded_image"
               loading="lazy"
@@ -187,6 +188,7 @@ function EmbeddedLink(props) {
           return (
             <video
               src={props.url}
+              data-context="attachment"
               controls
               class="embedded_video"
               loading="lazy"
@@ -195,7 +197,8 @@ function EmbeddedLink(props) {
         }
 
         if (type.startsWith("audio/")) {
-          return <audio src={props.url} controls loading="lazy" />;
+          return <audio
+          data-context="attachment" src={props.url} controls loading="lazy" />;
         }
 
         return (

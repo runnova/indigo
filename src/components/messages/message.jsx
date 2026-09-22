@@ -333,6 +333,7 @@ export function Message(props) {
                         alt={file.name}
                         class="attachment_image"
                         loading="lazy"
+                        data-context="attachment"
 
                         onClick={() =>
                           setPreview({
@@ -347,6 +348,7 @@ export function Message(props) {
                   if (file.mime_type?.startsWith("video/")) {
                     return (
                       <video
+                      data-context="attachment"
                         src={file.url}
                         class="attachment_video"
                         onClick={() =>
@@ -361,7 +363,8 @@ export function Message(props) {
 
                   if (file.mime_type?.startsWith("audio/")) {
                     return (
-                      <audio src={file.url} controls class="attachment_audio" />
+                      <audio
+                      data-context="attachment" src={file.url} controls class="attachment_audio" />
                     );
                   }
 

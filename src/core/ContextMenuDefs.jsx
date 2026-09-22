@@ -11,7 +11,8 @@ import {
   HiOutlineMapPin,
   HiOutlineXMark,
   HiOutlineSwatch,
-  HiOutlinePencil
+  HiOutlinePencil,
+  HiOutlineArrowDownTray,
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
 import { setState } from "../App.jsx";
@@ -22,7 +23,13 @@ import {
   canvasToBlob,
 } from "../components/utility/quote-maker.js";
 import { addAttachment } from "../components/compose/attachmentStore.js";
-import { removeGroup, renameGroup, getColorNames, getColorValue, setGroupColor } from "../components/serverSidebar/groups.js";
+import {
+  removeGroup,
+  renameGroup,
+  getColorNames,
+  getColorValue,
+  setGroupColor,
+} from "../components/serverSidebar/groups.js";
 
 const removeServer = (src) => {
   setState("servers", (servers) =>
@@ -35,22 +42,11 @@ SystemContextMenu.init([
     "data-context": "server",
     actions: [
       {
-        label: "Open",
-        icon: HiOutlineArrowTopRightOnSquare,
-        fn: (el) => el.click(),
-      },
-      {
-        label: "Leave server",
-        icon: HiOutlineTrash,
-        fn: (el) => {
-          removeServer(el.dataset.src);
-        },
-      },
-      {
         label: "Reconnect",
         icon: HiOutlineArrowPath,
         fn: (el) => reconnectServer(el.dataset.src),
       },
+      { special: "hr" },
       {
         label: "Advanced",
         icon: HiOutlineChatBubbleLeftRight,
@@ -58,6 +54,7 @@ SystemContextMenu.init([
           {
             label: "Silent leave",
             icon: HiOutlineTrash,
+            color: "#ff99a3",
             fn: (el) => {
               const msg = getMessageById(el.dataset.id);
               console.log(el.dataset.id, msg);
@@ -83,6 +80,14 @@ SystemContextMenu.init([
           },
         ],
       },
+      {
+        label: "Leave server",
+        icon: HiOutlineTrash,
+        color: "#ff99a3",
+        fn: (el) => {
+          removeServer(el.dataset.src);
+        },
+      },
     ],
   },
   {
@@ -97,6 +102,7 @@ SystemContextMenu.init([
       },
       {
         label: "Remove",
+        color: "#ff99a3",
         icon: HiOutlineTrash,
         fn: (el) => {
           //
@@ -109,6 +115,7 @@ SystemContextMenu.init([
     actions: [
       {
         label: "Unpin DM",
+        color: "#ff99a3",
         icon: HiOutlineXMark,
         fn: (el) => {
           //
@@ -120,25 +127,15 @@ SystemContextMenu.init([
     "data-context": "server_group",
     actions: [
       {
-        label: "Ungroup",
-        icon: HiOutlineXMark,
-        fn: (el) => {
-          setState("serverGroups", (groups) =>
-            removeGroup(groups, el.dataset.groupId),
-          );
-        },
-      },
-      {
         label: "Rename group",
         icon: HiOutlineDocumentText,
         fn: (el) => {
           const name = prompt("Group name:");
           if (name == null) return;
-          setState(
-            "serverGroups",
-            (groups) => renameGroup(groups, el.dataset.groupId, name.trim() || "New Group")
+          setState("serverGroups", (groups) =>
+            renameGroup(groups, el.dataset.groupId, name.trim() || "New Group"),
           );
-        }
+        },
       },
       {
         label: "Recolor",
@@ -158,10 +155,54 @@ SystemContextMenu.init([
           ),
           fn: (el) => {
             setState("serverGroups", (groups) =>
-              setGroupColor(groups, el.dataset.groupId, name)
+              setGroupColor(groups, el.dataset.groupId, name),
             );
           },
         })),
+      },
+      { special: "hr" },
+      {
+        label: "Ungroup",
+        color: "#ff99a3",
+        icon: HiOutlineXMark,
+        fn: (el) => {
+          setState("serverGroups", (groups) =>
+            removeGroup(groups, el.dataset.groupId),
+          );
+        },
+      },
+    ],
+  },
+  {
+    "data-context": "attachment",
+    actions: [
+      {
+        label: "Open in new tab",
+        icon: HiOutlineArrowTopRightOnSquare,
+        fn: (el) => {
+          window.open(el.src, "_blank");
+        },
+      },
+      {
+        label: "Reload attachment",
+        icon: HiOutlineArrowPath,
+        fn: (el) => {
+          const baseUrl = el.src.split("?")[0];
+          el.src = baseUrl + "?t=" + new Date().getTime();
+        },
+      },
+      {
+        label: "Save attachment",
+        icon: HiOutlineArrowDownTray,
+        fn: (el) => {
+          const link = document.createElement("a");
+          link.href = el.src;
+          link.download = customName;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
       },
     ],
   },
@@ -192,11 +233,7 @@ SystemContextMenu.init([
           });
         },
       },
-      {
-        label: "Copy ID",
-        icon: HiOutlineClipboard,
-        fn: (el) => console.log(el.dataset.id),
-      },
+      { special: "hr" },
       {
         label: "Message Actions",
         icon: HiOutlineChatBubbleLeftRight,
@@ -240,12 +277,25 @@ SystemContextMenu.init([
               }
             },
           },
+          { special: "hr" },
           {
             label: "Copy text",
             icon: HiOutlineDocumentText,
             fn: (el) => console.log("copy text", el),
           },
+          {
+            label: "Copy ID",
+            icon: HiOutlineClipboard,
+            fn: (el) => console.log(el.dataset.id),
+          },
         ],
+      },
+      { special: "hr" },
+      {
+        label: "Delete message",
+        color: "#ff99a3",
+        icon: HiOutlineTrash,
+        fn: (el) => console.log(el.dataset.id),
       },
     ],
   },
