@@ -46,6 +46,7 @@ export default function RightSidebar(props) {
     <>
       <div
         class="third_bar bar"
+        id="third_bar"
         style={{
           width: thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,
           "min-width": thirdBarCollapsed() ? "0px" : `${thirdBarWidth()}px`,

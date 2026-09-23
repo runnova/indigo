@@ -18,6 +18,7 @@ import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./core/useChannelMessages.jsx";
 import { tempState, state, setState, setEmojiPicker } from "./App.jsx";
 import { verifyMessage } from "./core/useMessageSigning.js";
+import { createUnreadTracking } from "./core/UseUnreadTracking.jsx";
 
 const [fakeMessages, setFakeMessages] = createSignal([]);
 let fakeId = 0;
@@ -96,6 +97,8 @@ export function VirtualMessageList(props) {
   let scrollEl;
   let resizeObserver;
 
+  const unreadTracking = createUnreadTracking();
+
   function attachResizeObserver(el) {
     resizeObserver?.disconnect();
     resizeObserver = new ResizeObserver(() => {
@@ -173,6 +176,49 @@ export function VirtualMessageList(props) {
   });
 
   createEffect(() => {
+    const update = lastUpdate();
+    if (!update) return;
+
+    const channel = props.channel;
+    if (!channel) return;
+
+    if (update.type === "append" && !scrollLocked()) {
+      unreadTracking.addUnread(channel);
+    }
+  });
+
+  // Mark messages as read when scrolled to bottom
+  createEffect(() => {
+    if (!scrollLocked()) return;
+
+    const channel = props.channel;
+    if (!channel) return;
+
+    const msgs = messages();
+    if (msgs.length === 0) return;
+
+    const lastMsg = msgs[msgs.length - 1];
+    if (!lastMsg?.id) return;
+
+    unreadTracking.markAsRead(
+      channel,
+      lastMsg.id,
+      Number(lastMsg.timestamp) * 1000
+    );
+  });
+
+  createEffect(
+    on(
+      () => props.channel,
+      (channel) => {
+        if (channel) {
+          unreadTracking.resetChannel(channel);
+        }
+      }
+    )
+  );
+
+  createEffect(() => {
     const handleKeyDown = (e) => {
       const isInputFocused =
         e.target instanceof HTMLInputElement ||
@@ -210,6 +256,7 @@ export function VirtualMessageList(props) {
       document.removeEventListener("keydown", handleKeyDown);
     });
   });
+
   function stickToBottomThroughMediaLoad() {
     if (!scrollEl) return;
     const media = scrollEl.querySelectorAll("img, video");
@@ -341,7 +388,18 @@ export function VirtualMessageList(props) {
     const nearBottom = isNearBottom();
     setScrollLocked(nearBottom);
     setShowScrollButton(!nearBottom);
-    if (nearBottom) setUnreadCount(0);
+    if (nearBottom) {
+      setUnreadCount(0);
+      const msgs = messages();
+      if (msgs.length > 0) {
+        const lastMsg = msgs[msgs.length - 1];
+        unreadTracking.markAsRead(
+          props.channel,
+          lastMsg.id,
+          Number(lastMsg.timestamp) * 1000
+        );
+      }
+    }
 
     const firstItem = scrollEl.querySelector('[data-context="message"]');
     if (firstItem) setOldestVisibleId(firstItem.getAttribute("data-id"));
@@ -445,6 +503,27 @@ export function VirtualMessageList(props) {
 
   const renderOverlay = state.settings.profileOverlays;
 
+  // Determine which message ID marks the unread divider
+  // Only show divider if there are actually unread messages
+  const unreadDividerId = createMemo(() => {
+    const lastReadId = unreadTracking.getLastReadId(props.channel);
+    const lastReadTimestamp = unreadTracking.getLastReadTimestamp(props.channel);
+
+    if (!lastReadId || lastReadTimestamp === 0) return null;
+
+    // Find the first message after the last read timestamp
+    const msgs = messages();
+    const unreadMessage = msgs.find((msg) => {
+      const msgTimestamp = Number(msg.timestamp) > 1e12
+        ? Number(msg.timestamp)
+        : Number(msg.timestamp) * 1000;
+      return msgTimestamp > lastReadTimestamp;
+    });
+
+    // Return the ID of the first unread message (divider shows BEFORE it)
+    return unreadMessage?.id ?? null;
+  });
+
   return (
     <>
       <Show when={props.onBack}>
@@ -538,86 +617,100 @@ export function VirtualMessageList(props) {
 
                         return m.reply_to;
                       });
+
+                      const isUnreadDivider = () =>
+                        msg()?.id === unreadDividerId();
+
                       return (
-                        <div
-                          attr:data-index={index()}
-                          attr:data-id={msg()?.id}
-                          data-context="message"
-                          classList={{
-                            "vml-item": true,
-                            "is-grouped": grouped,
-                            "is-reply-target": state.replying?.id === msg()?.id,
-                            "is-edit-target": state.editing?.id === msg()?.id,
-                          }}
-                          onMouseEnter={(e) => {
-                            clearTimeout(hideTimer);
-                            const message = msg();
-                            if (!message) return;
-                            const rect =
-                              e.currentTarget.getBoundingClientRect();
-                            setHoveredMessage(message);
-                            setHoverRect(rect);
-                          }}
-                          onMouseLeave={() => {
-                            hideTimer = setTimeout(() => {
-                              setHoveredMessage(null);
-                              setHoverRect(null);
-                            }, 200);
-                          }}
-                        >
-                          <Message
-                            username={msg()?.user}
-                            avatar={
-                              msg()?.avatar ??
-                              `https://avatars.rotur.dev/${msg()?.user}`
-                            }
-                            timeRaw={timestamp}
-                            time={
-                              msg()?.time ??
-                              new Date(timestamp).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            }
-                            content={msg()?.content}
-                            id={msg().id}
-                            renderOverlay={renderOverlay}
-                            reactions={msg().reactions}
-                            webhook={msg().webhook}
-                            attachments={msg()?.attachments}
-                            embeds={msg().embeds}
-                            grouped={grouped && !replyMessage() && !interaction}
-                            interaction={interaction}
-                            reply={replyMessage()}
-                            fake={msg().__fake}
-                            ephemeral={msg().ephemeral}
-                            deleted={msg()?.deleted}
-                            edited={msg()?.edited}
-                            edited_at={msg()?.edited_at}
-                            editing={state.editing?.id === msg()?.id}
-                            signed={verifyMessage(msg())}
-                            onDismiss={() => {
-                              const id = msg().id;
-
-                              setFakeMessages((messages) =>
-                                messages.filter((message) => message.id !== id),
-                              );
-
-                              setSectionList((sections) =>
-                                sections
-                                  .map((section) => ({
-                                    ...section,
-                                    messages: section.messages.filter(
-                                      (message) => message.id !== id,
-                                    ),
-                                  }))
-                                  .filter(
-                                    (section) => section.messages.length > 0,
-                                  ),
-                              );
+                        <>
+                          <Show when={isUnreadDivider()}>
+                            <div class="vml-unread-divider">
+                              <div class="vml-unread-line" />
+                              <span class="vml-unread-label">New</span>
+                            </div>
+                          </Show>
+                          <div
+                            attr:data-index={index()}
+                            attr:data-id={msg()?.id}
+                            data-context="message"
+                            classList={{
+                              "vml-item": true,
+                              "is-grouped": grouped,
+                              "is-reply-target": state.replying?.id === msg()?.id,
+                              "is-edit-target": state.editing?.id === msg()?.id,
                             }}
-                          />
-                        </div>
+                            onMouseEnter={(e) => {
+                              clearTimeout(hideTimer);
+                              const message = msg();
+                              if (!message) return;
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              setHoveredMessage(message);
+                              setHoverRect(rect);
+                            }}
+                            onMouseLeave={() => {
+                              hideTimer = setTimeout(() => {
+                                setHoveredMessage(null);
+                                setHoverRect(null);
+                              }, 200);
+                            }}
+                          >
+                            <Message
+                              username={msg()?.user}
+                              avatar={
+                                msg()?.avatar ??
+                                `https://avatars.rotur.dev/${msg()?.user}`
+                              }
+                              timeRaw={timestamp}
+                              time={
+                                msg()?.time ??
+                                new Date(timestamp).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              }
+                              content={msg()?.content}
+                              id={msg().id}
+                              renderOverlay={renderOverlay}
+                              reactions={msg().reactions}
+                              webhook={msg().webhook}
+                              attachments={msg()?.attachments}
+                              embeds={msg().embeds}
+                              grouped={grouped && !replyMessage() && !interaction}
+                              interaction={interaction}
+                              reply={replyMessage()}
+                              fake={msg().__fake}
+                              ephemeral={msg().ephemeral}
+                              deleted={msg()?.deleted}
+                              edited={msg()?.edited}
+                              edited_at={msg()?.edited_at}
+                              editing={state.editing?.id === msg()?.id}
+                              signed={verifyMessage(msg())}
+                              onDismiss={() => {
+                                const id = msg().id;
+
+                                setFakeMessages((messages) =>
+                                  messages.filter(
+                                    (message) => message.id !== id,
+                                  ),
+                                );
+
+                                setSectionList((sections) =>
+                                  sections
+                                    .map((section) => ({
+                                      ...section,
+                                      messages: section.messages.filter(
+                                        (message) => message.id !== id,
+                                      ),
+                                    }))
+                                    .filter(
+                                      (section) => section.messages.length > 0,
+                                    ),
+                                );
+                              }}
+                            />
+                          </div>
+                        </>
                       );
                     }}
                   </For>

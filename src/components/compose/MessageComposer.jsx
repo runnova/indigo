@@ -510,6 +510,7 @@ export default function MessageComposer(props) {
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"
+              onPointerDown={(e) => e.preventDefault()}
               onClick={() => setEmojiPicker("open", (open) => !open)}
             >
               <HiOutlineFaceSmile />

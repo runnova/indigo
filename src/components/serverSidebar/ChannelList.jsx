@@ -160,6 +160,11 @@ export default function ChannelList(props) {
       markBackground(props.currentChannel);
     }
 
+    document.getElementById("interactive_section").scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+
     markActive(channelName);
 
     props.onSelect(channelName);

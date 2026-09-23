@@ -146,7 +146,7 @@
     flex-direction: row;
     overflow: hidden;
     z-index: 10;
-    padding: .2em;
+    padding: 0.2em;
 
     & button {
         padding: 0.3em;
@@ -156,7 +156,7 @@
         display: inline-flex;
         align-items: center;
 
-        &>svg {
+        & > svg {
             width: 1.2em;
             height: 1.2em;
         }
@@ -285,7 +285,7 @@
     height: 10px !important;
     transform: scale(1.5);
     border-radius: 1em !important;
-    margin-right: .5em;
+    margin-right: 0.5em;
 }
 
 .messageReactions {
@@ -489,4 +489,78 @@
             margin-left: 0.3em;
         }
     }
+}
+
+.vml-unread-divider {
+    display: flex;
+    align-items: center;
+    margin: 0.5em .5em;
+    opacity: 1;
+    animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.vml-unread-line {
+    flex: 1;
+    height: 2px;
+    background: var(--red, #ed4245);
+    border-radius: 1px;
+}
+
+.vml-unread-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: .5em;
+    background: var(--red, #ed4245);
+    padding: 0 .5em;
+}
+
+.vml-scroll.scrolled-to-bottom .vml-unread-divider {
+    display: none;
+}
+
+.vml-unread-section {
+    background: linear-gradient(
+        to bottom,
+        rgba(237, 66, 69, 0.02) 0%,
+        transparent 20%
+    );
+}
+
+@media (max-width: 640px) {
+    .vml-unread-divider {
+        gap: 8px;
+        margin: 12px 0;
+    }
+
+    .vml-unread-label {
+        font-size: 11px;
+    }
+
+    .vml-unread-line {
+        height: 1.5px;
+    }
+}
+
+.vml-unread-divider:hover {
+    filter: brightness(1.2);
+}
+
+.vml-unread-line:hover {
+    box-shadow: 0 0 12px rgba(237, 66, 69, 0.4);
 }

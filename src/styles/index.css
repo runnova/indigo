@@ -987,25 +987,30 @@ img.channel_icon_image {
     gap: 0.5em;
     align-items: center;
 
-    & > * {
-        white-space: nowrap;
+    & .channel_data{
+        gap: 0.5em;
+        align-items: center;
+        & > * {
+            white-space: nowrap;
+        }
+
+        & > span {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        & > .channel_desc {
+            opacity: 0.5;
+            font-size: small;
+            flex: 1;
+            width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
-    & > span {
-        max-width: 300px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    & > .channel_desc {
-        opacity: 0.5;
-        font-size: small;
-        flex: 1;
-        width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
 
     & > .inpgrp {
         align-items: center;
@@ -1059,51 +1064,37 @@ img.channel_icon_image {
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: flex-start;
-
-    & button {
-        border-radius: var(--br-mid);
-        padding: 0.5em 0.7em;
+    display: flex;
+    flex-direction: column;
+    & .member_section_label {
+        margin-bottom: .3em;
+    }
+    &>.self-roles_category {
         width: 100%;
-        background-color: var(--diff-one);
-        padding-left: 2em;
-        margin-top: 0.2em;
-        text-align: left;
-        position: relative;
-
-        &::before {
-            position: absolute;
-            content: "0";
-            height: 1em;
-            width: 1em;
-            left: 0.5em;
-            font-size: small;
-            top: 0.62em;
-            padding: 0.2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--hl-three);
-            border-radius: var(--br-min);
-            background-color: var(--hl-four);
-        }
-
-        &.assigned {
-            &::before {
-                position: absolute;
-                content: "1";
-                height: 1em;
-                width: 1em;
-                left: 0.5em;
-                top: 0.62em;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--hl-three);
-                border-radius: var(--br-min);
-                background-color: var(--hl-two);
-            }
+        margin-bottom: .5em;
+        &>*:last-child {
+            box-shadow: none;
         }
     }
+}
+
+.self-roles_row {
+    /*background: var(--bg-three);*/
+    display: flex;
+    flex-direction: row;
+    padding: .5em;
+    border-radius: var(--br-mid);
+    margin-bottom: .3em;
+    gap: .3em;
+    align-items: center;
+    box-shadow: 0 6px 0 -5px var(--diff-three);
+    & small {
+      opacity: .5;
+    }
+}
+
+.self-roles_icon {
+    height: 20pt;
 }
 
 .dialog_overlay {
@@ -1461,6 +1452,8 @@ img.channel_icon_image {
     justify-content: space-between;
     align-items: center;
     border-radius: var(--br-mid);
+    gap: .3em;
+    flex-wrap: wrap;
 
     & > .settings_section_label {
         margin: 0;
@@ -2446,4 +2439,12 @@ hr.channelPageList {
     to {
         transform: rotate(360deg);
     }
+}
+
+
+.smallnote {
+    padding: .5em;
+    display: flex;
+    border-radius: var(--br-mid);
+    background-color: var(--diff-one);
 }

@@ -17,6 +17,8 @@ import {
   HiOutlineMagnifyingGlass,
   HiOutlineInbox,
   HiOutlineUserCircle,
+  HiOutlineArrowLeft,
+  HiOutlineBars3,
 } from "solid-icons/hi";
 
 const appIcon = `${import.meta.env.BASE_URL}icon.svg`;
@@ -213,7 +215,6 @@ function preloadChannelMessages(channelName) {
     }, 5000);
   });
 }
-
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -572,47 +573,47 @@ function App() {
 
   return (
     <div class="main x">
-    <div
-      class="server_bar_wrapper"
-      style={{
-        width: `${serverBarWidth()}px`,
-        "min-width": `${serverBarWidth()}px`,
-        "max-width": `${serverBarWidth()}px`,
-      }}
-    >
-      <ServerBar
-        servers={state.servers}
-        groups={state.serverGroups}
-        currentServer={state.current.server}
-        unreadTotal={getServerUnreadTotal}
-        pingTotal={getServerPingTotal}
-        unreads={unreads}
-        onSelect={selectServer}
-        onReorder={(servers) => setState("servers", servers)}
-        onGroupsChange={(groups) => setState("serverGroups", groups)}
-      />
+      <div
+        class="server_bar_wrapper"
+        style={{
+          width: `${serverBarWidth()}px`,
+          "min-width": `${serverBarWidth()}px`,
+          "max-width": `${serverBarWidth()}px`,
+        }}
+      >
+        <ServerBar
+          servers={state.servers}
+          groups={state.serverGroups}
+          currentServer={state.current.server}
+          unreadTotal={getServerUnreadTotal}
+          pingTotal={getServerPingTotal}
+          unreads={unreads}
+          onSelect={selectServer}
+          onReorder={(servers) => setState("servers", servers)}
+          onGroupsChange={(groups) => setState("serverGroups", groups)}
+        />
       </div>
       <div
-      class="resize_handle server_bar_resize"
-      onMouseDown={(e) => {
-        const start = e.clientX;
-        const startWidth = serverBarWidth();
+        class="resize_handle server_bar_resize"
+        onMouseDown={(e) => {
+          const start = e.clientX;
+          const startWidth = serverBarWidth();
 
-        const move = (ev) => {
-          setServerBarWidth(
-            Math.max(56, Math.min(180, startWidth + ev.clientX - start)),
-          );
-        };
+          const move = (ev) => {
+            setServerBarWidth(
+              Math.max(56, Math.min(180, startWidth + ev.clientX - start)),
+            );
+          };
 
-        const up = () => {
-          window.removeEventListener("mousemove", move);
-          window.removeEventListener("mouseup", up);
-        };
+          const up = () => {
+            window.removeEventListener("mousemove", move);
+            window.removeEventListener("mouseup", up);
+          };
 
-        window.addEventListener("mousemove", move);
-        window.addEventListener("mouseup", up);
-      }}
-    />
+          window.addEventListener("mousemove", move);
+          window.addEventListener("mouseup", up);
+        }}
+      />
       <div class="server_content x fill">
         <div
           class="first_bar bar y"
@@ -697,17 +698,44 @@ function App() {
                     when={state.current.channel}
                     fallback={currentServerName()}
                   >
-                    <HiOutlineHashtag
-                      style={{ transform: "translateY(-1px)" }}
-                    />{" "}
-                    <span>
-                      {currentChannel()?.display_name || currentChannel()?.name}
-                    </span>
-                    &bull;
-                    <div className="channel_desc">
-                      {currentChannel()?.description ||
-                        state.current?.thread?.name ||
-                        ""}
+                    <div className="channel_data x">
+                      <div className="mobile_only">
+                        <HiOutlineArrowLeft
+                          onclick={() => {
+                            document
+                              .querySelector(".server_bar_wrapper")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              });
+                          }}
+                        ></HiOutlineArrowLeft>
+                      </div>
+                      <HiOutlineHashtag
+                        style={{ transform: "translateY(-1px)" }}
+                      />{" "}
+                      <span>
+                        {currentChannel()?.display_name ||
+                          currentChannel()?.name}
+                      </span>
+                      &bull;
+                      <div className="channel_desc">
+                        {currentChannel()?.description ||
+                          state.current?.thread?.name ||
+                          ""}
+                      </div>
+                      <div className="mobile_only">
+                        <HiOutlineBars3
+                          onclick={() => {
+                            document
+                              .querySelector(".third_bar")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              });
+                          }}
+                        ></HiOutlineBars3>
+                      </div>
                     </div>
                   </Show>
                   <div class="inpgrp x">
@@ -808,7 +836,10 @@ function App() {
                 </div>
               </div>
               <div class="x fill server_content_box">
-                <div class="interactive_section y fill">
+                <div
+                  class="interactive_section y fill"
+                  id="interactive_section"
+                >
                   <Show
                     when={conn.status() === "ready" && state.current.channel}
                     fallback={
