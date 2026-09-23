@@ -41,7 +41,7 @@
 .activity_app,
 .activity_title {
   opacity: .6;
-  text-transform: uppercase;
+  text-transform: capitalize;
   font-size: .7em;
   letter-spacing: .04em;
 }
@@ -67,7 +67,7 @@
 
 .activity_progress_labels {
   justify-content: space-between;
-  margin-top: 2px;
+  margin-top: .3em;
   opacity: .6;
   font-size: .7em;
 }

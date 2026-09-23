@@ -1,3 +1,5 @@
+import emojis from "emoji-picker-element-data/en/emojibase/data.json";
+
 function isWhitespace(char) {
   return char === ' ' || char === '\t' || char === '\n' || char === '\r';
 }
@@ -17,29 +19,16 @@ function consumeWhile(text, i, predicate) {
   return i;
 }
 
-const SHORTCODE_EMOJI_MAP = {
-  sob: "😭",
-  wilted_rose: "🥀",
-  joy: "😂",
-  heart: "❤️",
-  fire: "🔥",
-  thumbsup: "👍",
-  thumbsdown: "👎",
-  eyes: "👀",
-  skull: "💀",
-  cry: "😢",
-  laughing: "😆",
-  smile: "😄",
-  wave: "👋",
-  clap: "👏",
-  pray: "🙏",
-  tada: "🎉",
-  100: "💯",
-  rose: "🌹",
-  broken_heart: "💔",
-  thinking: "🤔",
-  wink: "😉",
-};
+const SHORTCODE_EMOJI_MAP = emojis.reduce((acc, entry) => {
+  if (entry.shortcodes && entry.emoji) {
+    for (const code of entry.shortcodes) {
+      if (!(code in acc)) {
+        acc[code.toLowerCase()] = entry.emoji;
+      }
+    }
+  }
+  return acc;
+}, {});
 
 const NATIVE_EMOJI_REGEX =
   /^(?:\p{Extended_Pictographic}(?:\uFE0F)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F)?)*)/u;

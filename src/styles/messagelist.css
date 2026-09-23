@@ -374,7 +374,6 @@
 
 .embed_url {
     opacity: 0.5;
-    text-transform: uppercase;
     font-weight: bold;
     font-size: small;
 }
@@ -521,7 +520,6 @@
 .vml-unread-label {
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
     flex-shrink: 0;

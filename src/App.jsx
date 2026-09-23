@@ -698,7 +698,7 @@ function App() {
                     when={state.current.channel}
                     fallback={currentServerName()}
                   >
-                    <div className="channel_data x">
+                    <div className="channel_data fill x">
                       <div className="mobile_only">
                         <HiOutlineArrowLeft
                           onclick={() => {

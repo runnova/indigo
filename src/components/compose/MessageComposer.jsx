@@ -279,7 +279,7 @@ export default function MessageComposer(props) {
           }}
         />
       </Show>
-      <div class="text_box x" style={{ "align-items": "stretch" }}>
+      <div class="text_box x"  style={{ "align-items": "flex-start" }}>
         <div className="dropdown_container">
           <div className="action_buttons">
             <button className="icon_button">
@@ -501,12 +501,6 @@ export default function MessageComposer(props) {
           />
           <SlashSendButton slashState={slashState} onSend={handleSlashSend} />
 
-          <Show when={!slashState.command && state.settings.showSendButton}>
-            <button class="icon_button" onClick={handleSend}>
-              <HiOutlinePaperAirplane />
-            </button>
-          </Show>
-
           <div class="emoji_button_wrapper">
             <button
               class="icon_button"
@@ -532,6 +526,12 @@ export default function MessageComposer(props) {
               </div>
             </Show>
           </div>
+          <Show when={!slashState.command && state.settings.showSendButton}>
+            <button class="icon_button" onClick={handleSend}>
+              <HiOutlinePaperAirplane />
+            </button>
+          </Show>
+
         </div>
       </div>
       <input

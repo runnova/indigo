@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { state, setState, unreads, setUnreads, setLoaded } from "../App"
+import { state, setState, unreads, setUnreads, setLoaded } from "../App";
 import { createStore } from "solid-js/store";
 
 export const [serverEmojis, setServerEmojis] = createStore({});
@@ -7,17 +7,12 @@ export const [serverEmojis, setServerEmojis] = createStore({});
 export const connections = new Map();
 
 function saveToken(token) {
-  const settings = JSON.parse(
-    localStorage.getItem("settings") || "{}"
-  );
+  const settings = JSON.parse(localStorage.getItem("settings") || "{}");
 
   settings.type = "token";
   settings.token = token;
 
-  localStorage.setItem(
-    "settings",
-    JSON.stringify(settings)
-  );
+  localStorage.setItem("settings", JSON.stringify(settings));
   localStorage.setItem("rotur_embed_token", token);
   location.reload();
 }
@@ -46,7 +41,7 @@ async function requestRoturToken() {
   await tempState.rotur.login({
     system: "orion",
     timeout: 60_000,
-    requires: "full"
+    requires: "full",
   });
 
   return tempState.rotur.token;
@@ -60,13 +55,10 @@ export async function authenticate({
 }) {
   const authMode = handshake.auth_mode ?? "rotur";
 
-  if (
-    authMode === "cracked-only" ||
-    (authMode === "cracked" && crackedUser)
-  ) {
+  if (authMode === "cracked-only" || (authMode === "cracked" && crackedUser)) {
     if (!crackedUser) {
       throw new Error(
-        "Server requires cracked auth but no credentials provided"
+        "Server requires cracked auth but no credentials provided",
       );
     }
 
@@ -86,10 +78,7 @@ export async function authenticate({
     }
   }
 
-  const validator = await fetchRoturValidator(
-    handshake.validator_key,
-    token
-  );
+  const validator = await fetchRoturValidator(handshake.validator_key, token);
 
   return {
     cmd: "auth",
@@ -129,20 +118,13 @@ export function reconnectServer(src) {
 
 export function ensureConnected(
   server,
-  {
-    roturToken = null,
-    crackedUser = null
-  } = {}
+  { roturToken = null, crackedUser = null } = {},
 ) {
   if (connections.has(server.src)) {
     return connections.get(server.src);
   }
 
-  return createConnection(
-    server,
-    roturToken,
-    crackedUser
-  );
+  return createConnection(server, roturToken, crackedUser);
 }
 function openSocket(connection) {
   let ws;
@@ -163,7 +145,7 @@ function openSocket(connection) {
     connection.state.status = "handshake";
   };
 
-  ws.onmessage = ev => {
+  ws.onmessage = (ev) => {
     const packet = JSON.parse(ev.data);
 
     handlePacket(connection, packet);
@@ -183,12 +165,7 @@ function openSocket(connection) {
   };
 }
 function handleDisconnect(connection) {
-  setUnreads(
-    "servers",
-    connection.src,
-    "online",
-    false
-  );
+  setUnreads("servers", connection.src, "online", false);
 
   if (
     connection.state.status === "error" &&
@@ -243,15 +220,11 @@ function createConnection(server, roturToken, crackedUser) {
       emojis: [],
       members: [],
       membersOnline: [],
-      loaded: false
-    }
+      loaded: false,
+    },
   };
 
-  setUnreads(
-    "servers",
-    server.src,
-    prev => prev ?? { online: false }
-  );
+  setUnreads("servers", server.src, (prev) => prev ?? { online: false });
   connections.set(server.src, connection);
 
   openSocket(connection);
@@ -293,8 +266,8 @@ function handlePacket(connection, packet) {
         owner: val.server?.owner ?? null,
       };
 
-      if (!state.servers.some(server => server.src === info.src)) {
-        setState("servers", servers => [
+      if (!state.servers.some((server) => server.src === info.src)) {
+        setState("servers", (servers) => [
           ...servers,
           {
             src: info.src,
@@ -327,10 +300,10 @@ function handlePacket(connection, packet) {
           saveToken(token);
         },
       })
-        .then(packet => {
+        .then((packet) => {
           connection.ws.send(JSON.stringify(packet));
         })
-        .catch(err => {
+        .catch((err) => {
           connection.state.error = err.message;
           connection.state.status = "error";
 
@@ -346,8 +319,7 @@ function handlePacket(connection, packet) {
       break;
 
     case "auth_error":
-      connection.state.error =
-        packet.val ?? "Authentication failed";
+      connection.state.error = packet.val ?? "Authentication failed";
 
       connection.state.status = "error";
 
@@ -358,26 +330,160 @@ function handlePacket(connection, packet) {
       break;
 
     case "ready":
-      setUnreads(
-        "servers",
-        connection.src,
-        "online",
-        true
-      );
+      setUnreads("servers", connection.src, "online", true);
       connection.state.status = "ready";
       connection.state.me = packet.user ?? null;
 
       while (connection.pending.length) {
-        connection.ws.send(
-          JSON.stringify(connection.pending.shift())
-        );
+        connection.ws.send(JSON.stringify(connection.pending.shift()));
       }
 
       syncActive(connection);
 
       if (!connection.state.loaded) {
         connection.state.loaded = true;
-        setLoaded({ done: true })
+        setLoaded({ done: true });
+
+        const echoedCapabilities = [
+            "ping",
+            "capabilities",
+            "config_get",
+            "config_update",
+            "server_update",
+            "server_stats",
+            // "server_maintenance",
+            // "webhook_create",
+            "webhook_get",
+            // "webhook_list",
+            // "webhook_update",
+            // "webhook_delete",
+            // "webhook_regenerate",
+            "channels_get",
+            "channel_get",
+            // "channel_create",
+            // "channel_update",
+            // "channel_move",
+            // "channel_delete",
+            "message_new",
+            "message_signatures_v1",
+            "message_get",
+            "messages_batch",
+            "message_replies",
+            "messages_get",
+            "messages_around",
+            "messages_search",
+            "pings_get",
+            "message_edit",
+            "message_delete",
+            "message_pin",
+            "message_unpin",
+            "messages_pinned",
+            "poll_vote",
+            "poll_end",
+            "poll_get",
+            "unreads_get",
+            "unreads_ack",
+            "unreads_update",
+            "threads_get",
+            "thread_create",
+            "thread_get",
+            "thread_delete",
+            "thread_update",
+            "thread_join",
+            "thread_leave",
+            "thread_pin",
+            "thread_unpin",
+            "user_metadata_v1",
+            "users_online",
+            "users_list",
+            "users_banned",
+            "user_ban",
+            "user_unban",
+            "user_kick",
+            "user_timeout",
+            "user_update",
+            "user_leave",
+            "status_set",
+            "status_get",
+            "roles_list",
+            "role_create",
+            "role_update",
+            "role_delete",
+            "role_reorder",
+            "user_roles_get",
+            "user_roles_set",
+            "self_role_add",
+            "self_role_remove",
+            "self_roles_list",
+            "self_roles_reorder",
+            "reaction_add",
+            "reaction_remove",
+            "emoji_add",
+            "emoji_delete",
+            "emoji_list",
+            "emoji_get",
+            "emoji_update",
+            "sticker_add",
+            "sticker_delete",
+            "sticker_list",
+            "sticker_get",
+            "sticker_update",
+            "attachment_upload",
+            "attachment_get",
+            "attachment_list",
+            "attachment_delete",
+            "slash_register",
+            "slash_list",
+            "slash_call",
+            "slash_signatures_v1",
+            "slash_response",
+            "voice_join",
+            "voice_leave",
+            "voice_mute",
+            "voice_unmute",
+            "voice_state",
+            "report_create",
+            "report_list",
+            "report_resolve",
+            "modlog_get",
+            "modlog_summary",
+            "access_mode_set",
+            "access_mode_get",
+            "whitelist_add",
+            "whitelist_remove",
+            "whitelist_list",
+            "server_password_set",
+            "application_submit",
+            "application_list",
+            "application_review",
+            "application_delete",
+            "invite_create",
+            "invite_list",
+            "invite_delete",
+            // "plugin_list",
+            // "plugin_get",
+            // "plugin_install",
+            // "plugin_uninstall",
+            // "plugin_enable",
+            // "plugin_disable",
+            // "plugin_reload",
+            // "plugin_file_list",
+            // "plugin_file_get",
+            // "plugin_file_put",
+            "typing",
+            "message_react_add",
+            "message_react_remove",
+            "server_side_embeds",
+            "auth"
+        ]
+
+        connection.ws.send(
+          JSON.stringify({
+            cmd: "capabilities",
+            val: echoedCapabilities,
+          }),
+        );
+
         connection.ws.send(JSON.stringify({ cmd: "channels_get" }));
         connection.ws.send(JSON.stringify({ cmd: "users_list" }));
         connection.ws.send(JSON.stringify({ cmd: "users_online" }));
@@ -396,15 +502,14 @@ function handlePacket(connection, packet) {
       syncActive(connection);
       break;
 
-      case "emoji_list":
-        connection.state.emojis = packet.emojis ?? [];
-        setServerEmojis(connection.src, connection.state.emojis);
-        syncActive(connection);
-        break;
+    case "emoji_list":
+      connection.state.emojis = packet.emojis ?? [];
+      setServerEmojis(connection.src, connection.state.emojis);
+      syncActive(connection);
+      break;
 
     case "users_list":
-      connection.state.members =
-        packet.users ?? [];
+      connection.state.members = packet.users ?? [];
 
       syncActive(connection);
       break;
@@ -427,18 +532,14 @@ function handlePacket(connection, packet) {
       for (const [name, info] of Object.entries(packet.unreads ?? {})) {
         channels[name] = {
           count: info.unread_count ?? 0,
-          ping_count: info.ping_count ?? 0
+          ping_count: info.ping_count ?? 0,
         };
       }
 
-      setUnreads(
-        "servers",
-        connection.src,
-        prev => ({
-          ...prev,
-          ...channels
-        })
-      );
+      setUnreads("servers", connection.src, (prev) => ({
+        ...prev,
+        ...channels,
+      }));
 
       break;
     }
@@ -465,7 +566,6 @@ export function useServerConnection() {
   let _currentSrc = null;
   let activeConnection = null;
 
-
   function attachConnection(connection) {
     connection.ui = {
       setSocket(socket) {
@@ -480,49 +580,32 @@ export function useServerConnection() {
       setMembers,
       setMembersOnline,
       setError,
-      emit: packet =>
+      emit: (packet) =>
         setLastEvent({
           ...packet,
-          _ts: Date.now()
-        })
+          _ts: Date.now(),
+        }),
     };
     setStatus(connection.state.status);
     setError(connection.state.error ?? null);
 
-    setServerInfo(
-      connection.state.serverInfo
-    );
+    setServerInfo(connection.state.serverInfo);
 
-    setMe(
-      connection.state.me
-    );
+    setMe(connection.state.me);
 
-    setChannels(
-      connection.state.channels
-    );
+    setChannels(connection.state.channels);
 
-    setRoles(
-      connection.state.roles
-    );
+    setRoles(connection.state.roles);
 
-    setEmojis(
-      connection.state.emojis
-    );
+    setEmojis(connection.state.emojis);
 
-    setMembers(
-      connection.state.members
-    );
+    setMembers(connection.state.members);
 
-    setMembersOnline(
-      connection.state.membersOnline
-    );
+    setMembersOnline(connection.state.membersOnline);
   }
   function emit(packet) {
     setLastEvent({ ...packet, _ts: Date.now() });
   }
-
-
-
 
   function connect(server, roturToken) {
     disconnect();
@@ -547,11 +630,7 @@ export function useServerConnection() {
     let connection = connections.get(server.src);
 
     if (!connection) {
-      connection = createConnection(
-        server,
-        null,
-        credentials
-      );
+      connection = createConnection(server, null, credentials);
     }
 
     connection.mode = "active";
@@ -559,14 +638,13 @@ export function useServerConnection() {
     activeConnection = connection;
     ws = connection.ws;
     attachConnection(connection);
-
   }
 
   function register(username, password) {
     send({
       cmd: "register",
       username,
-      password
+      password,
     });
   }
 
@@ -577,10 +655,7 @@ export function useServerConnection() {
 
     const ws = connection.ws;
 
-    if (
-      ws.readyState !== WebSocket.OPEN ||
-      status() !== "ready"
-    ) {
+    if (ws.readyState !== WebSocket.OPEN || status() !== "ready") {
       connection.pending.push(payload);
       return;
     }

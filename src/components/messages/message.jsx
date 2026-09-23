@@ -23,7 +23,6 @@ import { timeAgo } from "../Utility.jsx";
 import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
 
 export function Message(props) {
-
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
       ? props.content
@@ -41,7 +40,8 @@ export function Message(props) {
   const gradient = member?.gradient;
   const [editValue, setEditValue] = createSignal("");
 
-  const displayUsername = () => props.webhook?.name || member?.nickname || props.username;
+  const displayUsername = () =>
+    props.webhook?.name || member?.nickname || props.username;
 
   const displayAvatar = () => props.webhook?.avatar || props.avatar;
 
@@ -179,11 +179,10 @@ export function Message(props) {
           <div class="message_spacer">
             <div
               class="time"
-              data-tooltip={`${timeAgo(props.timeRaw)} • ${(new Date(props.timeRaw)).toLocaleString()}`}
+              data-tooltip={`${timeAgo(props.timeRaw)} • ${new Date(props.timeRaw).toLocaleString()}`}
             >
               {props.time}
             </div>
-
           </div>
         ) : (
           <div
@@ -244,16 +243,40 @@ export function Message(props) {
                   />
                 )}
               </div>
-              <div class="time"
-                data-tooltip={`${timeAgo(props.timeRaw)}: ${(new Date(props.timeRaw)).toLocaleString()}`}>{props.time} </div>{" "}
-              {signed() == "verified" ? (
+              <div
+                class="time"
+                data-tooltip={`${timeAgo(props.timeRaw)}: ${new Date(props.timeRaw).toLocaleString()}`}
+              >
+                {props.time}{" "}
+              </div>{" "}
+              {signed() == "verified" || props.webhook ? (
                 ""
               ) : (
                 <HiOutlineExclamationTriangle
-                    style={{ color: "yellow" }}
-                    data-tooltip="Unsigned"
+                  style={{ color: "yellow" }}
+                  data-tooltip="Unsigned"
                 ></HiOutlineExclamationTriangle>
               )}
+              <Show when={props.webhook}>
+                <svg
+                  data-tooltip="Webhook"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  class="lucide lucide-webhook"
+                >
+                  <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"></path>
+                  <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"></path>
+                  <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"></path>
+                </svg>
+              </Show>
               <Show when={props.fake}>
                 <button class="fake-dismiss" onClick={props.onDismiss}>
                   Dismiss <HiOutlineXMark />
@@ -348,7 +371,7 @@ export function Message(props) {
                   if (file.mime_type?.startsWith("video/")) {
                     return (
                       <video
-                      data-context="attachment"
+                        data-context="attachment"
                         src={file.url}
                         class="attachment_video"
                         onClick={() =>
@@ -364,7 +387,11 @@ export function Message(props) {
                   if (file.mime_type?.startsWith("audio/")) {
                     return (
                       <audio
-                      data-context="attachment" src={file.url} controls class="attachment_audio" />
+                        data-context="attachment"
+                        src={file.url}
+                        controls
+                        class="attachment_audio"
+                      />
                     );
                   }
 
