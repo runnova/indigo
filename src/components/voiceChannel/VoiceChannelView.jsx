@@ -4,22 +4,27 @@ import {
   HiOutlineSpeakerWave,
   HiOutlineSpeakerXMark,
   HiOutlineComputerDesktop,
+  HiOutlineVideoCamera,
 } from "solid-icons/hi";
 import {
   voice,
   localScreenStream,
+  localCameraStream,
   joinVoiceChannel,
   leaveVoiceChannel,
   toggleVoiceMute,
   toggleVoiceDeafen,
   toggleScreenShare,
-  getUserVolume,
-  getUserMuted,
+  toggleCamera,
+  watchStream,
+  stopWatching,
+  resumeAudio,
+  dismissError,
 } from "../../core/voiceClient.js";
-import "./voicechannel.css"
+import "./voicechannel.css";
 import { Participant } from "./Participant.jsx";
 
-function ScreenTile(props) {
+function VideoTile(props) {
   let videoEl;
   createEffect(
     on(
@@ -38,27 +43,67 @@ function ScreenTile(props) {
 }
 
 export function VoiceChannelView(props) {
+  const norm = (v) => (v == null ? "" : String(v).trim().toLowerCase());
+
+  const channelMatches = () =>
+    norm(voice.currentChannel) === norm(props.channel);
+
+  const serverMatches = () =>
+    norm(voice.serverId ?? "") === norm(props.server?.src ?? "");
+
   const inThisChannel = () =>
-    voice.channel === props.channel && voice.server === props.server?.src;
-  const inOtherChannel = () => voice.channel && !inThisChannel();
+    channelMatches() && serverMatches();
+
+  const inOtherChannel = () =>
+    norm(voice.currentChannel) !== "" && !inThisChannel();
 
   async function handleJoinLeave() {
     if (inThisChannel()) {
       leaveVoiceChannel();
     } else {
+      if (voice.status === "connecting" || voice.status === "joining") return;
       await joinVoiceChannel(props.conn, props.channel, props.server?.src);
     }
   }
 
-  const participantList = () => Object.values(voice.participants);
-  const screenShareEntries = () => Object.entries(voice.screenStreams);
+  const participantList = () => voice.participants ?? [];
+
+
+  createEffect(() => console.log("[voice]", {
+    currentChannel: voice.currentChannel,
+    serverId: voice.serverId,
+    propsChannel: props.channel,
+    propsServerSrc: props.server?.src,
+    status: voice.status,
+  }));
+  createEffect(
+    on(
+      () => participantList().map((p) => `${p.peer_id}:${p.videoAvailable ?? ""}`),
+      () => {
+        for (const p of participantList()) {
+          if (p.videoAvailable && !p.watching) watchStream(p.peer_id);
+          else if (!p.videoAvailable && p.watching) stopWatching(p.peer_id);
+        }
+      }
+    )
+  );
 
   return (
     <div class="voice_channel_view y fill">
       <img className="immersive_background" src="icon_small.svg" />
       <div class="voice_channel_view_body y fill">
         <Show when={voice.error}>
-          <div class="voice_channel_error">{voice.error}</div>
+          <div class="voice_channel_error">
+            {voice.error?.message}
+            <Show when={voice.error?.code === "playback"}>
+              <button type="button" onClick={resumeAudio}>
+                Resume audio
+              </button>
+            </Show>
+            <button type="button" onClick={dismissError}>
+              Dismiss
+            </button>
+          </div>
         </Show>
 
         <Show
@@ -74,25 +119,30 @@ export function VoiceChannelView(props) {
                   </>
                 }
               >
-                <p>You're in another voice call ({voice.channel}).</p>
+                <p>You're in another voice call ({voice.currentChannel}).</p>
               </Show>
             </div>
           }
         >
-          <Show when={screenShareEntries().length > 0 || voice.isScreenSharing}>
+          <Show
+            when={
+              voice.isScreenSharing ||
+              voice.isCameraOn ||
+              participantList().some((p) => p.watching)
+            }
+          >
             <div class="voice_channel_screenshares x">
               <Show when={voice.isScreenSharing}>
-                <ScreenTile
-                  stream={localScreenStream()}
-                  label="You (sharing)"
-                  muted={true}
-                />
+                <VideoTile stream={localScreenStream()} label="You (sharing)" muted={true} />
               </Show>
-              <For each={screenShareEntries()}>
-                {([peerId, stream]) => (
-                  <ScreenTile
-                    stream={stream}
-                    label={voice.participants[peerId]?.username ?? "Someone"}
+              <Show when={voice.isCameraOn}>
+                <VideoTile stream={localCameraStream()} label="You (camera)" muted={true} />
+              </Show>
+              <For each={participantList().filter((p) => p.watching)}>
+                {(p) => (
+                  <VideoTile
+                    stream={voice.screenStreams?.[p.peer_id] ?? voice.cameraStreams?.[p.peer_id]}
+                    label={p.username}
                     muted={false}
                   />
                 )}
@@ -105,21 +155,22 @@ export function VoiceChannelView(props) {
               isSelf
               username={props.conn?.me?.()?.username ?? "You"}
               state="connected"
-              muted={voice.muted}
-              speaking={voice.speaking}
+              muted={voice.isMuted}
+              speaking={voice.isSpeaking}
               renderOverlay={props.renderOverlay}
             />
 
             <For each={participantList()}>
               {(p) => (
                 <Participant
-                  peerId={p.peerId}
+                  peerId={p.peer_id}
                   username={p.username}
-                  state={p.callState}
+                  state={p.connection}
                   muted={p.muted}
                   speaking={p.speaking}
                   locallyMuted={p.locallyMuted}
                   localVolume={p.localVolume}
+                  audioIssue={p.audioIssue}
                   renderOverlay={props.renderOverlay}
                 />
               )}
@@ -132,12 +183,12 @@ export function VoiceChannelView(props) {
         <button
           type="button"
           class="voice_channel_btn"
-          disabled={voice.joining}
+          disabled={voice.status === "connecting" || voice.status === "joining" || voice.status === "requesting-microphone"}
           onClick={handleJoinLeave}
         >
           {inThisChannel()
             ? "Leave"
-            : voice.joining
+            : ["joining", "connecting", "requesting-microphone"].includes(voice.status)
               ? "Joining…"
               : inOtherChannel()
                 ? "Switch to this channel"
@@ -148,19 +199,19 @@ export function VoiceChannelView(props) {
             type="button"
             class="voice_channel_btn voice_channel_btn_icon"
             onClick={toggleVoiceMute}
-            aria-pressed={voice.muted}
-            title={voice.muted ? "Unmute" : "Mute"}
+            aria-pressed={voice.isMuted}
+            title={voice.isMuted ? "Unmute" : "Mute"}
           >
-            {voice.muted ? <HiOutlineSpeakerXMark /> : <HiOutlineMicrophone />}
+            {voice.isMuted ? <HiOutlineSpeakerXMark /> : <HiOutlineMicrophone />}
           </button>
           <button
             type="button"
             class="voice_channel_btn voice_channel_btn_icon"
             onClick={toggleVoiceDeafen}
-            aria-pressed={voice.deafened}
-            title={voice.deafened ? "Undeafen" : "Deafen"}
+            aria-pressed={voice.isDeafened}
+            title={voice.isDeafened ? "Undeafen" : "Deafen"}
           >
-            {voice.deafened ? <HiOutlineSpeakerXMark /> : <HiOutlineSpeakerWave />}
+            {voice.isDeafened ? <HiOutlineSpeakerXMark /> : <HiOutlineSpeakerWave />}
           </button>
           <button
             type="button"
@@ -171,6 +222,15 @@ export function VoiceChannelView(props) {
           >
             <HiOutlineComputerDesktop />
           </button>
+          <button
+            type="button"
+            class="voice_channel_btn voice_channel_btn_icon"
+            onClick={toggleCamera}
+            aria-pressed={voice.isCameraOn}
+            title={voice.isCameraOn ? "Turn camera off" : "Turn camera on"}
+          >
+            <HiOutlineVideoCamera />
+          </button>
         </Show>
       </div>
     </div>
@@ -179,21 +239,16 @@ export function VoiceChannelView(props) {
 
 export function StatusDot(props) {
   const color = () =>
-  ({
-    new: "#9aa1ac",
-    connecting: "#e0a63e",
-    connected: "#3ecf6e",
-    reconnecting: "#e0a63e",
-    failed: "#e05a3e",
-    closed: "#9aa1ac",
-  }[props.state] ?? "#9aa1ac");
-  return (
-    <span
-      class="voice_channel_status_dot"
-      style={{ background: color() }}
-      aria-hidden="true"
-    />
-  );
+    ({
+      new: "#9aa1ac",
+      connecting: "#e0a63e",
+      connected: "#3ecf6e",
+      reconnecting: "#e0a63e",
+      disconnected: "#9aa1ac",
+      failed: "#e05a3e",
+      closed: "#9aa1ac",
+    }[props.state] ?? "#9aa1ac");
+  return <span class="voice_channel_status_dot" style={{ background: color() }} aria-hidden="true" />;
 }
 
 export default VoiceChannelView;
