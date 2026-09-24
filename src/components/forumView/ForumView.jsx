@@ -85,7 +85,7 @@ export function ForumView(props) {
 
 function ForumThreadList(props) {
   const WEEK = 7 * 24 * 60 * 60;
- const [mode, setMode] = createSignal("search"); // "search" | "compose"
+ const [mode, setMode] = createSignal("search");
   const [query, setQuery] = createSignal("");
   const [postBody, setPostBody] = createSignal("");
   const [submitting, setSubmitting] = createSignal(false);

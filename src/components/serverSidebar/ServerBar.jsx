@@ -254,8 +254,6 @@ export default function ServerBar(props) {
     setDragSrc(null);
   }
 
-  // Shared by both the collapsed and expanded group-toggle elements: dropping
-  // a server on either one adds it to that group.
   function groupToggleHandlers(groupId) {
     return {
       onDragEnter: (e) => {

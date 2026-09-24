@@ -39,6 +39,7 @@ import {
   ensureConnected,
   connections,
   serverEmojis,
+  authenticate,
 } from "./core/server_connection.jsx";
 import MediaPreview from "./components/MediaPreview";
 import useAppInitialization from "./core/useAppInitialization.js";
@@ -59,6 +60,7 @@ import "./core/Hotkeys.jsx";
 
 import Spotlight from "./components/spotlight/Spotlight.jsx";
 import { updateClockOffset } from "./core/useMessageSigning.js";
+import ServerJoinDialog from "./components/dialogs/ServerJoinDialog.jsx";
 
 export const [emojiPicker, setEmojiPicker] = createStore({
   open: false,
@@ -133,6 +135,29 @@ function getServerPingTotal(src) {
     .filter(([key]) => key !== "online")
     .reduce((sum, [, entry]) => sum + (entry?.ping_count ?? 0), 0);
 }
+async function previewServer(serverSrc) {
+  const res = await fetch(`https://${serverSrc}/info`);
+
+  if (!res.ok) {
+    throw new Error(`Failed to load server info (${res.status})`);
+  }
+
+  const data = await res.json();
+
+  return {
+    src: serverSrc,
+    name: data.server?.name ?? serverSrc,
+    icon: data.server?.icon || null,
+    banner: data.server?.banner || null,
+    owner: data.server?.owner ?? null,
+    stats: {
+      connectedUsers: data.stats?.connected_users ?? 0,
+      totalUsers: data.stats?.total_users ?? 0,
+      totalChannels: data.stats?.total_channels ?? 0,
+      totalRoles: data.stats?.total_roles ?? 0,
+    },
+  };
+}
 
 const savedState = JSON.parse(localStorage.getItem("state") || "{}");
 
@@ -184,6 +209,7 @@ createEffect(() => {
 });
 
 export var tempState = {};
+tempState.preAckUnreadCounts = {};
 
 createEffect(() => {
   tempState.serverEmojis = { ...serverEmojis };
@@ -239,6 +265,22 @@ export async function openMessageLink({ host, channel, threadId, id }) {
     }
     await sleep(250);
   }
+}
+
+function clearJoinUrl() {
+  const params = new URLSearchParams(window.location.search);
+
+  params.delete("s");
+  params.delete("c");
+  params.delete("t");
+
+  const query = params.toString();
+
+  window.history.replaceState(
+    null,
+    "",
+    `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+  );
 }
 
 export async function switchToChannel(server, channel, threadId) {
@@ -300,6 +342,7 @@ export async function switchToChannel(server, channel, threadId) {
 
 export const [thirdBarCollapsed, setThirdBarCollapsed] = createSignal(false);
 export const [urlDeepLinkActive, setUrlDeepLinkActive] = createSignal(false);
+export const [pendingServerJoin, setPendingServerJoin] = createSignal(null);
 function App() {
   conn = useServerConnection();
 
@@ -312,9 +355,22 @@ function App() {
     const channel = params.get("c");
     const thread = params.get("t");
 
-    if (serverSrc) {
-      setUrlDeepLinkActive(true);
+    if (!serverSrc) return;
+
+    const alreadyJoined = state.servers.some((s) => s.src === serverSrc);
+
+    if (alreadyJoined) {
       await switchToChannel(serverSrc, channel || null, thread || undefined);
+      return;
+    }
+
+    setUrlDeepLinkActive(true);
+
+    try {
+      const info = await previewServer(serverSrc);
+      setPendingServerJoin({ src: serverSrc, channel: channel || null, thread: thread || null, info });
+    } catch (error) {
+      console.error("Failed to preview server:", error);
       setUrlDeepLinkActive(false);
     }
   });
@@ -443,6 +499,12 @@ function App() {
     const channel = state.current.channel;
     const serverSrc = state.current.server?.src;
     if (!channel || !serverSrc) return;
+
+    const key = `${serverSrc}:${channel}`;
+    if (!(key in tempState.preAckUnreadCounts)) {
+      tempState.preAckUnreadCounts[key] =
+        unreads.servers?.[serverSrc]?.[channel]?.count ?? 0;
+    }
 
     conn.send({ cmd: "unreads_ack", channel });
     setUnreads("servers", serverSrc, channel, { count: 0, ping_count: 0 });
@@ -946,6 +1008,29 @@ function App() {
       <ContextMenu />
       <Spotlight />
       <Tooltip />
+      <ServerJoinDialog
+        join={pendingServerJoin()}
+        onCancel={() => {
+          setPendingServerJoin(null);
+          setUrlDeepLinkActive(false);
+          clearJoinUrl();
+        }}
+        onJoin={async () => {
+          const join = pendingServerJoin();
+
+          if (!join) return;
+
+          setPendingServerJoin(null);
+
+          await switchToChannel(
+            join.src,
+            join.channel,
+            join.thread || undefined,
+          );
+
+          setUrlDeepLinkActive(false);
+        }}
+      />
       <Show when={showLoader()}>
         <div class={`appLoader ${fadeOut() ? "fade-out" : ""}`}>
           <div class="logoLoader">

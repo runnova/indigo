@@ -6,6 +6,7 @@ import {
   For,
   Show,
   onCleanup,
+  untrack,
 } from "solid-js";
 import {
   HiOutlineChevronLeft,
@@ -16,7 +17,7 @@ import {
 import { Message } from "./components/messages/message.jsx";
 import { MessageActions } from "./components/messages/MessageActions.jsx";
 import { createChannelMessages } from "./core/useChannelMessages.jsx";
-import { tempState, state, setState, setEmojiPicker } from "./App.jsx";
+import { tempState, state, setState, setEmojiPicker, unreads } from "./App.jsx";
 import { verifyMessage } from "./core/useMessageSigning.js";
 import { createUnreadTracking } from "./core/UseUnreadTracking.jsx";
 
@@ -42,6 +43,11 @@ export function addFakeMessage(data) {
       __fake: true,
     },
   ]);
+}
+
+function toMs(timestamp) {
+  const n = Number(timestamp);
+  return n > 1e12 ? n : n * 1000;
 }
 
 export function clearFakeMessages() {
@@ -96,6 +102,7 @@ const SCROLL_NEAR_BOTTOM = 80;
 export function VirtualMessageList(props) {
   let scrollEl;
   let resizeObserver;
+  let shiftWindowRaf = null;
 
   const unreadTracking = createUnreadTracking();
 
@@ -125,6 +132,9 @@ export function VirtualMessageList(props) {
   });
 
   onCleanup(() => resizeObserver?.disconnect());
+  onCleanup(() => {
+    if (shiftWindowRaf) cancelAnimationFrame(shiftWindowRaf);
+  });
 
   function scrollToMessage(messageId, behavior = "smooth") {
     const el = scrollEl?.querySelector(`[data-id="${messageId}"]`);
@@ -187,7 +197,6 @@ export function VirtualMessageList(props) {
     }
   });
 
-  // Mark messages as read when scrolled to bottom
   createEffect(() => {
     if (!scrollLocked()) return;
 
@@ -200,23 +209,47 @@ export function VirtualMessageList(props) {
     const lastMsg = msgs[msgs.length - 1];
     if (!lastMsg?.id) return;
 
-    unreadTracking.markAsRead(
-      channel,
-      lastMsg.id,
-      Number(lastMsg.timestamp) * 1000
-    );
+    unreadTracking.markAsRead(channel, lastMsg.id, toMs(lastMsg.timestamp));
   });
+
+  const [pendingReadSnapshot, setPendingReadSnapshot] = createSignal(null);
 
   createEffect(
     on(
       () => props.channel,
       (channel) => {
+        setUnreadDividerId(null);
         if (channel) {
+          const serverSrc = state.current.server?.src;
+          const key = serverSrc ? `${serverSrc}:${channel}` : null;
+
+          setPendingReadSnapshot({
+            channel,
+            id: unreadTracking.getLastReadId(channel),
+            timestamp: unreadTracking.getLastReadTimestamp(channel),
+            serverCount: key ? (tempState.preAckUnreadCounts?.[key] ?? 0) : 0,
+          });
           unreadTracking.resetChannel(channel);
         }
-      }
-    )
+      },
+    ),
   );
+
+  createEffect(() => {
+    const snap = pendingReadSnapshot();
+    if (!snap?.channel) {
+      console.log("[Unread Effect] No snapshot, returning");
+      return;
+    }
+
+    const msgs = messages();
+    console.log("[Unread Effect] Snapshot changed. Channel:", snap.channel, "Messages loaded:", msgs.length, "Snapshot:", snap);
+
+    requestAnimationFrame(() => {
+      recomputeUnreadDivider(snap.channel);
+      console.log("[Unread Effect] After recompute, dividerId:", unreadDividerId());
+    });
+  });
 
   createEffect(() => {
     const handleKeyDown = (e) => {
@@ -347,6 +380,14 @@ export function VirtualMessageList(props) {
     setSectionList(result);
   }
 
+  function scheduleWindowShift() {
+    if (shiftWindowRaf) return;
+    shiftWindowRaf = requestAnimationFrame(() => {
+      shiftWindowRaf = null;
+      rebuildSectionsFromMessages(false);
+    });
+  }
+
   function appendMessageToSections(msg) {
     setSectionList((prev) => {
       const last = prev[prev.length - 1];
@@ -393,16 +434,23 @@ export function VirtualMessageList(props) {
       const msgs = messages();
       if (msgs.length > 0) {
         const lastMsg = msgs[msgs.length - 1];
+
         unreadTracking.markAsRead(
           props.channel,
           lastMsg.id,
-          Number(lastMsg.timestamp) * 1000
+          toMs(lastMsg.timestamp),
         );
       }
     }
 
     const firstItem = scrollEl.querySelector('[data-context="message"]');
-    if (firstItem) setOldestVisibleId(firstItem.getAttribute("data-id"));
+    if (firstItem) {
+      const newOldest = firstItem.getAttribute("data-id");
+      if (newOldest !== oldestVisibleId()) {
+        setOldestVisibleId(newOldest);
+        if (!nearBottom) scheduleWindowShift();
+      }
+    }
 
     if (scrollEl.scrollTop < SCROLL_NEAR_TOP) loadOlder();
   }
@@ -441,6 +489,7 @@ export function VirtualMessageList(props) {
       if (update.type === "initial") {
         setShowNewIndicator(false);
         rebuildSectionsFromMessages(true);
+        untrack(() => recomputeUnreadDivider(props.channel));
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             scrollToBottom(false);
@@ -451,6 +500,7 @@ export function VirtualMessageList(props) {
 
       if (update.type === "append") {
         appendMessageToSections(update.message);
+        setUnreadDividerId(null);
         if (scrollLocked()) {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -503,27 +553,42 @@ export function VirtualMessageList(props) {
 
   const renderOverlay = state.settings.profileOverlays;
 
-  // Determine which message ID marks the unread divider
-  // Only show divider if there are actually unread messages
-  const unreadDividerId = createMemo(() => {
-    const lastReadId = unreadTracking.getLastReadId(props.channel);
-    const lastReadTimestamp = unreadTracking.getLastReadTimestamp(props.channel);
+  const [unreadDividerId, setUnreadDividerId] = createSignal(null);
 
-    if (!lastReadId || lastReadTimestamp === 0) return null;
+  function recomputeUnreadDivider(channel) {
+    const snap = pendingReadSnapshot();
+    console.log("[recomputeUnreadDivider] Called for channel:", channel, "snap:", snap);
 
-    // Find the first message after the last read timestamp
+    const hasLocalRead = snap?.channel === channel && snap.id;
+
+    if (hasLocalRead) {
+      const msgs = messages();
+      const unreadMessage = msgs.find(
+        (msg) => toMs(msg.timestamp) > snap.timestamp,
+      );
+      console.log("[recomputeUnreadDivider] Using local read. Found unread message:", unreadMessage?.id);
+      setUnreadDividerId(unreadMessage?.id ?? null);
+      setPendingReadSnapshot(null);
+      return;
+    }
+
+    const serverCount = snap?.channel === channel ? snap.serverCount : 0;
+    console.log("[recomputeUnreadDivider] Using server count:", serverCount);
+
+    if (!serverCount || serverCount <= 0) {
+      console.log("[recomputeUnreadDivider] No unread count, clearing divider");
+      setUnreadDividerId(null);
+      setPendingReadSnapshot(null);
+      return;
+    }
+
     const msgs = messages();
-    const unreadMessage = msgs.find((msg) => {
-      const msgTimestamp = Number(msg.timestamp) > 1e12
-        ? Number(msg.timestamp)
-        : Number(msg.timestamp) * 1000;
-      return msgTimestamp > lastReadTimestamp;
-    });
-
-    // Return the ID of the first unread message (divider shows BEFORE it)
-    return unreadMessage?.id ?? null;
-  });
-
+    const dividerIdx = Math.max(0, msgs.length - serverCount);
+    const dividerId = msgs[dividerIdx]?.id ?? null;
+    console.log("[recomputeUnreadDivider] Setting divider. dividerIdx:", dividerIdx, 'dividerId:', dividerId, 'totalMsgs:', msgs.length);
+    setUnreadDividerId(dividerId);
+    setPendingReadSnapshot(null);
+  }
   return (
     <>
       <Show when={props.onBack}>
@@ -584,8 +649,8 @@ export function VirtualMessageList(props) {
                   <For each={section.messages}>
                     {(message, index) => {
                       const msg = () => message;
-                      const ts = Number(msg()?.timestamp);
-                      const timestamp = ts > 1e12 ? ts : ts * 1000;
+                      const ts = toMs(msg()?.timestamp);
+                      const timestamp = ts;
                       const previous =
                         index() > 0 ? section.messages[index() - 1] : null;
                       const interaction = msg()?.interaction;
@@ -636,7 +701,8 @@ export function VirtualMessageList(props) {
                             classList={{
                               "vml-item": true,
                               "is-grouped": grouped,
-                              "is-reply-target": state.replying?.id === msg()?.id,
+                              "is-reply-target":
+                                state.replying?.id === msg()?.id,
                               "is-edit-target": state.editing?.id === msg()?.id,
                             }}
                             onMouseEnter={(e) => {
@@ -676,7 +742,9 @@ export function VirtualMessageList(props) {
                               webhook={msg().webhook}
                               attachments={msg()?.attachments}
                               embeds={msg().embeds}
-                              grouped={grouped && !replyMessage() && !interaction}
+                              grouped={
+                                grouped && !replyMessage() && !interaction
+                              }
                               interaction={interaction}
                               reply={replyMessage()}
                               fake={msg().__fake}

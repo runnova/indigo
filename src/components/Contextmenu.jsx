@@ -18,7 +18,7 @@ function MenuList(props) {
                   class="scm-item"
                   style={action.color ? { color: action.color } : undefined}
                   onClick={() => {
-                    const el = SystemContextMenu.instance.contextElement;
+                    const el = menuState.contextElement;
 
                     if (typeof action.fn === "function") {
                       action.fn(el);
@@ -181,7 +181,7 @@ export default function ContextMenu() {
           top: `${menuState.y}px`,
         }}
         actions={menuState.actions}
-        contextElement={SystemContextMenu.instance.contextElement}
+        contextElement={menuState.contextElement}
         ref={(el) => SystemContextMenu.instance.setMenuRef(el)}
       />
     </Show>

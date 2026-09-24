@@ -5,7 +5,7 @@ import { state } from "../../../App";
 
 export default function MemberPopout() {
   let popupRef;
-  const [position, setPosition] = createSignal({ left: -9999, top: -9999 }); // hide off-canvas until measured
+  const [position, setPosition] = createSignal({ left: -9999, top: -9999 });
   const [ready, setReady] = createSignal(false);
 
   function recalcPosition() {
@@ -14,7 +14,7 @@ export default function MemberPopout() {
 
     const width = popupRef.offsetWidth;
     const height = popupRef.offsetHeight;
-    if (width === 0 || height === 0) return; // not laid out yet, bail and retry
+    if (width === 0 || height === 0) return;
 
     const padding = 12;
     const minRightGap = (state?.settings?.thirdBarWidth || 0) + 20;
@@ -36,7 +36,6 @@ export default function MemberPopout() {
   createEffect(() => {
     popout();
     setReady(false);
-    // wait a frame so offsetWidth/offsetHeight are real
     requestAnimationFrame(() => requestAnimationFrame(recalcPosition));
   });
 

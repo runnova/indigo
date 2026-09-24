@@ -42,7 +42,10 @@ export default function ServerBrowser(props) {
 
       <div class="browser_content">
         {tab() === "explore" && (
-          <ServerDiscovery onJoin={props.onJoin} />
+          <ServerDiscovery
+            onJoin={props.onJoin}
+            opened={tab() === "explore"}
+          />
         )}
 
         {tab() === "url" && (

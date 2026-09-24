@@ -1,4 +1,4 @@
-import { For, Show, createMemo, createResource, createSignal } from "solid-js";
+import { For, Show, createMemo, createResource, createSignal, createEffect } from "solid-js";
 import { HiOutlineMagnifyingGlass } from "solid-icons/hi"
 import { timeAgo } from "../../Utility"
 import "./style.css"
@@ -52,7 +52,17 @@ async function fetchServers() {
 }
 
 export default function ServerDiscovery(props) {
-  const [servers] = createResource(fetchServers);
+  const [triggered, setTriggered] = createSignal(false);
+
+  createEffect(() => {
+    if (props.opened) setTriggered(true);
+  });
+
+  const [servers] = createResource(triggered, async (shouldFetch) => {
+    if (!shouldFetch) return [];
+    return fetchServers();
+  });
+
   const [search, setSearch] = createSignal("");
 
   const filteredServers = createMemo(() => {
@@ -72,7 +82,6 @@ export default function ServerDiscovery(props) {
             .includes(query)
         );
 
-    // Pin the chosen server to the front, regardless of search/sort order.
     const normalize = (u) => (u ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
     const pinnedIndex = list.findIndex((s) => normalize(s.url) === PINNED_URL);
 

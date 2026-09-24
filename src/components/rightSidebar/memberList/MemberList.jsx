@@ -1,8 +1,31 @@
-import { For, createMemo, createSignal } from "solid-js";
+import { For, createMemo, createSignal, createEffect } from "solid-js";
 import MemberItem from "./MemberItem";
+
+const MEMBER_EVENT_TYPES = new Set([
+  "user_join",
+  "user_leave",
+  "user_connect",
+  "user_disconnect",
+  "user_clients",
+  "status_get",
+  "user_update",
+  "nickname_update",
+  "nickname_remove",
+  "user_kick",
+  "user_roles_get",
+]);
 
 export default function MemberList(props) {
   const [collapsedSections, setCollapsedSections] = createSignal(new Set());
+
+  const [memberVersion, setMemberVersion] = createSignal(0);
+
+  createEffect(() => {
+    const event = tempState.conn.lastEvent();
+    if (event && MEMBER_EVENT_TYPES.has(event.cmd)) {
+      setMemberVersion(v => v + 1);
+    }
+  });
 
   const toggleSection = (label) => {
     setCollapsedSections(prev => {
@@ -22,74 +45,67 @@ export default function MemberList(props) {
   };
 
   const onlineUsers = createMemo(() => {
-    const users = tempState.conn.membersOnline();
+    memberVersion();
+
+    const users = props.conn.membersOnline();
 
     return new Map(
       Array.from(users).map(user => [user.username, user])
     );
   });
 
-  const memberSections = createMemo(() => {
+  const memberSections = createMemo((prevSections = []) => {
+    memberVersion();
+
     const online = onlineUsers();
     const roles = props.conn.roles?.() ?? {};
     const members = props.conn.members();
 
-    const sections = [];
+    const prevByLabel = new Map(prevSections.map(s => [s.label, s]));
     const assigned = new Set();
     const hoistedSections = new Map();
 
     for (const user of members) {
       if (!online.has(user.username)) continue;
-
       const roleId = user.roles?.find(id => roles[id]?.hoisted);
-
       if (!roleId) continue;
-
-      if (!hoistedSections.has(roleId)) {
-        hoistedSections.set(roleId, []);
-      }
-
+      if (!hoistedSections.has(roleId)) hoistedSections.set(roleId, []);
       hoistedSections.get(roleId).push(user);
       assigned.add(user.username);
     }
 
+    const sections = [];
+
+    const buildSection = (label, users) => {
+      const sorted = [...users].sort((a, b) => a.username.localeCompare(b.username));
+      const prev = prevByLabel.get(label);
+      const sameContent =
+        prev &&
+        prev.users.length === sorted.length &&
+        prev.users.every((u, i) => u === sorted[i]);
+      return sameContent ? prev : { label, users: sorted };
+    };
+
     for (const [roleId, users] of [...hoistedSections.entries()].sort(
       ([a], [b]) => (roles[a]?.position ?? 0) - (roles[b]?.position ?? 0)
     )) {
-      users.sort((a, b) => a.username.localeCompare(b.username));
-
-      sections.push({
-        label: roles[roleId]?.name ?? roleId,
-        users,
-      });
+      sections.push(buildSection(roles[roleId]?.name ?? roleId, users));
     }
 
     const ungroupedOnline = members.filter(
       user => online.has(user.username) && !assigned.has(user.username)
     );
+    if (ungroupedOnline.length) sections.push(buildSection("Online", ungroupedOnline));
 
-    if (ungroupedOnline.length) {
-      sections.push({
-        label: "Online",
-        users: ungroupedOnline,
-      });
-    }
-
-    const offline = members.filter(
-      user => !online.has(user.username)
-    );
-
-    if (offline.length) {
-      sections.push({
-        label: "Offline",
-        users: offline,
-      });
-    }
+    const offline = members.filter(user => !online.has(user.username));
+    if (offline.length) sections.push(buildSection("Offline", offline));
 
     return sections;
   });
 
   const owner = createMemo(() => {
+    memberVersion();
+
     if (state.settings.ownerCrown) {
       return props.conn.serverInfo()?.owner?.name;
     }
@@ -133,9 +149,7 @@ export default function MemberList(props) {
                 </svg>
               </div>
 
-              <For each={isCollapsed() ? [] : [...section.users].sort((a, b) =>
-                a.username.localeCompare(b.username)
-              )}>
+              <For each={isCollapsed() ? [] : section.users}>
                 {(user) => (
                   <MemberItem
                     user={user}

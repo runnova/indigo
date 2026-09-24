@@ -345,137 +345,137 @@ function handlePacket(connection, packet) {
         setLoaded({ done: true });
 
         const echoedCapabilities = [
-            "ping",
-            "capabilities",
-            "config_get",
-            "config_update",
-            "server_update",
-            "server_stats",
-            // "server_maintenance",
-            // "webhook_create",
-            "webhook_get",
-            // "webhook_list",
-            // "webhook_update",
-            // "webhook_delete",
-            // "webhook_regenerate",
-            "channels_get",
-            "channel_get",
-            // "channel_create",
-            // "channel_update",
-            // "channel_move",
-            // "channel_delete",
-            "message_new",
-            "message_signatures_v1",
-            "message_get",
-            "messages_batch",
-            "message_replies",
-            "messages_get",
-            "messages_around",
-            "messages_search",
-            "pings_get",
-            "message_edit",
-            "message_delete",
-            "message_pin",
-            "message_unpin",
-            "messages_pinned",
-            "poll_vote",
-            "poll_end",
-            "poll_get",
-            "unreads_get",
-            "unreads_ack",
-            "unreads_update",
-            "threads_get",
-            "thread_create",
-            "thread_get",
-            "thread_delete",
-            "thread_update",
-            "thread_join",
-            "thread_leave",
-            "thread_pin",
-            "thread_unpin",
-            "user_metadata_v1",
-            "users_online",
-            "users_list",
-            "users_banned",
-            "user_ban",
-            "user_unban",
-            "user_kick",
-            "user_timeout",
-            "user_update",
-            "user_leave",
-            "status_set",
-            "status_get",
-            "roles_list",
-            "role_create",
-            "role_update",
-            "role_delete",
-            "role_reorder",
-            "user_roles_get",
-            "user_roles_set",
-            "self_role_add",
-            "self_role_remove",
-            "self_roles_list",
-            "self_roles_reorder",
-            "reaction_add",
-            "reaction_remove",
-            "emoji_add",
-            "emoji_delete",
-            "emoji_list",
-            "emoji_get",
-            "emoji_update",
-            "sticker_add",
-            "sticker_delete",
-            "sticker_list",
-            "sticker_get",
-            "sticker_update",
-            "attachment_upload",
-            "attachment_get",
-            "attachment_list",
-            "attachment_delete",
-            "slash_register",
-            "slash_list",
-            "slash_call",
-            "slash_signatures_v1",
-            "slash_response",
-            "voice_join",
-            "voice_leave",
-            "voice_mute",
-            "voice_unmute",
-            "voice_state",
-            "report_create",
-            "report_list",
-            "report_resolve",
-            "modlog_get",
-            "modlog_summary",
-            "access_mode_set",
-            "access_mode_get",
-            "whitelist_add",
-            "whitelist_remove",
-            "whitelist_list",
-            "server_password_set",
-            "application_submit",
-            "application_list",
-            "application_review",
-            "application_delete",
-            "invite_create",
-            "invite_list",
-            "invite_delete",
-            // "plugin_list",
-            // "plugin_get",
-            // "plugin_install",
-            // "plugin_uninstall",
-            // "plugin_enable",
-            // "plugin_disable",
-            // "plugin_reload",
-            // "plugin_file_list",
-            // "plugin_file_get",
-            // "plugin_file_put",
-            "typing",
-            "message_react_add",
-            "message_react_remove",
-            "server_side_embeds",
-            "auth"
-        ]
+          "ping",
+          "capabilities",
+          "config_get",
+          "config_update",
+          "server_update",
+          "server_stats",
+          // "server_maintenance",
+          // "webhook_create",
+          "webhook_get",
+          // "webhook_list",
+          // "webhook_update",
+          // "webhook_delete",
+          // "webhook_regenerate",
+          "channels_get",
+          "channel_get",
+          // "channel_create",
+          // "channel_update",
+          // "channel_move",
+          // "channel_delete",
+          "message_new",
+          "message_signatures_v1",
+          "message_get",
+          "messages_batch",
+          "message_replies",
+          "messages_get",
+          "messages_around",
+          "messages_search",
+          "pings_get",
+          "message_edit",
+          "message_delete",
+          "message_pin",
+          "message_unpin",
+          "messages_pinned",
+          "poll_vote",
+          "poll_end",
+          "poll_get",
+          "unreads_get",
+          "unreads_ack",
+          "unreads_update",
+          "threads_get",
+          "thread_create",
+          "thread_get",
+          "thread_delete",
+          "thread_update",
+          "thread_join",
+          "thread_leave",
+          "thread_pin",
+          "thread_unpin",
+          "user_metadata_v1",
+          "users_online",
+          "users_list",
+          "users_banned",
+          "user_ban",
+          "user_unban",
+          "user_kick",
+          "user_timeout",
+          "user_update",
+          "user_leave",
+          "status_set",
+          "status_get",
+          "roles_list",
+          "role_create",
+          "role_update",
+          "role_delete",
+          "role_reorder",
+          "user_roles_get",
+          "user_roles_set",
+          "self_role_add",
+          "self_role_remove",
+          "self_roles_list",
+          "self_roles_reorder",
+          "reaction_add",
+          "reaction_remove",
+          "emoji_add",
+          "emoji_delete",
+          "emoji_list",
+          "emoji_get",
+          "emoji_update",
+          "sticker_add",
+          "sticker_delete",
+          "sticker_list",
+          "sticker_get",
+          "sticker_update",
+          "attachment_upload",
+          "attachment_get",
+          "attachment_list",
+          "attachment_delete",
+          "slash_register",
+          "slash_list",
+          "slash_call",
+          "slash_signatures_v1",
+          "slash_response",
+          "voice_join",
+          "voice_leave",
+          "voice_mute",
+          "voice_unmute",
+          "voice_state",
+          "report_create",
+          "report_list",
+          "report_resolve",
+          "modlog_get",
+          "modlog_summary",
+          "access_mode_set",
+          "access_mode_get",
+          "whitelist_add",
+          "whitelist_remove",
+          "whitelist_list",
+          "server_password_set",
+          "application_submit",
+          "application_list",
+          "application_review",
+          "application_delete",
+          "invite_create",
+          "invite_list",
+          "invite_delete",
+          // "plugin_list",
+          // "plugin_get",
+          // "plugin_install",
+          // "plugin_uninstall",
+          // "plugin_enable",
+          // "plugin_disable",
+          // "plugin_reload",
+          // "plugin_file_list",
+          // "plugin_file_get",
+          // "plugin_file_put",
+          "typing",
+          "message_react_add",
+          "message_react_remove",
+          "server_side_embeds",
+          "auth",
+        ];
 
         connection.ws.send(
           JSON.stringify({
@@ -541,6 +541,69 @@ function handlePacket(connection, packet) {
         ...channels,
       }));
 
+      break;
+    }
+
+    case "user_connect": {
+      const user = packet.user ?? packet.val;
+      if (
+        user &&
+        !connection.state.membersOnline.some(
+          (u) => u.username === user.username,
+        )
+      ) {
+        connection.state.membersOnline = [
+          ...connection.state.membersOnline,
+          user,
+        ];
+      }
+      syncActive(connection);
+      break;
+    }
+
+    case "user_disconnect": {
+      const username =
+        packet.username ?? packet.user?.username ?? packet.val?.username;
+      connection.state.membersOnline = connection.state.membersOnline.filter(
+        (u) => u.username !== username,
+      );
+      syncActive(connection);
+      break;
+    }
+
+    case "user_join": {
+      const user = packet.user ?? packet.val;
+      if (user) connection.state.members = [...connection.state.members, user];
+      syncActive(connection);
+      break;
+    }
+
+    case "user_leave":
+    case "user_kick": {
+      const username =
+        packet.username ?? packet.user?.username ?? packet.val?.username;
+      connection.state.members = connection.state.members.filter(
+        (u) => u.username !== username,
+      );
+      connection.state.membersOnline = connection.state.membersOnline.filter(
+        (u) => u.username !== username,
+      );
+      syncActive(connection);
+      break;
+    }
+
+    case "user_update":
+    case "nickname_update":
+    case "nickname_remove": {
+      const user = packet.user ?? packet.val;
+      const username = user?.username ?? packet.username;
+      if (username) {
+        const merge = (u) => (u.username === username ? { ...u, ...user } : u);
+        connection.state.members = connection.state.members.map(merge);
+        connection.state.membersOnline =
+          connection.state.membersOnline.map(merge);
+      }
+      syncActive(connection);
       break;
     }
     default:
