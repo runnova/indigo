@@ -368,7 +368,12 @@ function App() {
 
     try {
       const info = await previewServer(serverSrc);
-      setPendingServerJoin({ src: serverSrc, channel: channel || null, thread: thread || null, info });
+      setPendingServerJoin({
+        src: serverSrc,
+        channel: channel || null,
+        thread: thread || null,
+        info,
+      });
     } catch (error) {
       console.error("Failed to preview server:", error);
       setUrlDeepLinkActive(false);
@@ -552,9 +557,10 @@ function App() {
   createEffect(async () => {
     if (loaded.done) {
       setFadeOut(true);
-      tempState.conn.me().friends = (
-        await tempState?.rotur.friends.list()
-      )?.friends;
+      if (tempState.conn.me())
+        tempState.conn.me().friends = (
+          await tempState?.rotur.friends.list()
+        )?.friends;
 
       setTimeout(() => {
         setShowLoader(false);

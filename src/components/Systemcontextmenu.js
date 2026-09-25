@@ -189,11 +189,15 @@ class SystemContextMenu {
     let x = activeMenu.anchorX;
     let y = activeMenu.anchorY;
 
+    // Try positioning below first
+    if (y + height + MENU_PADDING > innerHeight) {
+      // If doesn't fit below, position above
+      y = activeMenu.anchorY - height - MENU_PADDING;
+    }
+
+    // Clamp horizontally
     if (x + width + MENU_PADDING > innerWidth) {
       x = innerWidth - width - MENU_PADDING;
-    }
-    if (y + height + MENU_PADDING > innerHeight) {
-      y = innerHeight - height - MENU_PADDING;
     }
 
     x = Math.max(MENU_PADDING, x);

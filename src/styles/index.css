@@ -617,6 +617,10 @@ iframe#rotur-auth {
         max-width: calc(100% - 0.4em);
         margin: 0 0.3em;
 
+        & .activity_display img {
+            width: 10pt;
+        }
+
         & > * {
             overflow: hidden;
             white-space: nowrap;
@@ -630,7 +634,7 @@ iframe#rotur-auth {
         }
 
         & small {
-            opacity: 0.5;
+            color: var(--fg-dim);
             align-items: center;
             display: flex;
             gap: 0.2em;
@@ -719,13 +723,7 @@ iframe#rotur-auth {
 
     & .banner {
         width: 100%;
-        background: linear-gradient(
-            135deg,
-            var(--accent),
-            var(--primary),
-            var(--secondary),
-            var(--tertiary)
-        );
+        background: var(--accent);
     }
 
     & .boxes {
@@ -1663,8 +1661,10 @@ img.logo {
 }
 
 .big_emoji {
-    font-size: 35px;
+    font-size: 30pt;
     line-height: 1;
+    margin: 3pt 0;
+    display: inline-flex;
 }
 
 img.big_emoji {

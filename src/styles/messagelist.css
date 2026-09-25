@@ -137,7 +137,7 @@
 .message-actions {
     display: flex;
     gap: 0;
-    background: var(--bg-three);
+    background: var(--bg-two);
     border-radius: var(--br-mid);
     align-items: center;
     transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -159,6 +159,7 @@
         & > svg {
             width: 1.2em;
             height: 1.2em;
+            opacity: .8;
         }
 
         &:hover {
@@ -416,6 +417,7 @@
     padding: 2px 5px;
     border-radius: var(--br-mid);
     color: var(--fg-one);
+    text-decoration: none;
     & > .pfp {
         height: 1em;
         display: inline;

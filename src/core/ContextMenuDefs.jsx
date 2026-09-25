@@ -13,6 +13,7 @@ import {
   HiOutlineSwatch,
   HiOutlinePencil,
   HiOutlineArrowDownTray,
+  HiOutlineLanguage,
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
 import { setState } from "../App.jsx";
@@ -30,6 +31,7 @@ import {
   getColorValue,
   setGroupColor,
 } from "../components/serverSidebar/groups.js";
+import { translateTextToEnglish } from "./services/translate.js";
 
 const removeServer = (src) => {
   setState("servers", (servers) =>
@@ -289,6 +291,28 @@ SystemContextMenu.init([
             fn: (el) => console.log(el.dataset.id),
           },
         ],
+      },
+      {
+        label: "Translate",
+        icon: HiOutlineLanguage,
+        fn: async (el) => {
+          const textElement = el.querySelector(".text");
+          const originalText = textElement.innerText;
+
+          textElement.innerText = await translateTextToEnglish(originalText);
+
+          const notice = document.createElement("small");
+          notice.innerText = "Translated to English";
+          notice.style.opacity = ".5";
+          notice.style.cursor = "pointer";
+
+          notice.onclick = () => {
+            textElement.innerText = originalText;
+            notice.remove();
+          };
+
+          el.querySelector(".message_text").appendChild(notice);
+        },
       },
       { special: "hr" },
       {

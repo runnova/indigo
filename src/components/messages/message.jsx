@@ -123,6 +123,26 @@ export function Message(props) {
     return null;
   });
 
+  const autoResizeEdit = () => {
+    if (!editTextarea) return;
+    editTextarea.style.height = "auto";
+    editTextarea.style.height = `${editTextarea.scrollHeight}px`;
+    editTextarea.style.overflowY = "hidden";
+  };
+
+  createEffect(() => {
+    if (props.editing && editTextarea) {
+      queueMicrotask(() => {
+        editTextarea.focus();
+        editTextarea.setSelectionRange(
+          editTextarea.value.length,
+          editTextarea.value.length,
+        );
+        autoResizeEdit();
+      });
+    }
+  });
+
   return (
     <div
       class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
@@ -294,7 +314,8 @@ export function Message(props) {
             when={props.editing}
             fallback={
               <div class="message_text">
-                {rendered()}
+                <div class="text">{rendered()}</div>
+
                 {props.edited && (
                   <HiOutlinePencil
                     data-tooltip={"Edited:" + timeAgo(props.edited_at)}
@@ -307,25 +328,23 @@ export function Message(props) {
             <textarea
               class="message_edit_textarea"
               value={editValue()}
-              onInput={(e) => setEditValue(e.currentTarget.value)}
-              rows={Math.max(2, editValue().split("\n").length)}
-              autofocus
+              onInput={(e) => {
+                setEditValue(e.currentTarget.value);
+                autoResizeEdit();
+              }}
               ref={editTextarea}
               onKeyDown={async (e) => {
                 if (e.key === "Escape") {
                   setState("editing", null);
                 }
-
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-
                   const current = props;
                   await sendMessageEdit(
                     props.id,
                     { content: editValue() },
                     current,
                   );
-
                   setState("editing", null);
                 }
               }}

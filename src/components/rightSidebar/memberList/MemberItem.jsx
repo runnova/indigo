@@ -142,8 +142,8 @@ export default function MemberItem(props) {
           })}
         </span>
         <Show when={props.online}>
-          <small>
-            {status()?.activities?.length ? <HiOutlinePlay /> : ""}
+          <small class="activity_display">
+            {status()?.activities?.length ? ((status().activities[0].image)? <img src={status().activities[0].image}></img>:<HiOutlinePlay />) : ""}
             {status.loading
               ? "Loading..."
               : status()?.activities?.length
