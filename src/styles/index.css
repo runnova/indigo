@@ -572,14 +572,17 @@ iframe#rotur-auth {
 }
 
 .member_section_label {
-    opacity: 0.5;
+    color: var(--fg-dim);
     font-size: small;
     padding-left: 0.5em;
     text-transform: capitalize;
-    transition: opacity 0.2s;
+    transition: color 0.2s;
     outline: none;
+    & .fill {
+        gap: 0.3em;
+    }
     &:hover {
-        opacity: 1;
+        color: var(--fg-one);
     }
 }
 .member_section_chevron {
@@ -985,7 +988,7 @@ img.channel_icon_image {
     gap: 0.5em;
     align-items: center;
 
-    & .channel_data{
+    & .channel_data {
         gap: 0.5em;
         align-items: center;
         & > * {
@@ -1008,7 +1011,6 @@ img.channel_icon_image {
             text-overflow: ellipsis;
         }
     }
-
 
     & > .inpgrp {
         align-items: center;
@@ -1065,12 +1067,12 @@ img.channel_icon_image {
     display: flex;
     flex-direction: column;
     & .member_section_label {
-        margin-bottom: .3em;
+        margin-bottom: 0.3em;
     }
-    &>.self-roles_category {
+    & > .self-roles_category {
         width: 100%;
-        margin-bottom: .5em;
-        &>*:last-child {
+        margin-bottom: 0.5em;
+        & > *:last-child {
             box-shadow: none;
         }
     }
@@ -1080,14 +1082,14 @@ img.channel_icon_image {
     /*background: var(--bg-three);*/
     display: flex;
     flex-direction: row;
-    padding: .5em;
+    padding: 0.5em;
     border-radius: var(--br-mid);
-    margin-bottom: .3em;
-    gap: .3em;
+    margin-bottom: 0.3em;
+    gap: 0.3em;
     align-items: center;
     box-shadow: 0 6px 0 -5px var(--diff-three);
     & small {
-      opacity: .5;
+        opacity: 0.5;
     }
 }
 
@@ -1450,7 +1452,7 @@ img.channel_icon_image {
     justify-content: space-between;
     align-items: center;
     border-radius: var(--br-mid);
-    gap: .3em;
+    gap: 0.3em;
     flex-wrap: wrap;
 
     & > .settings_section_label {
@@ -2176,23 +2178,23 @@ img.big_emoji {
 
 .scm-submenu {
     position: absolute;
-    top: -.2em;
+    top: -0.2em;
     left: 100%;
 }
 
 .scm-submenu--left {
-  left: auto;
-  right: 100%;
+    left: auto;
+    right: 100%;
 }
 .scm-submenu--up {
-  top: auto;
-  bottom:  -.2em;
+    top: auto;
+    bottom: -0.2em;
 }
 
 .scm-divider {
-  height: 1px;
-  margin: 4px 6px;
-  background: var(--scm-divider-color, rgba(255, 255, 255, 0.1));
+    height: 1px;
+    margin: 4px 6px;
+    background: var(--scm-divider-color, rgba(255, 255, 255, 0.1));
 }
 
 .roles_section {
@@ -2441,9 +2443,8 @@ hr.channelPageList {
     }
 }
 
-
 .smallnote {
-    padding: .5em;
+    padding: 0.5em;
     display: flex;
     border-radius: var(--br-mid);
     background-color: var(--diff-one);

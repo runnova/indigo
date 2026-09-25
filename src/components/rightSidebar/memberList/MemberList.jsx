@@ -44,6 +44,11 @@ export default function MemberList(props) {
     return user.roles?.find(id => roles[id]?.hoisted);
   };
 
+  const getRoleById = (roleId) => {
+    const roles = props.conn.roles?.() ?? {};
+    return roles[roleId];
+  };
+
   const onlineUsers = createMemo(() => {
     memberVersion();
 
@@ -76,29 +81,29 @@ export default function MemberList(props) {
 
     const sections = [];
 
-    const buildSection = (label, users) => {
+    const buildSection = (label, users, roleId) => {
       const sorted = [...users].sort((a, b) => a.username.localeCompare(b.username));
       const prev = prevByLabel.get(label);
       const sameContent =
         prev &&
         prev.users.length === sorted.length &&
         prev.users.every((u, i) => u === sorted[i]);
-      return sameContent ? prev : { label, users: sorted };
+      return sameContent ? prev : { label, users: sorted, roleId };
     };
 
     for (const [roleId, users] of [...hoistedSections.entries()].sort(
       ([a], [b]) => (roles[a]?.position ?? 0) - (roles[b]?.position ?? 0)
     )) {
-      sections.push(buildSection(roles[roleId]?.name ?? roleId, users));
+      sections.push(buildSection(roles[roleId]?.name ?? roleId, users, roleId));
     }
 
     const ungroupedOnline = members.filter(
       user => online.has(user.username) && !assigned.has(user.username)
     );
-    if (ungroupedOnline.length) sections.push(buildSection("Online", ungroupedOnline));
+    if (ungroupedOnline.length) sections.push(buildSection("Online", ungroupedOnline, null));
 
     const offline = members.filter(user => !online.has(user.username));
-    if (offline.length) sections.push(buildSection("Offline", offline));
+    if (offline.length) sections.push(buildSection("Offline", offline, null));
 
     return sections;
   });
@@ -119,6 +124,8 @@ export default function MemberList(props) {
       <For each={memberSections()}>
         {(section) => {
           const isCollapsed = () => collapsedSections().has(section.label);
+          const role = () => section.roleId ? getRoleById(section.roleId) : null;
+          const roleIcon = () => role()?.icon;
 
           return (
             <>
@@ -129,7 +136,17 @@ export default function MemberList(props) {
                 role="button"
                 tabIndex="0"
               >
-                <span class="fill">{section.label} ({section.users.length})</span>
+                <span class="fill x">
+                  {roleIcon() && (
+                    <img
+                      src={roleIcon()}
+                      alt=""
+                      class="inline_emoji"
+                      loading="lazy"
+                    />
+                  )}
+                  {section.label} ({section.users.length})
+                </span>
 
                 <svg
                   class="member_section_chevron"

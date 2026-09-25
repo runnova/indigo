@@ -69,6 +69,14 @@
     & .message_text {
         line-height: 1.5;
         user-select: text;
+
+        & ul {
+            margin: 0;
+        }
+
+        & .text {
+            display: inline;
+        }
     }
 
     & .message_meta {

@@ -676,11 +676,15 @@ function renderTokens(tokens) {
 
   tokens?.forEach((token, i) => {
     const rendered = renderToken(token);
+
     if (rendered) {
       parts.push(rendered);
     }
 
-    if (token.type === "paragraph" && i !== tokens.length - 1) {
+    if (
+      token.type === "paragraph" &&
+      tokens[i + 1]?.type === "paragraph"
+    ) {
       parts.push(<br key={getKey()} />);
       parts.push(<br key={getKey()} />);
     }
