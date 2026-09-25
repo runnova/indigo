@@ -413,6 +413,7 @@ export function createChannelMessages({
           ...message,
           content: incoming.content ?? message.content,
           attachments: incoming.attachments ?? message.attachments ?? [],
+          embeds: incoming.embeds ?? message.embeds ?? [],
           edited: true,
           edited_by: incoming.edited_by ?? null,
           author_id: incoming.author_id ?? null,
