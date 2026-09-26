@@ -471,7 +471,13 @@ export function Message(props) {
               </For>
             </div>
           )}
-          <Show when={props.reactions && Object.keys(props.reactions).length}>
+          <Show when={props.embeds?.length}>
+            <div class="message_embeds">
+              <For each={props.embeds}>
+                {(embed) => <Embed embed={embed} />}
+              </For>
+            </div>
+          </Show><Show when={props.reactions && Object.keys(props.reactions).length}>
             <div class="messageReactions">
               <For each={Object.entries(props.reactions)}>
                 {([emoji, users]) => {
@@ -514,13 +520,6 @@ export function Message(props) {
                     </div>
                   );
                 }}
-              </For>
-            </div>
-          </Show>
-          <Show when={props.embeds?.length}>
-            <div class="message_embeds">
-              <For each={props.embeds}>
-                {(embed) => <Embed embed={embed} />}
               </For>
             </div>
           </Show>

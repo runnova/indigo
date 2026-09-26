@@ -69,6 +69,8 @@
     & .message_text {
         line-height: 1.5;
         user-select: text;
+        display: inline-flex;
+        align-items: flex-end;
 
         & ul {
             margin: 0;
@@ -272,6 +274,11 @@
 
 .vml-new-indicator:hover {
     background: #4752c4;
+}
+
+.vml-item.message-highlight {
+  background-color: var(--hl-three);
+  transition: background-color 0.2s ease;
 }
 
 .inline_emoji {

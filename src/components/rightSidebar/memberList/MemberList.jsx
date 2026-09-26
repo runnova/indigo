@@ -119,6 +119,9 @@ export default function MemberList(props) {
 
   const renderOverlay = state.settings.profileOverlays;
 
+  // Track user index across all sections
+  let globalUserIndex = 0;
+
   return (
     <div class="members_list y">
       <For each={memberSections()}>
@@ -166,19 +169,23 @@ export default function MemberList(props) {
                 </svg>
               </div>
 
-              <For each={isCollapsed() ? [] : section.users}>
-                {(user) => (
-                  <MemberItem
-                    user={user}
-                    online={onlineUsers().has(user.username)}
-                    onlineData={onlineUsers().get(user.username)}
-                    status={user.status}
-                    roles={props.conn.roles?.()}
-                    getHoistedRole={getHoistedRole}
-                    owner={owner() == user.username}
-                    renderOverlay={renderOverlay}
-                  />
-                )}
+              <For each={isCollapsed() ? [] : section.users} keyed={(user) => user.username}>
+                {(user) => {
+                  const userIndex = globalUserIndex++;
+                  return (
+                    <MemberItem
+                      user={user}
+                      userIndex={userIndex}
+                      online={onlineUsers().has(user.username)}
+                      onlineData={onlineUsers().get(user.username)}
+                      status={user.status}
+                      roles={props.conn.roles?.()}
+                      getHoistedRole={getHoistedRole}
+                      owner={owner() == user.username}
+                      renderOverlay={renderOverlay}
+                    />
+                  );
+                }}
               </For>
             </>
           );

@@ -135,14 +135,27 @@ export function VirtualMessageList(props) {
   onCleanup(() => {
     if (shiftWindowRaf) cancelAnimationFrame(shiftWindowRaf);
   });
+  let scrollToMessageTimeout;
 
   function scrollToMessage(messageId, behavior = "smooth") {
     const el = scrollEl?.querySelector(`[data-id="${messageId}"]`);
     if (!el) return false;
+
     el.scrollIntoView({
       block: "center",
       behavior,
     });
+
+    if (scrollToMessageTimeout) clearTimeout(scrollToMessageTimeout);
+
+    el.classList.remove("message-highlight");
+    void el.offsetWidth;
+    el.classList.add("message-highlight");
+
+    scrollToMessageTimeout = setTimeout(() => {
+      el?.classList.remove("message-highlight");
+    }, 2000);
+
     return true;
   }
 
@@ -467,6 +480,7 @@ export function VirtualMessageList(props) {
 
   onCleanup(() => {
     document.removeEventListener("visibilitychange", onVisibilityChange);
+    if (scrollToMessageTimeout) clearTimeout(scrollToMessageTimeout);
   });
 
   createEffect(
@@ -520,26 +534,29 @@ export function VirtualMessageList(props) {
       if (update.type === "jump") {
         setPendingJumpId(update.targetId);
       }
+
       createEffect(() => {
         const id = pendingJumpId();
         if (!id) return;
 
-        sectionList();
+        let attempts = 0;
+        const maxAttempts = 50;
 
         const tryScroll = () => {
           const el = scrollEl?.querySelector(`[data-id="${id}"]`);
 
           if (!el) {
-            requestAnimationFrame(tryScroll);
+            if (attempts < maxAttempts) {
+              attempts++;
+              requestAnimationFrame(tryScroll);
+            }
             return;
           }
 
-          el.scrollIntoView({
-            block: "center",
-            behavior: "auto",
+          requestAnimationFrame(() => {
+            scrollToMessage(id, "auto");
+            setPendingJumpId(null);
           });
-
-          setPendingJumpId(null);
         };
 
         requestAnimationFrame(tryScroll);

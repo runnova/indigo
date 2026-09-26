@@ -18,7 +18,7 @@ export default function Typing() {
     if (!event || event.channel !== state.current.channel) return;
 
     if (event.cmd === "typing") {
-      const { user, duration } = event;
+      const { user, duration = 3000 } = event;
 
       setTypingUsers(users =>
         users.includes(user) ? users : [...users, user]
