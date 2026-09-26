@@ -1,6 +1,7 @@
 import { Show, onMount, onCleanup, createSignal, children, createEffect } from "solid-js";
 import { HiOutlineXMark } from "solid-icons/hi";
 import { render } from "solid-js/web";
+import { state } from "../App";
 
 const MIN_WIDTH = 320;
 const MIN_HEIGHT = 200;
@@ -17,6 +18,10 @@ export default function Dialog(props) {
     topZIndex += 1;
     setZIndex(topZIndex);
   };
+
+  const windowManagerEnabled = () =>
+    state?.settings?.windowManager === true;
+
 
   createEffect(() => {
     if (!props.open || !dialog) return;
@@ -63,8 +68,9 @@ export default function Dialog(props) {
   const handleKeyDown = (e) => {
     if (e.key === "Escape") props.onClose?.();
   };
-
   const beginDrag = (e) => {
+    if (!windowManagerEnabled()) return;
+
     bringToFront();
 
     const header = e.target.closest(".dialog_header");
@@ -126,6 +132,8 @@ export default function Dialog(props) {
   };
 
   const beginResize = (e, dir) => {
+    if (!windowManagerEnabled()) return;
+
     e.stopPropagation();
     bringToFront();
 
@@ -178,9 +186,6 @@ export default function Dialog(props) {
   onCleanup(() => {
     document.removeEventListener("keydown", handleKeyDown);
   });
-
-  const resolvedChildren = children(() => props.children);
-
   return (
     <Show when={props.open}>
       <div
@@ -189,10 +194,12 @@ export default function Dialog(props) {
       >
         <div
           ref={dialog}
-          class="dialog"
+          class={`dialog ${!state?.settings?.windowManager ? 'dialog-disabled' : ''}`}
           onPointerDown={(e) => {
             bringToFront();
-            beginDrag(e);
+            if (state?.settings?.windowManager) {
+              beginDrag(e);
+            }
           }}
           onClick={(e) => e.stopPropagation()}
           style={{
@@ -204,14 +211,16 @@ export default function Dialog(props) {
         >
           {props.children}
 
-          <div class="resize n" onPointerDown={(e) => beginResize(e, "n")} />
-          <div class="resize s" onPointerDown={(e) => beginResize(e, "s")} />
-          <div class="resize e" onPointerDown={(e) => beginResize(e, "e")} />
-          <div class="resize w" onPointerDown={(e) => beginResize(e, "w")} />
-          <div class="resize ne" onPointerDown={(e) => beginResize(e, "ne")} />
-          <div class="resize nw" onPointerDown={(e) => beginResize(e, "nw")} />
-          <div class="resize se" onPointerDown={(e) => beginResize(e, "se")} />
-          <div class="resize sw" onPointerDown={(e) => beginResize(e, "sw")} />
+          <Show when={windowManagerEnabled()}>
+            <div class="resize n" onPointerDown={(e) => beginResize(e, "n")} />
+            <div class="resize s" onPointerDown={(e) => beginResize(e, "s")} />
+            <div class="resize e" onPointerDown={(e) => beginResize(e, "e")} />
+            <div class="resize w" onPointerDown={(e) => beginResize(e, "w")} />
+            <div class="resize ne" onPointerDown={(e) => beginResize(e, "ne")} />
+            <div class="resize nw" onPointerDown={(e) => beginResize(e, "nw")} />
+            <div class="resize se" onPointerDown={(e) => beginResize(e, "se")} />
+            <div class="resize sw" onPointerDown={(e) => beginResize(e, "sw")} />
+          </Show>
         </div>
       </div>
     </Show>

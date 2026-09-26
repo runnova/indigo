@@ -12,10 +12,10 @@
 .server_bar {
     border-radius: 0.5em 0 0 0.5em;
     padding: 0.5em;
-    gap: 0.3em;
     border-right: 1px solid var(--diff-three);
     height: calc(100% - 1em);
     width: calc(100% - 1em);
+    gap: 2pt;
 }
 
 .server_bar_wrapper {
@@ -280,8 +280,8 @@
 }
 
 .server_group_toggle {
-    width: 3em;
-    height: 3em;
+    width: calc(100% - .8em);
+    height: 100%;
     aspect-ratio: 1/1;
     display: flex;
     align-items: center;
@@ -552,7 +552,6 @@ iframe#rotur-auth {
     top: 0;
     background-color: var(--bg-two);
     z-index: 55;
-    box-shadow: 0 -12px 10px 1em var(--bg-two);
     border-radius: var(--br-mid);
 
     & img.banner {
@@ -1120,6 +1119,14 @@ img.channel_icon_image {
     position: absolute;
     animation: appear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
+    &.dialog-disabled {
+        width: 100%  !important;
+        height: 100% !important;
+        top: 0 !important;
+        left: 0 !important;
+        border-radius: 0;
+    }
+
     & .dialog_close {
         border-radius: var(--br-mid);
         padding: 0.5em;
@@ -1443,8 +1450,11 @@ img.channel_icon_image {
 }
 
 .settings_title {
-    opacity: 0.5;
-    margin: 1em 0.5em;
+    margin: .3em 0.3em;
+    margin-top: 1em;
+    border-bottom: 1px solid var(--diff-three);
+    padding-bottom: .3em;
+    color: var(--fg-dim);
 }
 
 .settings_item {
@@ -2280,8 +2290,7 @@ img.big_emoji {
 
 .settings_subt {
     opacity: 0.5;
-    margin: 0.7em;
-    margin-top: -1em;
+    margin: 0.5em;
     margin-bottom: 1em;
 }
 

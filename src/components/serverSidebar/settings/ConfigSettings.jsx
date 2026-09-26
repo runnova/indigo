@@ -5,6 +5,10 @@ export function ConfigSettings() {
     return (
         <>
             <h2 class="settings_title">Configuration</h2>
+            <div class="settings_item x">
+                <div class="settings_section_label">Use client name / domain</div>
+                <SettingInput setting="clientName" />
+            </div>
 
             <div class="settings_item x">
                 <div class="settings_section_label">DMs server</div>
@@ -28,9 +32,14 @@ export function ConfigSettings() {
                     <option value="whitelist">Server whitelist</option>
                 </SettingSelect>
             </div>
+            <h2 class="settings_title">Client UI</h2>
             <div class="settings_item x">
-                <div class="settings_section_label">Use client name / domain</div>
-                <SettingInput setting="clientName" />
+              <div class="settings_section_label y">
+                <span>
+                  Window manager</span>
+                <small>Display pages like settings and explore as draggable windows.</small>
+              </div>
+              <SettingCheckbox setting="windowManager" />
             </div>
         </>
     );

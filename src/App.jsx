@@ -107,6 +107,7 @@ const defaultState = {
     customProfileThemes: true,
     clientName: "Indigo",
     showSendButton: true,
+    windowManager: true,
   },
 };
 export const [unreads, setUnreads] = createStore({
@@ -186,7 +187,9 @@ export const [state, setState] = createStore({
   },
 });
 
-const [serverBarWidth, setServerBarWidth] = createSignal(66);
+const [serverBarWidth, setServerBarWidth] = createSignal(
+  state.settings.serverBarWidth,
+);
 
 const [firstBarWidth, setFirstBarWidth] = createSignal(
   state.settings.firstBarWidth,

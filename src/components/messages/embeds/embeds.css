@@ -27,6 +27,7 @@
   margin: 1em 0;
   border: 1px solid var(--bg-three);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  width: min(500px, 100%);
 }
 
 .code_block_header {

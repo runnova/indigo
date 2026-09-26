@@ -33,6 +33,7 @@
     padding: 0.5em;
     border-radius: var(--br-mid);
     transition: background-color 0.2s;
+    word-wrap: anywhere;
 
     &:has(.pfpWO) {
         padding-bottom: 0;
@@ -70,7 +71,6 @@
         line-height: 1.5;
         user-select: text;
         display: inline-flex;
-        align-items: flex-end;
 
         & ul {
             margin: 0;
@@ -78,6 +78,8 @@
 
         & .text {
             display: inline;
+            width: fit-content;
+            max-width: 100%;
         }
     }
 

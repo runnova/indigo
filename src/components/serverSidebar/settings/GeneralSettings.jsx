@@ -4,12 +4,10 @@ export function GeneralSettings() {
   return (
     <>
       <h2 class="settings_title">General</h2>
-
       <div class="settings_item x">
         <div class="settings_section_label">Profile Overlays</div>
         <SettingCheckbox setting="profileOverlays" />
       </div>
-
       <div class="settings_item x">
         <div class="settings_section_label y">
           <span>
@@ -17,28 +15,6 @@ export function GeneralSettings() {
           <small>Turn this off and nobody knows you are typing.</small>
         </div>
         <SettingCheckbox setting="sendTypingStatus" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label y">
-          <span>
-            Parse markdown in messages</span>
-          <small>Removes markdown rendering (emojis and inline attatchments too)</small>
-        </div>
-        <SettingCheckbox setting="parseMarkdown" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label">
-          Use twemoji instead of system emojis
-        </div>
-        <SettingCheckbox setting="twemoji" />
-      </div>
-      <div class="settings_item x">
-        <div class="settings_section_label y">
-          <span>
-            Message logger</span>
-          <small>Display deleted messages in red instead of removing them.</small>
-        </div>
-        <SettingCheckbox setting="messageLogger" />
       </div>
       <div class="settings_item x">
         <div class="settings_section_label y">
@@ -52,6 +28,42 @@ export function GeneralSettings() {
         <div class="settings_section_label">Show send button</div>
         <SettingCheckbox setting="showSendButton" />
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">
+          Use twemoji instead of system emojis
+        </div>
+        <SettingCheckbox setting="twemoji" />
+      </div>
+
+      <div class="settings_item x">
+        <div class="settings_section_label">Messages from blocked users</div>
+        <SettingSelect setting="blockedMessages" disabled>
+          <option value="collapsed">Show collapsed</option>
+          <option value="show">Always Show</option>
+          <option value="hide">Always Hide</option>
+        </SettingSelect>
+      </div>
+
+
+      <h2 class="settings_title">Chat</h2>
+
+      <div class="settings_item x">
+        <div class="settings_section_label y">
+          <span>
+            Parse markdown in messages</span>
+          <small>Removes markdown rendering (emojis and inline attatchments too)</small>
+        </div>
+        <SettingCheckbox setting="parseMarkdown" />
+      </div>
+      <div class="settings_item x">
+        <div class="settings_section_label y">
+          <span>
+            Message logger</span>
+          <small>Display deleted messages in red instead of removing them.</small>
+        </div>
+        <SettingCheckbox setting="messageLogger" />
+      </div>
+
 
       <h2 class="settings_title">Performance</h2>
 
@@ -66,24 +78,6 @@ export function GeneralSettings() {
       <h2 class="settings_title">Identity</h2>
 
       <div class="settings_item x">
-        <div class="settings_section_label">Show Nicknames</div>
-        <SettingSelect setting="showNicknames" disabled>
-          <option value="nickname">Nickname</option>
-          <option value="nickname_username">Nickname (Username)</option>
-          <option value="username">Username</option>
-        </SettingSelect>
-      </div>
-
-      <div class="settings_item x">
-        <div class="settings_section_label">Messages from blocked users</div>
-        <SettingSelect setting="blockedMessages" disabled>
-          <option value="collapsed">Show collapsed</option>
-          <option value="show">Always Show</option>
-          <option value="hide">Always Hide</option>
-        </SettingSelect>
-      </div>
-
-      <div class="settings_item x">
         <div class="settings_section_label">Owner crown</div>
         <SettingCheckbox setting="ownerCrown" />
       </div>
@@ -94,9 +88,14 @@ export function GeneralSettings() {
         <SettingCheckbox setting="displayChannelName" />
       </div>
       <div class="settings_item x">
-        <div class="settings_section_label">Use client name / domain</div>
-        <SettingInput setting="clientName" />
+        <div class="settings_section_label">Show Nicknames</div>
+        <SettingSelect setting="showNicknames" disabled>
+          <option value="nickname">Nickname</option>
+          <option value="nickname_username">Nickname (Username)</option>
+          <option value="username">Username</option>
+        </SettingSelect>
       </div>
+
     </>
   );
 }

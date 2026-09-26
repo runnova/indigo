@@ -1,27 +1,27 @@
 :root {
     --bg-one: #202020;
     --bg-two: #252526;
-    --bg-three: #2D2D30;
+    --bg-three: #2d2d30;
     --bg-four: #333337;
 
     --diff-one: color-mix(in srgb, white 6%, transparent);
     --diff-two: color-mix(in srgb, white 12%, transparent);
     --diff-three: color-mix(in srgb, white 18%, transparent);
 
-    --hl-one: #0078D7;
-    --hl-two: #4CC2FF;
-    --hl-three: #005A9E;
-    --hl-four: #0E639C33;
+    --hl-one: #0078d7;
+    --hl-two: #4cc2ff;
+    --hl-three: #005a9e;
+    --hl-four: #0e639c33;
 
-    --danger: #E81123;
-    --peace: #16C60C;
+    --danger: #e81123;
+    --peace: #16c60c;
 
     --border: 0 0 0 1px rgb(255 255 255 / 12%);
 
-    --fg-one: #FFFFFF;
+    --fg-one: #ffffff;
     --fg-two: rgb(255 255 255 / 65%);
     --fg-dim: rgb(255 255 255 / 82%);
-    --fg-three: #99D6FF;
+    --fg-three: #99d6ff;
 
     --br-big: 0;
     --br-mid: 0;
@@ -32,6 +32,11 @@
 .server_bar {
     padding: 0;
     gap: 0;
+}
+
+.server_bar {
+    height: 100%;
+    width: 100%;
 }
 
 .user_display {
