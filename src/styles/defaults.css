@@ -64,6 +64,7 @@ body {
   background-color: var(--bg-one);
   color: var(--fg-one);
   font-size: 15px;
+  line-height: 17px;
   margin: 0;
   user-select: none;
   font-family: system-ui, sans-serif;

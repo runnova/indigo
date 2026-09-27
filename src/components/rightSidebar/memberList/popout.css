@@ -4,8 +4,8 @@
 
 .activity_card {
   width: 100%;
-  align-items: stretch;
   padding: .5em;
+  align-items: flex-start;
 }
 
 .activity_text_col {

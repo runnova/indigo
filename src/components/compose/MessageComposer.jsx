@@ -97,6 +97,7 @@ export default function MessageComposer(props) {
 
   const mention = createMentionAutocomplete();
   const channelAc = createChannelAutocomplete();
+  const emoji = createEmojiAutocomplete();
 
   function pickSuggestion(command) {
     textarea.value = `/${command.name}`;

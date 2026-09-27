@@ -1,6 +1,6 @@
-import { Show, createResource, createEffect, createSignal } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import { openPopout } from "./popout";
-import { tempState } from "../../../App";
+import { tempState, presenceStore } from "../../../App";
 import {
   HiOutlinePlay,
   HiOutlineComputerDesktop,
@@ -8,124 +8,32 @@ import {
   HiOutlineCommandLine,
 } from "solid-icons/hi";
 
-const failedFetchUsernames = new Set();
-
 export default function MemberItem(props) {
-  props.user = tempState?.conn
-    ?.members()
-    ?.find((user) => user.username === props.user.username);
+  const member = createMemo(() =>
+    tempState?.conn?.members()?.find((u) => u.username === props.user.username) ?? props.user
+  );
 
-  const [userStatus, setUserStatus] = createSignal(null);
-  const [isLoading, setIsLoading] = createSignal(false);
-  const [hasFailed, setHasFailed] = createSignal(false);
+  const userStatus = createMemo(() => presenceStore[member()?.username] ?? null);
 
-  const roleId = () =>
-    props.getHoistedRole(props.user) ?? props.user.roles?.[0];
+  const roleId = () => props.getHoistedRole(member()) ?? member().roles?.[0];
   const role = () => props.roles?.[roleId()];
-
-  const fetchStatus = async (username) => {
-    if (!username) {
-      setUserStatus(null);
-      return null;
-    }
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `https://api.rotur.dev/v2/status/live?name=${encodeURIComponent(username)}`
-      );
-      if (!response.ok) {
-        setHasFailed(true);
-        failedFetchUsernames.add(username);
-        return null;
-      }
-      const data = await response.json();
-      console.log(3333, data)
-      setUserStatus(data);
-      return data;
-    } catch {
-      setHasFailed(true);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  let fetchedOnce = false;
-  createEffect(() => {
-    if (hasFailed() || fetchedOnce) return;
-    if (!props.user?.username) return;
-
-    if (failedFetchUsernames.has(props.user.username)) {
-      setHasFailed(true);
-      return;
-    }
-
-    if (props.userIndex >= 20) {
-      return;
-    }
-
-    fetchedOnce = true;
-    fetchStatus(props.user.username);
-  });
-
-  createEffect(() => {
-    if (!props.user?.username) return;
-
-    const unsubscribe = tempState?.rotur?.socket?.on(
-      "status_update",
-      (msg) => {
-        if (msg.user_id === props.user.username || msg.username === props.user.username) {
-          setUserStatus((prev) => ({
-            ...prev,
-            status: msg.presence,
-            activities: msg.activities || [],
-          }));
-        }
-      }
-    );
-
-    return () => {
-      unsubscribe?.();
-    };
-  });
-
-  createEffect(() => {
-    if (!props.user?.username) return;
-
-    const unsubscribe = tempState?.rotur?.socket?.on(
-      "profile_update",
-      (msg) => {
-        if (msg.user_id === props.user.username || msg.username === props.user.username) {
-          props.user = tempState?.conn
-            ?.members()
-            ?.find((user) => user.username === props.user.username);
-        }
-      }
-    );
-
-    return () => {
-      unsubscribe?.();
-    };
-  });
 
   return (
     <div
       class="member_item x"
-      style={{
-        opacity: props.online ? 1 : 0.5,
-      }}
-      onClick={(e) => openPopout(props.user, e.currentTarget, userStatus)}
+      style={{ opacity: props.online ? 1 : 0.5 }}
+      onClick={(e) => openPopout(member(), e.currentTarget, userStatus)}
     >
       <div class="pfpWO">
         <img
-          src={(props.user?.pfp) ? props.user.pfp :`https://avatars.rotur.dev/${props.user.username}`}
+          src={member()?.pfp ? member().pfp : `https://avatars.rotur.dev/${member().username}`}
           alt=""
           class={"pfp " + (!props.renderOverlay ? "overlayless" : "")}
           loading="lazy"
         />
         {props.renderOverlay && (
           <img
-            src={`https://avatars.rotur.dev/.overlay/${props.user.username}`}
+            src={`https://avatars.rotur.dev/.overlay/${member().username}`}
             alt=""
             class="overlay"
             loading="lazy"
@@ -155,9 +63,7 @@ export default function MemberItem(props) {
                   "background-clip": "text",
                   color: "transparent",
                 }
-              : {
-                  color: props.user.color,
-                }
+              : { color: props.user.color }
           }
         >
           <span style={{ "margin-right": "3pt" }}>
@@ -171,8 +77,8 @@ export default function MemberItem(props) {
             />
           ) : null}
           {[
-            ...(userStatus()?.clients ?? []),
-            ...(userStatus()?.devices ?? []),
+            ...(props.user.clients ?? []),
+            ...(props.user.devices ?? []),
           ].map((item) => {
             const icons = {
               computer: HiOutlineComputerDesktop,
@@ -180,7 +86,6 @@ export default function MemberItem(props) {
               console: HiOutlineCommandLine,
               terminal: HiOutlineCommandLine,
             };
-
             if (item === "indigo") {
               return (
                 <img
@@ -191,31 +96,18 @@ export default function MemberItem(props) {
                 />
               );
             }
-
             if (item === "originchats.com") {
-              return (
-                <img
-                  class="client_icon"
-                  src="https://originchats.com/dms.png"
-                  data-tooltip={item}
-                />
-              );
+              return <img class="client_icon" src="https://originchats.com/dms.png" data-tooltip={item} />;
             }
-
             if (item === "bot") {
               return (
                 <svg
                   data-tooltip="Bot"
                   class="client_icon"
                   xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  width="24" height="24" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"
                 >
                   <path d="M12 8V4H8" />
                   <rect width="16" height="12" x="4" y="8" rx="2" />
@@ -226,12 +118,8 @@ export default function MemberItem(props) {
                 </svg>
               );
             }
-
             const Icon = icons[item];
-
-            return Icon ? (
-              <Icon class="client_icon" data-tooltip={item} />
-            ) : null;
+            return Icon ? <Icon class="client_icon" data-tooltip={item} /> : null;
           })}
         </span>
         <Show when={props.online}>
@@ -245,13 +133,11 @@ export default function MemberItem(props) {
             ) : (
               ""
             )}
-            {isLoading()
-              ? "Loading..."
-              : userStatus()?.activities?.length
-                ? `${userStatus().activities[0].title} ${
-                    userStatus()?.status ? `\u2022 ${userStatus()?.status}` : ""
-                  }`
-                : userStatus()?.status ?? props.user?.status?.text ?? ""}
+            {userStatus()?.activities?.length
+              ? `${userStatus().activities[0].title} ${
+                  userStatus()?.status ? `\u2022 ${userStatus()?.status}` : ""
+                }`
+              : userStatus()?.status ?? props.user?.status?.text ?? ""}
           </small>
         </Show>
       </div>

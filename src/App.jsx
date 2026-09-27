@@ -221,6 +221,32 @@ createEffect(() => {
 window.tempState = tempState;
 window.state = state;
 
+export const [socketReady, setSocketReady] = createSignal(false);
+export const [presenceStore, setPresenceStore] = createStore({});
+
+export function applyRoomState(msg) {
+  if (!Array.isArray(msg?.members)) return;
+  for (const m of msg.members) {
+    setPresenceStore(m.username, (prev) => ({
+      ...prev,
+      presence: m.presence,
+      activities: m.activities ?? [],
+      status: m.status,
+      data: m.data,
+    }));
+  }
+}
+
+export function applyStatusUpdate(msg) {
+  const username = msg.username ?? msg.user_id;
+  if (!username) return;
+  setPresenceStore(username, (prev) => ({
+    ...prev,
+    presence: msg.presence,
+    activities: msg.activities ?? prev?.activities ?? [],
+  }));
+}
+
 export var conn;
 
 function preloadChannelMessages(channelName) {
