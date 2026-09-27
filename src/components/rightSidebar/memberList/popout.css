@@ -73,7 +73,7 @@
 }
 
 .activities_section {
-  max-height: 136px;
+  max-height: 150px;
   overflow-y: auto;
   padding-right: 5px;
 }
@@ -122,4 +122,19 @@
     & .dropdown_content {
         display: none;
     }
+}
+
+.flufimusic {
+	display: flex;
+	gap: 5px;
+	
+	button {
+		cursor: pointer;
+		background: var(--bg-one);
+		border-radius: var(--br-tiny);
+	}
+
+	.listen_along_button {
+		width: 45px;
+	}
 }
