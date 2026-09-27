@@ -1,4 +1,5 @@
 import { Show, For, createSignal, createEffect, onMount, on } from "solid-js";
+import { twemojiUrl } from "../messages/twemoji.js";
 import EmojiPicker from "./EmojiPicker";
 import {
   state,
@@ -34,6 +35,7 @@ import {
 import Autocomplete from "./Autocomplete";
 import { createMentionAutocomplete } from "./mentionAutocomplete";
 import { createChannelAutocomplete } from "./channelAutocomplete";
+import { createEmojiAutocomplete } from "./emojiAutocomplete.js";
 import { sendMessage, sendSlashCall } from "../../core/useMessageSigning";
 
 import GiftPopup from "./GiftPopup";
@@ -264,6 +266,39 @@ export default function MessageComposer(props) {
         )}
       />
 
+      <Autocomplete
+        items={emoji.emojiItems}
+        activeIndex={emoji.activeIndex}
+        setActiveIndex={emoji.setActiveIndex}
+        onPick={(item) => emoji.pickEmoji(item, textarea)}
+        renderItem={(e) =>
+          e.custom ? (
+            <span>
+              <img
+                src={`https://${e.src}/emojis/${e.id}`}
+                alt={e.name}
+                style={{ width: "1em", height: "1em", "vertical-align": "middle" }}
+              />{" "}
+              :{e.name}:
+            </span>
+          ) : (
+            <span>
+              {state.settings.twemoji ? (
+                <img
+                  class="twemoji"
+                  src={twemojiUrl(e.emoji)}
+                  alt={e.emoji}
+                  style={{ width: "1em", height: "1em", "vertical-align": "middle" }}
+                />
+              ) : (
+                e.emoji
+              )}{" "}
+              :{e.annotation}:
+            </span>
+          )
+        }
+      />
+
       <Show when={giftOpen()}>
         <GiftPopup
           onClose={() => setGiftOpen(false)}
@@ -337,9 +372,11 @@ export default function MessageComposer(props) {
               if (!slashState.active) {
                 mention.parseMention(e.target.value, e.target.selectionStart);
                 channelAc.parseChannel(e.target.value, e.target.selectionStart);
+                emoji.parseEmoji(e.target.value, e.target.selectionStart);
               } else {
                 mention.closeMention();
                 channelAc.closeChannel();
+                emoji.closeEmoji();
               }
 
               autoResize();
@@ -433,6 +470,30 @@ export default function MessageComposer(props) {
                 if (e.key === "Escape") {
                   e.preventDefault();
                   mention.closeMention();
+                  return;
+                }
+              }
+
+              if (emoji.hasSuggestions()) {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  emoji.moveNext();
+                  return;
+                }
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  emoji.movePrev();
+                  return;
+                }
+                if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+                  e.preventDefault();
+                  const item = emoji.emojiItems()[emoji.activeIndex()];
+                  if (item) emoji.pickEmoji(item, textarea);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  emoji.closeEmoji();
                   return;
                 }
               }

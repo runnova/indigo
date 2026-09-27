@@ -1,9 +1,9 @@
 import { createSignal } from "solid-js";
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
-import { tempState } from "../../App";
+import { tempState, state } from "../../App";
 
 export function createEmojiAutocomplete() {
-  const [state, setState] = createSignal({
+  const [autoState, setState] = createSignal({
     active: false,
     query: "",
     triggerPos: 0,
@@ -11,54 +11,45 @@ export function createEmojiAutocomplete() {
   const [activeIndex, setActiveIndex] = createSignal(0);
   const [items, setItems] = createSignal([]);
 
-  function fuzzySearchBiasTowardsStart(query, searchableStrings) {
-    const lowerQuery = query.toLowerCase();
+  function customEmojisFor(src) {
+    const list = tempState.serverEmojis?.[src];
+    if (!list) return [];
 
-    let bestMatch = null;
-    let bestScore = -1;
-
-    for (const str of searchableStrings) {
-      const lowerStr = str.toLowerCase();
-
-      let score = -1;
-
-      if (lowerStr.startsWith(lowerQuery)) {
-        score = 3; // biased towards start
-      } else if (lowerStr.includes(lowerQuery)) {
-        score = 1; // match anywhere
-      }
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestMatch = str;
-      }
+    if (Array.isArray(list)) {
+      return list.map((emoji) => ({
+        custom: true,
+        src,
+        id: emoji.id,
+        name: emoji.name,
+      }));
     }
 
-    return bestMatch;
+    return Object.entries(list).map(([id, emoji]) => ({
+      custom: true,
+      src,
+      id,
+      ...emoji,
+    }));
   }
 
-  function parse(value, cursorPos) {
-    const uptoCursor = value.slice(0, cursorPos);
-    const match = uptoCursor.match(/(^|:\s*)(:)([a-zA-Z0-9_]+)$/);
-
-    if (!match) {
-      if (state().active) close();
-      return;
-    }
-
-    const query = match[3];
-    const triggerPos = cursorPos - query.length - 2;
-
-    if (query.length < 1) {
-      setState({ active: false, query: "", triggerPos });
-      setItems([]);
-      return;
-    }
-
+  function search(query) {
     const q = query.toLowerCase();
 
-    const searchable = emojis.map((emoji) => {
-      const parts = [
+    const customMatches = [];
+    for (const server of state.servers) {
+      for (const emoji of customEmojisFor(server.src)) {
+        const name = (emoji.name ?? "").toLowerCase();
+        if (name.startsWith(q)) {
+          customMatches.push({ ...emoji, score: 3 });
+        } else if (name.includes(q)) {
+          customMatches.push({ ...emoji, score: 1 });
+        }
+      }
+    }
+
+    const unicodeMatches = [];
+    for (const emoji of emojis) {
+      const searchable = [
         emoji.annotation,
         ...(emoji.tags ?? []),
         ...(emoji.shortcodes ?? []),
@@ -66,58 +57,72 @@ export function createEmojiAutocomplete() {
         .join(" ")
         .toLowerCase();
 
-      return parts;
-    });
-
-    const matched = searchable
-      .map((s, i) => ({ string: s, index: i }))
-      .filter((x) => {
-        const lower = x.string.toLowerCase();
-        return lower.startsWith(q) || lower.includes(q);
-      })
-      .sort((a, b) => {
-        const aStarts = a.string.startsWith(q) ? 1 : 0;
-        const bStarts = b.string.startsWith(q) ? 1 : 0;
-        if (aStarts !== bStarts) return bStarts - aStarts;
-        return a.string.localeCompare(b.string);
-      })
-      .slice(0, 20)
-      .map((x) => {
-        const emoji = emojis[x.index];
-        return {
+      if (searchable.startsWith(q)) {
+        unicodeMatches.push({
+          custom: false,
           emoji: emoji.emoji,
           annotation: emoji.annotation,
-          score: aStarts ? 1 : 0,
-        };
-      });
+          score: 3,
+        });
+      } else if (searchable.includes(q)) {
+        unicodeMatches.push({
+          custom: false,
+          emoji: emoji.emoji,
+          annotation: emoji.annotation,
+          score: 1,
+        });
+      }
+    }
 
-    // Deduplicate by emoji annotation
+    const combined = [...customMatches, ...unicodeMatches].sort(
+      (a, b) => b.score - a.score,
+    );
+
     const seen = new Set();
-    const unique = matched.filter((m) => {
-      if (seen.has(m.annotation)) return false;
-      seen.add(m.annotation);
-      return true;
-    });
-
-    setItems(unique);
-    setActiveIndex(0);
-    setState({ active: true, query, triggerPos });
+    return combined
+      .filter((m) => {
+        const key = m.custom ? `c:${m.src}:${m.id}` : `u:${m.annotation}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 10);
   }
 
-  function close() {
-    setState({ active: false, query: "", triggerPos: 0 });
-    setItems([]);
+  function parse(value, cursorPos) {
+    const uptoCursor = value.slice(0, cursorPos);
+    const match = uptoCursor.match(/(^|\s)(:)([a-zA-Z0-9_+-]*)$/);
+
+    if (!match) {
+      if (autoState().active) close();
+      return;
+    }
+
+    const query = match[3];
+    const triggerPos = match.index + match[1].length;
+
+    if (query.length < 1) {
+      setState({ active: false, query: "", triggerPos });
+      setItems([]);
+      return;
+    }
+
+    setItems(search(query));
     setActiveIndex(0);
+    setState({ active: true, query, triggerPos });
   }
 
   function pick(emoji, textarea) {
     const value = textarea.value;
     const cursorPos = textarea.selectionStart;
-    const { triggerPos } = state();
+    const { triggerPos } = autoState();
 
-    const before = value.slice(0, triggerPos - 1);
+    const before = value.slice(0, triggerPos);
     const after = value.slice(cursorPos);
-    const insertion = ` ${emoji.emoji}`;
+    const text = emoji.custom
+      ? `originChats:<emoji>//${emoji.src}/${emoji.id}`
+      : emoji.emoji;
+    const insertion = `${text} `;
 
     textarea.value = before + insertion + after;
 
@@ -130,6 +135,13 @@ export function createEmojiAutocomplete() {
     close();
   }
 
+  function close() {
+    setState({ active: false, query: "", triggerPos: 0 });
+    setItems([]);
+    setActiveIndex(0);
+  }
+
+
   function moveNext() {
     setActiveIndex((i) => (i + 1) % items().length);
   }
@@ -137,11 +149,11 @@ export function createEmojiAutocomplete() {
     setActiveIndex((i) => (i - 1 + items().length) % items().length);
   }
   function hasSuggestions() {
-    return state().active && items().length > 0;
+    return autoState().active && items().length > 0;
   }
 
   return {
-    emojiState: state,
+    emojiState: autoState,
     emojiItems: items,
     activeIndex,
     setActiveIndex,
