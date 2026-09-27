@@ -1,9 +1,12 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { formatTime } from "./MemberPopoutContent";
 
+const FLUFIMUSIC_CLIENT = "https://music.flufi.uk";
+
 export function ActivityCard(props) {
   const activity = () => props.activity;
   const media = () => activity()?.media;
+  const flufimusic = () => activity()?.flufimusic;
 
   const [now, setNow] = createSignal(Date.now());
   let interval;
@@ -117,6 +120,19 @@ export function ActivityCard(props) {
             </div>
           </div>
         </Show>
+
+		<Show when={flufimusic()}>
+			<div class="flufimusic">
+				<button class="play_button" onClick={() => window.open(`${FLUFIMUSIC_CLIENT}/track/${flufimusic().track}`)}>
+					Play on flufiMusic
+				</button>
+				<Show when={flufimusic().listen}>
+					<button class="listen_along_button" onClick={() => window.open(`${FLUFIMUSIC_CLIENT}/set/${flufimusic().set}?listen=${flufimusic().listen}`)}>
+						LA
+					</button>
+				</Show>
+			</div>
+		</Show>
       </div>
     </div>
   );
