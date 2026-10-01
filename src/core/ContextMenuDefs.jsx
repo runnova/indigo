@@ -16,7 +16,7 @@ import {
   HiOutlineLanguage,
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
-import { setState } from "../App.jsx";
+import { setState, state } from "../App.jsx";
 import { getMessageById, addFakeMessage } from "../scrolling.jsx";
 import { reconnectServer } from "./server_connection.jsx";
 import {
@@ -319,7 +319,14 @@ SystemContextMenu.init([
         label: "Delete message",
         color: "#ff99a3",
         icon: HiOutlineTrash,
-        fn: (el) => console.log(el.dataset.id),
+        fn: (el) => {
+          tempState.conn.send({
+            cmd: "message_delete",
+            id: el.dataset.id,
+            channel: state.current.channel,
+            ...(state.current.thread && { thread_id: state.current.thread.id }),
+          })
+        },
       },
     ],
   },

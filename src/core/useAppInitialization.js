@@ -2,10 +2,7 @@ import { setSocketReady, applyRoomState, applyStatusUpdate } from "../App";
 
 export default async function (conn, setState, state, Rotur, setLoadingProgress) {
   Object.assign(tempState, {
-    conn,
-    roles: conn.roles,
-    members: conn.members,
-    membersOnline: conn.membersOnline
+    conn
   });
 
   const server = state.current.server ?? state.servers[0];
