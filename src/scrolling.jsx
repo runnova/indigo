@@ -757,6 +757,7 @@ export function VirtualMessageList(props) {
                               renderOverlay={renderOverlay}
                               reactions={msg().reactions}
                               webhook={msg().webhook}
+                              alias={msg().alias}
                               attachments={msg()?.attachments}
                               embeds={msg().embeds}
                               grouped={

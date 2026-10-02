@@ -20,7 +20,6 @@ import {
 } from "solid-icons/hi";
 import { sendMessageEdit } from "../../core/useMessageSigning.js";
 import { timeAgo } from "../Utility.jsx";
-import { BeamEmbed } from "./embeds/BeamEmbed.jsx";
 
 export function Message(props) {
   const rendered = createMemo(() =>
@@ -41,9 +40,13 @@ export function Message(props) {
   const [editValue, setEditValue] = createSignal("");
 
   const displayUsername = () =>
-    props.webhook?.name || member?.nickname || props.username;
+    props.alias?.name ||
+    props.webhook?.name ||
+    member?.nickname ||
+    props.username;
 
-  const displayAvatar = () => props.webhook?.avatar || props.avatar;
+  const displayAvatar = () =>
+    props.alias?.avatar || props.webhook?.avatar || props.avatar;
 
   createEffect(() => {
     if (props.editing) {
@@ -235,19 +238,23 @@ export function Message(props) {
               <div
                 class={`username ${props.webhook ? "webhook" : ""}`}
                 style={
-                  !props.webhook && Array.isArray(gradient)
+                  !props.webhook && props.alias?.usercolor
                     ? {
-                        background: `linear-gradient(90deg, ${gradient.join(", ")})`,
-                        "-webkit-background-clip": "text",
-                        "-webkit-text-fill-color": "transparent",
-                        "background-clip": "text",
-                        color: "transparent",
+                        color: props.alias.usercolor,
                       }
-                    : !props.webhook
+                    : !props.webhook && Array.isArray(gradient)
                       ? {
-                          color: member?.color,
+                          background: `linear-gradient(90deg, ${gradient.join(", ")})`,
+                          "-webkit-background-clip": "text",
+                          "-webkit-text-fill-color": "transparent",
+                          "background-clip": "text",
+                          color: "transparent",
                         }
-                      : {}
+                      : !props.webhook
+                        ? {
+                            color: member?.color,
+                          }
+                        : {}
                 }
                 onClick={(e) =>
                   !props.webhook && openPopout(props, e.currentTarget)
@@ -295,6 +302,26 @@ export function Message(props) {
                   <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"></path>
                   <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"></path>
                   <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"></path>
+                </svg>
+              </Show>
+              <Show when={props.alias}>
+                <svg
+                  data-tooltip={`Alias: Posted by ${props.username}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  class="lucide lucide-venetian-mask"
+                >
+                  <path d="M18 11c-1.5 0-2.5.5-3 2"></path>
+                  <path d="M4 6a2 2 0 0 0-2 2v4a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V8a2 2 0 0 0-2-2h-3a8 8 0 0 0-5 2 8 8 0 0 0-5-2z"></path>
+                  <path d="M6 11c1.5 0 2.5.5 3 2"></path>
                 </svg>
               </Show>
               <Show when={props.fake}>
@@ -477,7 +504,8 @@ export function Message(props) {
                 {(embed) => <Embed embed={embed} />}
               </For>
             </div>
-          </Show><Show when={props.reactions && Object.keys(props.reactions).length}>
+          </Show>
+          <Show when={props.reactions && Object.keys(props.reactions).length}>
             <div class="messageReactions">
               <For each={Object.entries(props.reactions)}>
                 {([emoji, users]) => {
