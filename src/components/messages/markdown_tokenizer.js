@@ -556,6 +556,7 @@ function tryParseMention(text, i) {
 }
 
 function parseMarkdown(input) {
+  if (!input?.length) return;
   const lines = input.split('\n');
   const tokens = [];
 

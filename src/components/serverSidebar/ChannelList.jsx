@@ -151,6 +151,7 @@ export default function ChannelList(props) {
   function handleHoverPreload(channelName) {
     if (!channelName) return;
     if (channelName === props.currentChannel) return;
+    if (state.settings.channelPreload === false) return;
 
     preloadChannel(channelName, () => props.preloadChannel(channelName));
   }
@@ -187,7 +188,7 @@ export default function ChannelList(props) {
 
           const hover = createHoverPreloadHandlers(
             () => handleHoverPreload(ch.name),
-            300
+            500
           );
           cleanupFns.push(hover.cleanup);
 

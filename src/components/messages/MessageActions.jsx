@@ -1,4 +1,3 @@
-import { createSignal, Show } from "solid-js";
 import { HiOutlineChatBubbleOvalLeft, HiOutlineFaceSmile, HiOutlinePencil, HiOutlineDocumentDuplicate, HiOutlineTrash } from "solid-icons/hi";
 
 export function MessageActions(props) {

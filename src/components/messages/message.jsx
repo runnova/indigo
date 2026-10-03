@@ -20,6 +20,7 @@ import {
 } from "solid-icons/hi";
 import { sendMessageEdit } from "../../core/useMessageSigning.js";
 import { timeAgo } from "../Utility.jsx";
+import "./embeds/BeamEmbed.jsx"
 
 export function Message(props) {
   const rendered = createMemo(() =>

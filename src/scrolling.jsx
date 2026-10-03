@@ -340,6 +340,16 @@ export function VirtualMessageList(props) {
   const [scrollLocked, setScrollLocked] = createSignal(true);
   const [sectionList, setSectionList] = createSignal([]);
 
+  function createSection(messages) {
+    const [sectionMessages, setSectionMessages] = createSignal(messages);
+
+    return {
+      id: messages[0]?.id,
+      messages: sectionMessages,
+      setMessages: setSectionMessages,
+    };
+  }
+
   function rebuildSectionsFromMessages(forceFresh = false) {
     const msgs = messages();
     const totalCap = SECTION_SIZE * MAX_SECTIONS;
@@ -362,6 +372,7 @@ export function VirtualMessageList(props) {
       } else {
         const raw = anchorIdx - SECTION_SIZE;
         const maxStart = msgs.length - totalCap;
+
         alignedStart = Math.min(
           Math.max(0, Math.floor(raw / SECTION_SIZE) * SECTION_SIZE),
           Math.ceil(maxStart / SECTION_SIZE) * SECTION_SIZE,
@@ -370,24 +381,22 @@ export function VirtualMessageList(props) {
     }
 
     const windowed = msgs.slice(alignedStart);
-    const prev = sectionList();
     const result = [];
-    let i = 0;
 
-    while (i < windowed.length && result.length < MAX_SECTIONS) {
+    for (
+      let i = 0;
+      i < windowed.length && result.length < MAX_SECTIONS;
+      i += SECTION_SIZE
+    ) {
       const chunk = windowed.slice(i, i + SECTION_SIZE);
-      const firstId = chunk[0]?.id;
-      const lastId = chunk[chunk.length - 1]?.id;
+      const oldSection = sectionList()[result.length];
 
-      const existing = prev[result.length];
-      const sameShape =
-        !forceFresh &&
-        existing &&
-        existing.messages.length === chunk.length &&
-        existing.messages.every((m, idx) => m === chunk[idx]);
-
-      result.push(sameShape ? existing : { id: firstId, messages: chunk });
-      i += SECTION_SIZE;
+      if (!forceFresh && oldSection) {
+        oldSection.setMessages(chunk);
+        result.push(oldSection);
+      } else {
+        result.push(createSection(chunk));
+      }
     }
 
     setSectionList(result);
@@ -405,12 +414,13 @@ export function VirtualMessageList(props) {
     setSectionList((prev) => {
       const last = prev[prev.length - 1];
 
-      if (last && last.messages.length < SECTION_SIZE) {
-        const updatedLast = { ...last, messages: [...last.messages, msg] };
-        return [...prev.slice(0, -1), updatedLast];
+      if (last && last.messages().length < SECTION_SIZE) {
+        last.setMessages((messages) => [...messages, msg]);
+        return prev;
       }
 
-      const next = [...prev, { id: msg.id, messages: [msg] }];
+      const next = [...prev, createSection([msg])];
+
       return next.length > MAX_SECTIONS
         ? next.slice(next.length - MAX_SECTIONS)
         : next;
@@ -663,7 +673,7 @@ export function VirtualMessageList(props) {
             <For each={sectionList()}>
               {(section) => (
                 <div>
-                  <For each={section.messages}>
+                  <For each={section.messages()}>
                     {(message, index) => {
                       const msg = () => message;
                       const ts = toMs(msg()?.timestamp);

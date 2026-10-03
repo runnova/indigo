@@ -193,7 +193,9 @@ export default function MemberProfile(props) {
                         "overflow-y": "auto"
                       }}
                     >
-                      {parseMarkdown(p().bio)}
+                      {
+                       (p().bio) ? parseMarkdown(p().bio) : ((p().private) ? "This account is private" : "Hi, I don't have a bio.")
+                      }
                     </div>
                   </div>
                   <Show when={status()?.activities?.length}>
@@ -243,7 +245,7 @@ export default function MemberProfile(props) {
                   <small style={{ "margin-top": "1em", "align-items": "center", "gap": ".8em" }} class="x">
                     <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".8" }}>
                       <HiOutlineCalendar />
-                      {formatMonthYear(p().created)}
+                      {p()?.created && formatMonthYear(p()?.created)}
 
                     </div>
                     <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".5" }}>

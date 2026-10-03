@@ -134,6 +134,15 @@
     "type": "mod"
   },
   {
+    "id": "nopfp",
+    "name": "Don't show Avatars",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "Hide all the user avatars",
+    "file": "nopfp.css",
+    "type": "mod"
+  },
+  {
     "id": "dracula",
     "name": "Dracula",
     "author": "darkdot",

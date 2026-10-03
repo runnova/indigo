@@ -156,14 +156,15 @@
     align-items: center;
     transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 5px 10px #00000069;
+    border: 1px solid var(--diff-three);
     align-items: center;
     flex-direction: row;
     overflow: hidden;
     z-index: 10;
-    padding: 0.2em;
+    padding: 2px;
 
     & button {
-        padding: 0.3em;
+        padding: 0.4em;
         border-radius: var(--br-mid);
         aspect-ratio: 1/1;
         transition: box-shadow 0.2s;
@@ -177,7 +178,7 @@
         }
 
         &:hover {
-            background-color: var(--bg-four);
+            background-color: var(--bg-three);
         }
 
         &:active {

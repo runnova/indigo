@@ -1,0 +1,9 @@
+.pfpWO {
+    & img {
+        display: none;
+
+        &:first-child {
+            border:1px solid grey;
+        }
+    }
+}
