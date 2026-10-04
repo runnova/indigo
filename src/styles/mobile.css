@@ -7,6 +7,10 @@
         display: flex;
     }
 
+    svg {
+        scale: 1.1;
+    }
+
     .root {
         width: 300vw;
     }
@@ -93,5 +97,31 @@
 
     .theme-sections {
         flex-direction: column;
+    }
+
+    .scm-menu {
+        bottom: 1em;
+        left: 1em !important;
+        width: calc(100% - 2.5em);
+        outline: 1em solid var(--bg-two);
+        height: fit-content;
+        top: auto !important;
+        position: relative;
+        &::before {
+            background-color: var(--diff-three);
+            content: "";
+            position: absolute;
+            top: -0.7em;
+            height: 3px;
+            width: 2em;
+            left: calc(50% - 1em);
+        }
+
+        & .scm-item {
+            padding: .8em 1em;
+            & .scm-item-content {
+                gap: 1em;
+            }
+        }
     }
 }
