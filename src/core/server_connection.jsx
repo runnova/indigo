@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { state, setState, unreads, setUnreads, setLoaded } from "../App";
 import { createStore } from "solid-js/store";
 
@@ -37,6 +37,47 @@ export async function fetchRoturValidator(validatorKey, roturToken) {
 
   return data.validator;
 }
+function showSigninDialog() {
+  return new Promise((resolve, reject) => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "rotur-login-prompt";
+    dialog.innerHTML = `
+      <form method="dialog">
+      <img class="rotur-login-icon" src="https://rotur.dev/Rotur%20Logo.png">
+
+        <h1>Sign in with Rotur to continue to Indigo.</h1>
+        <button class="rotur-signin-button" value="signin">Continue
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
+        </button>
+        <small>Rotur is a third party service, <br>please read their policy before use.</small>
+      </form>
+    `;
+
+    document.body.appendChild(dialog);
+
+    dialog.addEventListener("close", async () => {
+      const action = dialog.returnValue;
+      dialog.remove();
+
+      if (action !== "signin") {
+        reject(new Error("Sign-in cancelled"));
+        return;
+      }
+
+      try {
+        const token = await requestRoturToken();
+        resolve(token);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    dialog.showModal();
+  });
+}
+
 async function requestRoturToken() {
   await tempState.rotur.login({
     system: "orion",
@@ -72,7 +113,7 @@ export async function authenticate({
   let token = roturToken;
 
   if (!token) {
-    token = await requestRoturToken();
+    token = await showSigninDialog();
     if (onToken) {
       onToken(token);
     }
@@ -124,8 +165,11 @@ export function ensureConnected(
     return connections.get(server.src);
   }
 
+  if (!shouldKeepIdle(server.src)) return null;
+
   return createConnection(server, roturToken, crackedUser);
 }
+
 function openSocket(connection) {
   let ws;
 
@@ -164,6 +208,52 @@ function openSocket(connection) {
     handleDisconnect(connection);
   };
 }
+
+function getIdlePolicy() {
+  return state.settings.idleConnections ?? "keep";
+}
+
+function shouldKeepIdle(src) {
+  switch (getIdlePolicy()) {
+    case "none":
+      return false;
+    case "dms":
+      return src === state.settings.dmsServer;
+    case "keep":
+    default:
+      return true;
+  }
+}
+
+function closeConnection(connection) {
+  if (connection.reconnectTimer) {
+    clearTimeout(connection.reconnectTimer);
+    connection.reconnectTimer = null;
+  }
+
+  connections.delete(connection.src);
+  setUnreads("servers", connection.src, "online", false);
+
+  const ws = connection.ws;
+
+  if (ws) {
+    ws.onopen = ws.onmessage = ws.onerror = ws.onclose = null;
+    try {
+      ws.close();
+    } catch {}
+  }
+
+  connection.ws = null;
+  connection.pending.length = 0;
+}
+
+export function applyIdlePolicy() {
+  for (const connection of [...connections.values()]) {
+    if (connection.mode === "active") continue;
+    if (!shouldKeepIdle(connection.src)) closeConnection(connection);
+  }
+}
+
 function handleDisconnect(connection) {
   setUnreads("servers", connection.src, "online", false);
 
@@ -671,7 +761,7 @@ export function useServerConnection() {
   }
 
   function connect(server, roturToken) {
-    disconnect();
+    release();
 
     let connection = connections.get(server.src);
 
@@ -686,9 +776,12 @@ export function useServerConnection() {
     attachConnection(connection);
 
     ws = connection.ws;
+
+    applyIdlePolicy();
   }
+
   function connectCracked(server, credentials) {
-    disconnect();
+    release();
 
     let connection = connections.get(server.src);
 
@@ -701,6 +794,8 @@ export function useServerConnection() {
     activeConnection = connection;
     ws = connection.ws;
     attachConnection(connection);
+
+    applyIdlePolicy();
   }
 
   function register(username, password) {
@@ -726,7 +821,7 @@ export function useServerConnection() {
     ws.send(JSON.stringify(payload));
   }
 
-  function disconnect() {
+  function release() {
     if (activeConnection) {
       activeConnection.mode = "idle";
 
@@ -740,6 +835,11 @@ export function useServerConnection() {
     ws = null;
 
     setStatus("idle");
+  }
+
+  function disconnect() {
+    release();
+    applyIdlePolicy();
   }
 
   return {

@@ -17,7 +17,7 @@ export function ConfigSettings() {
 
             <div class="settings_item x">
                 <div class="settings_section_label">Idle connections</div>
-                <SettingSelect setting="idleConnections" disabled>
+                <SettingSelect setting="idleConnections">
                     <option value="keep">Keep connected</option>
                     <option value="none">No idle connections</option>
                     <option value="dms">Keep DMs connected</option>
@@ -29,7 +29,7 @@ export function ConfigSettings() {
                 <SettingSelect setting="loadAttachments" disabled>
                     <option value="all">Load everything</option>
                     <option value="ondemand">Load on demand</option>
-                    <option value="whitelist">Server whitelist</option>
+                    <option value="link">Display as link</option>
                 </SettingSelect>
             </div>
             <h2 class="settings_title">Client UI</h2>

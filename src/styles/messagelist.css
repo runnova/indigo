@@ -30,7 +30,8 @@
 
 .message_single {
     position: relative;
-    padding: 0.5em;
+    padding: .5em;
+    margin-top: .2em;
     border-radius: var(--br-mid);
     transition: background-color 0.2s;
     word-wrap: anywhere;
@@ -52,15 +53,15 @@
         align-items: flex-start;
     }
 
-    & .pfp {
-        height: 45px;
-        aspect-ratio: 1/1;
-        border-radius: var(--br-tiny);
+
+    & .pfpWO {
+      height: 38pt;
+      width: 38pt;
     }
 
     &.grouped {
-        padding: 0.3em 0.5em;
-        padding-bottom: 0;
+        margin-top: 0;
+        padding: .2em .5em !important;
 
         & .message_text {
             margin: 0;
@@ -88,6 +89,8 @@
         align-items: center;
         color: var(--fg-dim);
         user-select: text;
+        margin: .2em 0;
+        margin-top: .3em;
     }
 
     & .message_content {
@@ -114,12 +117,12 @@
             display: inline-flex;
             width: 25px;
             height: 20px;
-            border-top: 1px solid grey;
-            border-left: 1px solid gray;
+            border-top: 2px solid var(--diff-three);
+            border-left: 2px solid var(--diff-three);
             border-top-left-radius: 0.5em;
             position: absolute;
             top: 8px;
-            left: -33px;
+            left: -29px;
         }
 
         & > .reply_text {
@@ -142,7 +145,7 @@
     }
 
     & .message_spacer {
-        width: 42px;
+        width: 51px;
         flex-shrink: 0;
         opacity: 0;
     }

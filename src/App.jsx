@@ -40,6 +40,7 @@ import {
   connections,
   serverEmojis,
   authenticate,
+  applyIdlePolicy,
 } from "./core/server_connection.jsx";
 import MediaPreview from "./components/MediaPreview";
 import useAppInitialization from "./core/useAppInitialization.js";
@@ -408,6 +409,13 @@ function App() {
       setUrlDeepLinkActive(false);
     }
   });
+
+  createEffect(() => {
+    state.settings.idleConnections;
+    state.settings.dmsServer;
+    applyIdlePolicy();
+  });
+
   let deepLinkThreadApplied = false;
   createEffect(() => {
     if (deepLinkThreadApplied) return;
