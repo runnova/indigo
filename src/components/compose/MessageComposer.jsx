@@ -38,6 +38,8 @@ import { createChannelAutocomplete } from "./channelAutocomplete";
 import { createEmojiAutocomplete } from "./emojiAutocomplete.js";
 import { sendMessage, sendSlashCall } from "../../core/useMessageSigning";
 
+import { enqueue, flushQueue } from "../../core/pendingQueue.js";
+
 import GiftPopup from "./GiftPopup";
 
 const MAX_TEXTAREA_HEIGHT = 200;
@@ -70,20 +72,36 @@ export default function MessageComposer(props) {
       await sendSlashCall(result.command, result.args);
     }
   };
+  const canSend = (item) =>
+    tempState?.conn?.status?.() === "ready" &&
+    item.channel === state.current.channel;
+
+  const flush = () => flushQueue(canSend);
+
+  createEffect(() => {
+    tempState?.conn?.status?.();
+    state.current.channel;
+    flush();
+  });
 
   const handleSend = () => {
     if (!textarea) return;
 
     const content = buildContent(textarea.value.trim());
+    const files = attachments
+      .filter((a) => a.uploaded)
+      .map((a) => a.serverAttachment);
 
-    if (!content && attachments.filter((a) => a.uploaded).length === 0) {
-      return;
-    }
+    if (!content && files.length === 0) return;
 
-    sendMessage(
+    enqueue({
+      channel: props.channel,
+      threadId: props.thread?.id ?? null,
+      user: tempState?.conn?.me?.()?.username,
       content,
-      attachments.filter((a) => a.uploaded).map((a) => a.serverAttachment),
-    );
+      attachments: files,
+    });
+    flush();
 
     setAttachments([]);
     textarea.value = "";
@@ -262,7 +280,9 @@ export default function MessageComposer(props) {
         setActiveIndex={channelAc.setActiveIndex}
         onPick={(item) => channelAc.pickChannel(item, textarea)}
         renderItem={(c) => (
-          <span>#{c.type === "thread" ? `${c.channel.name}/${c.name}` : c.name}</span>
+          <span>
+            #{c.type === "thread" ? `${c.channel.name}/${c.name}` : c.name}
+          </span>
         )}
       />
 
@@ -277,7 +297,11 @@ export default function MessageComposer(props) {
               <img
                 src={`https://${e.src}/emojis/${e.id}`}
                 alt={e.name}
-                style={{ width: "1em", height: "1em", "vertical-align": "middle" }}
+                style={{
+                  width: "1em",
+                  height: "1em",
+                  "vertical-align": "middle",
+                }}
               />{" "}
               :{e.name}:
             </span>
@@ -288,7 +312,11 @@ export default function MessageComposer(props) {
                   class="twemoji"
                   src={twemojiUrl(e.emoji)}
                   alt={e.emoji}
-                  style={{ width: "1em", height: "1em", "vertical-align": "middle" }}
+                  style={{
+                    width: "1em",
+                    height: "1em",
+                    "vertical-align": "middle",
+                  }}
                 />
               ) : (
                 e.emoji
@@ -315,7 +343,7 @@ export default function MessageComposer(props) {
           }}
         />
       </Show>
-      <div class="text_box x"  style={{ "align-items": "flex-start" }}>
+      <div class="text_box x" style={{ "align-items": "flex-start" }}>
         <div className="dropdown_container">
           <div className="action_buttons">
             <button className="icon_button">
@@ -417,7 +445,7 @@ export default function MessageComposer(props) {
                       (m) =>
                         m.user === currentUsername &&
                         !m.deleted &&
-                        !m.ephemeral
+                        !m.ephemeral,
                     );
 
                   if (lastOwnMessage && !state.editing?.id) {
@@ -535,7 +563,7 @@ export default function MessageComposer(props) {
                 const currentUsername = tempState?.conn?.me()?.username;
 
                 const lastOwnMessage = messages.findLast(
-                  (m) => m.user === currentUsername
+                  (m) => m.user === currentUsername,
                 );
 
                 if (lastOwnMessage && !state.editing?.id) {
@@ -593,7 +621,6 @@ export default function MessageComposer(props) {
               <HiOutlinePaperAirplane />
             </button>
           </Show>
-
         </div>
       </div>
       <input

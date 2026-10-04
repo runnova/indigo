@@ -44,33 +44,29 @@ function handleUnreadEvent(event) {
   if (event.cmd === "unreads_update") {
     setUnreads(
       event.channel,
-      produce(channel => {
+      produce((channel) => {
         if (!channel) return;
 
         channel.last_read = event.last_read;
         channel.unread_count = 0;
-      })
+      }),
     );
   }
 
   if (event.cmd === "unreads_ack") {
     setUnreads(
       event.channel,
-      produce(channel => {
+      produce((channel) => {
         if (!channel) return;
 
         channel.last_read = event.message_id;
         channel.unread_count = 0;
-      })
+      }),
     );
   }
 }
 
-export function createForumThreads({
-  channel,
-  wsEvent,
-  sendRequest,
-}) {
+export function createForumThreads({ channel, wsEvent, sendRequest }) {
   const [threads, setThreads] = createSignal([]);
   const [loading, setLoading] = createSignal(false);
   const [hasMore, setHasMore] = createSignal(true);
@@ -98,7 +94,7 @@ export function createForumThreads({
   function handleThreadNew(event) {
     if (!event.thread) return;
 
-    setThreads(prev => [event.thread, ...prev]);
+    setThreads((prev) => [event.thread, ...prev]);
   }
 
   function handleEvent(event) {
@@ -114,7 +110,7 @@ export function createForumThreads({
       setThreads([]);
       setHasMore(true);
       fetchInitial();
-    })
+    }),
   );
 
   createEffect(() => {
@@ -138,6 +134,7 @@ export function createChannelMessages({
 }) {
   const [messages, setMessages] = createSignal([]);
   const [loadingOlder, setLoadingOlder] = createSignal(false);
+  const [loadingInitial, setLoadingInitial] = createSignal(true);
   const [hasOlderMessages, setHasOlderMessages] = createSignal(true);
   const [lastUpdate, setLastUpdate] = createSignal(null);
 
@@ -150,7 +147,7 @@ export function createChannelMessages({
     sendRequest({
       ...payload,
       channel: channel(),
-      ...(threadId?.() && { thread_id: threadId() })
+      ...(threadId?.() && { thread_id: threadId() }),
     });
   }
 
@@ -160,6 +157,7 @@ export function createChannelMessages({
   }
 
   function fetchInitial() {
+    setLoadingInitial(true);
     request({ cmd: "messages_get", limit: PAGE_SIZE });
   }
 
@@ -244,7 +242,8 @@ export function createChannelMessages({
     const container = getScrollElement();
     return {
       id,
-      offset: el.getBoundingClientRect().top - container.getBoundingClientRect().top,
+      offset:
+        el.getBoundingClientRect().top - container.getBoundingClientRect().top,
     };
   }
 
@@ -270,8 +269,12 @@ export function createChannelMessages({
   function handleMessagesGet(event) {
     const list = getMessageList(event);
 
-    setMessages(sortMessages(list));
-    setHasOlderMessages(list.length >= PAGE_SIZE);
+    batch(() => {
+      setMessages(sortMessages(list));
+      setHasOlderMessages(list.length >= PAGE_SIZE);
+      setLoadingInitial(false);
+    });
+
     setLastUpdate({ type: "initial" });
   }
 
@@ -280,8 +283,7 @@ export function createChannelMessages({
     const direction = pendingDirection;
     const targetId = pendingAnchorId;
 
-    const anchor =
-      targetId ? captureAnchorPosition(targetId) : null;
+    const anchor = targetId ? captureAnchorPosition(targetId) : null;
 
     pendingDirection = null;
     pendingAnchorId = null;
@@ -337,9 +339,7 @@ export function createChannelMessages({
     let updateType = "append";
 
     setMessages((prev) => {
-      const existingIndex = prev.findIndex(
-        (m) => m.id === incomingMessage.id
-      );
+      const existingIndex = prev.findIndex((m) => m.id === incomingMessage.id);
 
       if (existingIndex !== -1) {
         const next = prev.slice();
@@ -373,15 +373,15 @@ export function createChannelMessages({
     if (id == null) return;
 
     if (state.settings.messageLogger) {
-      setMessages(prev =>
-        prev.map(message =>
+      setMessages((prev) =>
+        prev.map((message) =>
           message.id === id
             ? {
-              ...message,
-              deleted: true,
-            }
-            : message
-        )
+                ...message,
+                deleted: true,
+              }
+            : message,
+        ),
       );
 
       setLastUpdate({
@@ -392,7 +392,7 @@ export function createChannelMessages({
       return;
     }
 
-    setMessages(prev => prev.filter(message => message.id !== id));
+    setMessages((prev) => prev.filter((message) => message.id !== id));
 
     setLastUpdate({
       type: "delete",
@@ -405,8 +405,8 @@ export function createChannelMessages({
 
     const incoming = event.message ?? event.val ?? event.data ?? {};
 
-    setMessages(prev =>
-      prev.map(message => {
+    setMessages((prev) =>
+      prev.map((message) => {
         if (message.id !== event.id) return message;
 
         return {
@@ -421,7 +421,7 @@ export function createChannelMessages({
           signature: incoming.signature ?? null,
           signed_at: incoming.signed_at ?? null,
         };
-      })
+      }),
     );
 
     setLastUpdate({
@@ -433,21 +433,18 @@ export function createChannelMessages({
   function handleReactionAdd(event) {
     if (event.id == null) return;
 
-    setMessages(prev =>
-      prev.map(m => {
+    setMessages((prev) =>
+      prev.map((m) => {
         if (m.id !== event.id) return m;
 
         return {
           ...m,
           reactions: {
             ...m.reactions,
-            [event.emoji]: [
-              ...(m.reactions?.[event.emoji] ?? []),
-              event.from,
-            ],
+            [event.emoji]: [...(m.reactions?.[event.emoji] ?? []), event.from],
           },
         };
-      })
+      }),
     );
 
     setLastUpdate({
@@ -487,7 +484,7 @@ export function createChannelMessages({
       pendingAnchorId = null;
       loadingOlderLock = false;
       fetchInitial();
-    })
+    }),
   );
 
   createEffect(
@@ -502,8 +499,8 @@ export function createChannelMessages({
         loadingOlderLock = false;
         fetchInitial();
       },
-      { defer: true }
-    )
+      { defer: true },
+    ),
   );
 
   createEffect(() => {
@@ -513,6 +510,7 @@ export function createChannelMessages({
   return {
     messages,
     loadingOlder,
+    loadingInitial,
     hasOlderMessages,
     lastUpdate,
     loadOlder,

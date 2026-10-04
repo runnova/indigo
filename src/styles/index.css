@@ -2334,6 +2334,18 @@ img.big_emoji {
     flex: 1;
 }
 
+.chatloading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-one);
+  color: var(--fg-dim);
+  pointer-events: none;
+}
+
 .deleted {
     color: rgb(255, 155, 155);
     background-color: rgba(62, 0, 0, 0.212);

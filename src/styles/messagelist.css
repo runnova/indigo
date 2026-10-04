@@ -584,3 +584,15 @@
 .vml-unread-line:hover {
     box-shadow: 0 0 12px rgba(237, 66, 69, 0.4);
 }
+
+.vml-pending {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.vml-pending.is-failed {
+  opacity: 1;
+  pointer-events: auto;
+}
+.vml-pending.is-failed .message_single { /* whatever your message root class is */
+  opacity: 0.6;
+}

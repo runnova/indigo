@@ -21,6 +21,13 @@ import { tempState, state, setState, setEmojiPicker, unreads } from "./App.jsx";
 import { verifyMessage } from "./core/useMessageSigning.js";
 import { createUnreadTracking } from "./core/UseUnreadTracking.jsx";
 
+import {
+  pendingMessages,
+  resolvePending,
+  removePending,
+  retryPending,
+} from "./core/pendingQueue.js";
+
 const [fakeMessages, setFakeMessages] = createSignal([]);
 let fakeId = 0;
 
@@ -96,6 +103,7 @@ export function createMessageLookup(messages) {
   return messageMap;
 }
 
+const TEN_MINUTES_MS = 10 * 60 * 1000;
 const SCROLL_NEAR_TOP = 100;
 const SCROLL_NEAR_BOTTOM = 80;
 
@@ -170,6 +178,7 @@ export function VirtualMessageList(props) {
   const {
     messages: realMessages,
     loadingOlder,
+    loadingInitial,
     hasOlderMessages,
     lastUpdate,
     loadOlder,
@@ -187,6 +196,21 @@ export function VirtualMessageList(props) {
   const messages = createMemo(() => [...realMessages(), ...fakeMessages()]);
 
   createMessageLookup(messages);
+
+  const prevById = createMemo(() => {
+    const map = new Map();
+    const msgs = messages();
+    for (let i = 1; i < msgs.length; i++) map.set(msgs[i].id, msgs[i - 1]);
+    return map;
+  });
+
+  const visiblePending = createMemo(() =>
+    pendingMessages.filter(
+      (m) =>
+        m.channel === props.channel &&
+        (m.threadId ?? null) === (props.threadId ?? null),
+    ),
+  );
 
   const getAllMessages = () => messages();
 
@@ -507,6 +531,19 @@ export function VirtualMessageList(props) {
   );
 
   createEffect(
+    on(
+      () => pendingMessages.length,
+      (len, prev) => {
+        if (len > (prev ?? 0)) {
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => scrollToBottom(false)),
+          );
+        }
+      },
+    ),
+  );
+
+  createEffect(
     on(lastUpdate, (update) => {
       if (!update) return;
 
@@ -523,6 +560,7 @@ export function VirtualMessageList(props) {
       }
 
       if (update.type === "append") {
+        resolvePending(update.message, props.channel);
         appendMessageToSections(update.message);
         setUnreadDividerId(null);
         if (scrollLocked()) {
@@ -642,6 +680,9 @@ export function VirtualMessageList(props) {
         </div>
       </Show>
       <div className="realchannelcontent">
+      <Show when={loadingInitial()}>
+        <div class="chatloading">Loading...</div>
+      </Show>
         <Show when={showScrollButton()}>
           <button
             class="scroll-to-bottom-btn"
@@ -667,7 +708,7 @@ export function VirtualMessageList(props) {
             <div class="vml-beginning">You've reached the beginning.</div>
           </Show>
           <div class="vml-inner">
-            <Show when={messages().length === 0}>
+            <Show when={messages().length === 0 && !loadingInitial()}>
               <div class="vml-empty">There's nothing here. Send a message?</div>
             </Show>
             <For each={sectionList()}>
@@ -676,43 +717,29 @@ export function VirtualMessageList(props) {
                   <For each={section.messages()}>
                     {(message, index) => {
                       const msg = () => message;
-                      const ts = toMs(msg()?.timestamp);
-                      const timestamp = ts;
-                      const previous =
-                        index() > 0 ? section.messages[index() - 1] : null;
-                      const interaction = msg()?.interaction;
-                      const TEN_MINUTES_MS = 10 * 60 * 1000;
+                      const timestamp = toMs(message.timestamp);
+                      const interaction = message.interaction;
 
-                      const previousTimestamp = previous
-                        ? Number(previous.timestamp) > 1e12
-                          ? Number(previous.timestamp)
-                          : Number(previous.timestamp) * 1000
-                        : 0;
-
-                      const grouped =
-                        previous &&
-                        previous.user === message.user &&
-                        timestamp - previousTimestamp <= TEN_MINUTES_MS;
                       const replyMessage = createMemo(() => {
                         const m = msg();
                         if (!m?.reply_to?.id) return null;
-
                         const replyId = m.reply_to.id;
-
-                        const fromFullList = getMessageById(replyId);
-                        if (fromFullList) return fromFullList;
-
-                        const cached = getCachedReply(replyId);
-                        if (cached) return cached;
-
-                        requestReplyMessage(props.channel, replyId);
-
-                        return m.reply_to;
+                        return (
+                          getMessageById(replyId) ??
+                          getCachedReply(replyId) ??
+                          (requestReplyMessage(props.channel, replyId), m.reply_to)
+                        );
                       });
 
-                      const isUnreadDivider = () =>
-                        msg()?.id === unreadDividerId();
+                      const isUnreadDivider = () => message.id === unreadDividerId();
 
+                      const grouped = createMemo(() => {
+                        const prev = prevById().get(message.id);
+                        if (!prev) return false;
+                        if (prev.user !== message.user) return false;
+                        if (isUnreadDivider()) return false;
+                        return timestamp - toMs(prev.timestamp) <= TEN_MINUTES_MS;
+                      });
                       return (
                         <>
                           <Show when={isUnreadDivider()}>
@@ -727,7 +754,7 @@ export function VirtualMessageList(props) {
                             data-context="message"
                             classList={{
                               "vml-item": true,
-                              "is-grouped": grouped,
+                              "is-grouped": grouped(),
                               "is-reply-target":
                                 state.replying?.id === msg()?.id,
                               "is-edit-target": state.editing?.id === msg()?.id,
@@ -770,9 +797,7 @@ export function VirtualMessageList(props) {
                               alias={msg().alias}
                               attachments={msg()?.attachments}
                               embeds={msg().embeds}
-                              grouped={
-                                grouped && !replyMessage() && !interaction
-                              }
+                              grouped={grouped() && !replyMessage() && !interaction}
                               interaction={interaction}
                               reply={replyMessage()}
                               fake={msg().__fake}
@@ -784,25 +809,10 @@ export function VirtualMessageList(props) {
                               signed={verifyMessage(msg())}
                               onDismiss={() => {
                                 const id = msg().id;
-
-                                setFakeMessages((messages) =>
-                                  messages.filter(
-                                    (message) => message.id !== id,
-                                  ),
-                                );
-
-                                setSectionList((sections) =>
-                                  sections
-                                    .map((section) => ({
-                                      ...section,
-                                      messages: section.messages.filter(
-                                        (message) => message.id !== id,
-                                      ),
-                                    }))
-                                    .filter(
-                                      (section) => section.messages.length > 0,
-                                    ),
-                                );
+                                setFakeMessages((ms) => ms.filter((m) => m.id !== id));
+                                for (const section of sectionList()) {
+                                  section.setMessages((ms) => ms.filter((m) => m.id !== id));
+                                }
                               }}
                             />
                           </div>
@@ -812,6 +822,54 @@ export function VirtualMessageList(props) {
                   </For>
                 </div>
               )}
+            </For>
+            <For each={visiblePending()}>
+              {(item, index) => {
+                const grouped = createMemo(() => {
+                  const list = visiblePending();
+                  const i = index();
+                  const all = messages();
+                  const prev = i > 0 ? list[i - 1] : all[all.length - 1];
+                  if (!prev) return false;
+                  if (prev.user !== item.user) return false;
+                  return toMs(item.timestamp) - toMs(prev.timestamp) <= TEN_MINUTES_MS;
+                });
+
+                return (
+                  <div
+                    class="vml-item vml-pending"
+                    classList={{
+                      "is-grouped": grouped(),
+                      "is-failed": item.status === "failed",
+                    }}
+                  >
+                    <Message
+                      username={item.user}
+                      avatar={`https://avatars.rotur.dev/${item.user}`}
+                      timeRaw={toMs(item.timestamp)}
+                      time={new Date(toMs(item.timestamp)).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      content={item.content}
+                      id={item.id}
+                      renderOverlay={renderOverlay}
+                      reactions={[]}
+                      attachments={item.attachments}
+                      embeds={[]}
+                      grouped={grouped()}
+                      signed={false}
+                    />
+                    <Show when={item.status === "failed"}>
+                      <div class="vml-pending-actions">
+                        <span>Failed to send</span>
+                        <button onClick={() => retryPending(item.id)}>Retry</button>
+                        <button onClick={() => removePending(item.id)}>Dismiss</button>
+                      </div>
+                    </Show>
+                  </div>
+                );
+              }}
             </For>
           </div>
         </div>
