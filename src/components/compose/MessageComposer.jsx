@@ -16,6 +16,7 @@ import {
   HiOutlineFaceSmile,
   HiOutlinePencil,
   HiOutlinePaperAirplane,
+  HiOutlineCheck,
 } from "solid-icons/hi";
 import Typing from "./Typing";
 import {
@@ -239,7 +240,8 @@ export default function MessageComposer(props) {
                 <span style={{ "font-size": "0.75em" }}>
                   {attachment.progress}%
                   <span class="cooking">
-                    {attachment.progress === 100 ? "(done)" : "(uploading...)"}
+                    {attachment.progress === 100 ? <HiOutlineCheck></HiOutlineCheck> :
+                      <div class="loader_spinner"></div>}
                   </span>
                 </span>
                 <Show when={attachment.preview}>
@@ -617,7 +619,7 @@ export default function MessageComposer(props) {
             </Show>
           </div>
           <Show when={!slashState.command && state.settings.showSendButton}>
-            <button class="icon_button" onClick={handleSend}>
+            <button class="icon_button send_message_button" onClick={handleSend}>
               <HiOutlinePaperAirplane />
             </button>
           </Show>

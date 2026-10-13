@@ -34,6 +34,7 @@ export default function Inbox(props) {
             }}
             username={msg.user}
             content={msg.content}
+            pings={msg.pings}
             attachments={msg.attachments}
             reactions={msg.reactions}
             reply={msg.reply}

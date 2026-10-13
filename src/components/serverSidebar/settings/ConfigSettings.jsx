@@ -1,4 +1,6 @@
+import { For } from "solid-js";
 import { SettingCheckbox, SettingInput, SettingSelect } from "../Settings";
+import { PING_SOUND_OPTIONS, playPingSound } from "../../../core/pingSound.js";
 
 
 export function ConfigSettings() {
@@ -31,6 +33,31 @@ export function ConfigSettings() {
                     <option value="ondemand">Load on demand</option>
                     <option value="link">Display as link</option>
                 </SettingSelect>
+            </div>
+
+            <div class="settings_item x">
+                <div class="settings_section_label y">
+                    <span>Ping sound</span>
+                    <small>Trig wave sound played when mentioned or pinged.</small>
+                </div>
+                <div class="x" style={{ gap: "8px", "align-items": "center" }}>
+                    <SettingSelect setting="pingSound">
+                        <For each={PING_SOUND_OPTIONS}>
+                            {(option) => (
+                                <option value={option.value}>{option.label}</option>
+                            )}
+                        </For>
+                    </SettingSelect>
+                    <button
+                        type="button"
+                        class="settings_button"
+                        style={{ padding: "4px 10px", "font-size": "small" }}
+                        onClick={() => playPingSound()}
+                        title="Test ping sound"
+                    >
+                        Test
+                    </button>
+                </div>
             </div>
             <h2 class="settings_title">Client UI</h2>
             <div class="settings_item x">

@@ -32,6 +32,7 @@ import {
 import { preloadChannel, markActive, markBackground } from "../channelCache";
 import { createHoverPreloadHandlers } from "../useHoverPreload";
 import { state, conn, unreads, setUnreads, setState } from "../../App"
+import { playPingSound } from "../../core/pingSound.js";
 
 const channelIcons = {
   text: HiOutlineHashtag,
@@ -135,7 +136,15 @@ export default function ChannelList(props) {
 
     const me = conn.me()?.username;
     const pingedUsers = packet.message?.pings?.users ?? [];
-    const wasPinged = !!(me && pingedUsers.includes(me));
+    const content = packet.message?.content;
+    const contentMentioned =
+      Boolean(me && typeof content === "string") &&
+      new RegExp(`(^|\\s)@${me.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=[^a-zA-Z0-9_]|$)`, "i").test(content);
+    const wasPinged = !!(me && (pingedUsers.includes(me) || contentMentioned));
+
+    if (wasPinged) {
+      playPingSound();
+    }
 
     setUnreads(
       "servers",

@@ -48,6 +48,12 @@
         }
     }
 
+    &.is-mention {
+        background-color: var(--diff-one);
+        box-shadow: 11px 0 0px -8px var(--hl-three) inset;
+        border-radius: 0 var(--br-mid) var(--br-mid) 0;
+    }
+
     & > .actual_message {
         gap: 0.5em;
         align-items: flex-start;
@@ -410,7 +416,7 @@
 
 .embed_timestamp {
     font-size: 12px;
-    opacity: 0.6;
+    color: var(--fg-dim);
 }
 
 .forum-thread-header {
@@ -444,6 +450,10 @@
     & > .pfp {
         height: 1em;
         display: inline;
+    }
+
+    &.is-self {
+        background-color: var(--hl-three);
     }
 }
 

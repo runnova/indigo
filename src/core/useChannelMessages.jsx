@@ -1,6 +1,7 @@
 import { createSignal, createEffect, on, batch } from "solid-js";
 import { produce } from "solid-js/store";
-import { unreads, setUnreads, state } from "../App";
+import { unreads, setUnreads, state, tempState } from "../App";
+import { playPingSound } from "./pingSound.js";
 
 const PAGE_SIZE = 20;
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -357,6 +358,18 @@ export function createChannelMessages({
 
       return next;
     });
+
+    const me = tempState?.conn?.me?.()?.username;
+    if (me && incomingMessage.user !== me) {
+      const pingedUsers = incomingMessage.pings?.users ?? [];
+      const content = incomingMessage.content;
+      const contentMentioned =
+        typeof content === "string" &&
+        new RegExp(`(^|\\s)@${me.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=[^a-zA-Z0-9_]|$)`, "i").test(content);
+      if (pingedUsers.includes(me) || contentMentioned) {
+        playPingSound();
+      }
+    }
 
     if (updateType === "reset") {
       setLastUpdate({ type: "reset" });

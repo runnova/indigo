@@ -569,12 +569,16 @@ function renderToken(token, depth = 0) {
     case "serverInvite":
       return <ServerInviteEmbed key={key} host={token.host} />;
 
-    case "mention":
+    case "mention": {
+      const isMe =
+        tempState?.conn?.me?.()?.username &&
+        token.username?.toLowerCase() ===
+          tempState?.conn?.me?.()?.username?.toLowerCase();
       return (
         <a
           key={key}
           href=""
-          class="mention"
+          class={`mention ${isMe ? "is-self" : ""}`}
           onClick={(e) => {
             e.preventDefault();
             openPopout(token.username, e.currentTarget);
@@ -590,6 +594,7 @@ function renderToken(token, depth = 0) {
           {token.username}
         </a>
       );
+    }
 
     case "roleMention":
       const entry = Object.entries(tempState.conn?.roles?.() ?? {}).find(

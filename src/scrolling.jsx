@@ -797,6 +797,7 @@ export function VirtualMessageList(props) {
                               alias={msg().alias}
                               attachments={msg()?.attachments}
                               embeds={msg().embeds}
+                              pings={msg()?.pings}
                               grouped={grouped() && !replyMessage() && !interaction}
                               interaction={interaction}
                               reply={replyMessage()}

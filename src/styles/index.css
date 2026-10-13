@@ -138,6 +138,29 @@
         height: 30%;
     }
 
+    & > .unread_badge--ping {
+        background-color: var(--danger);
+        min-width: 8px;
+        width: auto;
+        height: 18px;
+        padding: 0 5px;
+        right: -4px;
+        left: auto;
+        bottom: -5px !important;
+        border-radius: 9px;
+        color: #fff;
+        font-size: 10px;
+        line-height: 1;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+        z-index: 2;
+    }
+
+    &:hover > .unread_badge--ping,
+    &.server_single--active > .unread_badge--ping {
+        bottom: 2px;
+        height: 18px;
+    }
+
     &:has(.add_server) {
         background-color: var(--bg-three);
     }
@@ -812,6 +835,24 @@ iframe#rotur-auth {
 span.channel_badge {
     margin-left: auto;
     color: var(--fg-dim);
+    font-size: small;
+}
+
+span.channel_badge--ping {
+    background-color: var(--danger);
+    color: #fff;
+    border-radius: 1em;
+    padding: 1px 9px;
+    font-size: 11px;
+    margin-right: .5em !important;
+}
+
+.channelbar_ping_badge {
+    background-color: var(--danger);
+    color: #fff;
+    font-weight: 700;
+    border-radius: var(--br-mid);
+    padding: 2px 7px;
     font-size: small;
 }
 
@@ -2449,18 +2490,28 @@ hr.channelPageList {
 }
 
 .loader_spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
-    border-top-color: currentColor;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  width: 25px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--hl-three);
+  animation:
+    l20-1 0.8s infinite linear alternate,
+    l20-2 1.6s infinite linear;
 }
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes l20-1{
+   0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
+   12.5% {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100%   0%, 100%   0%, 100%   0% )}
+   25%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 100% 100%, 100% 100% )}
+   50%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+   62.5% {clip-path: polygon(50% 50%,100%    0, 100%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+   75%   {clip-path: polygon(50% 50%,100% 100%, 100% 100%,  100% 100%, 100% 100%, 50%  100%, 0%   100% )}
+   100%  {clip-path: polygon(50% 50%,50%  100%,  50% 100%,   50% 100%,  50% 100%, 50%  100%, 0%   100% )}
+}
+@keyframes l20-2{
+  0%    {transform:scaleY(1)  rotate(0deg)}
+  49.99%{transform:scaleY(1)  rotate(135deg)}
+  50%   {transform:scaleY(-1) rotate(0deg)}
+  100%  {transform:scaleY(-1) rotate(-135deg)}
 }
 
 .smallnote {

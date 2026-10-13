@@ -89,9 +89,13 @@ function ServerEntry(local) {
           local.unreads.servers?.[local.src]?.online ||
           local.currentServer?.src === local.src
         ) && <span class="server_offline_indicator" />}
-        {local.unreadTotal(local.src) > 0 && (
+        {local.pingTotal?.(local.src) > 0 ? (
+          <span class="unread_badge unread_badge--ping">
+            <span class="server_ping_count">{local.pingTotal(local.src)}</span>
+          </span>
+        ) : local.unreadTotal(local.src) > 0 ? (
           <span class="unread_badge"></span>
-        )}
+        ) : null}
       </div>
     </Show>
   );
@@ -327,6 +331,7 @@ export default function ServerBar(props) {
                     currentServer={props.currentServer}
                     unreads={props.unreads}
                     unreadTotal={props.unreadTotal}
+                    pingTotal={props.pingTotal}
                     onSelect={props.onSelect}
                     dragSrc={dragSrc}
                     setDragSrc={setDragSrc}
@@ -374,6 +379,27 @@ export default function ServerBar(props) {
                           )}
                         </For>
                       </div>
+                      {(() => {
+                        const groupPings = (item.group.servers ?? []).reduce(
+                          (sum, s) => sum + (props.pingTotal?.(s) ?? 0),
+                          0
+                        );
+                        const groupUnreads = (item.group.servers ?? []).reduce(
+                          (sum, s) => sum + (props.unreadTotal?.(s) ?? 0),
+                          0
+                        );
+                        if (groupPings > 0) {
+                          return (
+                            <span class="unread_badge unread_badge--ping">
+                              <span class="server_ping_count">{groupPings}</span>
+                            </span>
+                          );
+                        }
+                        if (groupUnreads > 0) {
+                          return <span class="unread_badge"></span>;
+                        }
+                        return null;
+                      })()}
                     </div>
                   }
                 >
@@ -398,6 +424,7 @@ export default function ServerBar(props) {
                           currentServer={props.currentServer}
                           unreads={props.unreads}
                           unreadTotal={props.unreadTotal}
+                          pingTotal={props.pingTotal}
                           onSelect={props.onSelect}
                           dragSrc={dragSrc}
                           setDragSrc={setDragSrc}

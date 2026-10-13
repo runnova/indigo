@@ -1,204 +1,215 @@
 .theme-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: .5em;
-  --green: rgb(0, 148, 0);
-  --tgreen: rgb(155, 255, 155);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5em;
+    --green: rgb(0, 148, 0);
+    --tgreen: rgb(155, 255, 155);
 
-  &>.theme-card {
-    background-color: var(--bg-two);
-    border-radius: var(--br-mid);
-    padding: 0;
-    align-items: justify;
-    text-align: left;
-    cursor: pointer;
+    & > .theme-card {
+        background-color: var(--bg-two);
+        border-radius: var(--br-mid);
+        padding: 0;
+        align-items: justify;
+        text-align: left;
+        cursor: pointer;
 
-    &:hover {
-      background-color: var(--diff-two);
+        &:hover {
+            background-color: var(--diff-two);
+        }
+
+        & .theme-color {
+            background-color: var(--bg-three);
+            height: 3em;
+            border-radius: var(--br-mid) var(--br-mid) 0 0;
+        }
+
+        & h3,
+        p {
+            margin: 0;
+        }
+
+        & .author {
+            color: var(--fg-two);
+            font-size: small;
+            margin-bottom: 0.5em;
+        }
+
+        & .data {
+            padding: 1em;
+
+            & > .cols.x {
+                align-items: flex-start;
+            }
+        }
+
+        & .getbtn {
+            background-color: var(--green);
+            color: var(--fg-one);
+            border-radius: var(--br-mid);
+            padding: 0.3em 1em;
+            font-size: medium;
+
+            &[value="Disable"] {
+                background-color: var(--diff-three);
+            }
+        }
+
+        & .buyCont {
+            margin-left: auto;
+            align-items: center;
+            gap: 0.5em;
+            color: var(--tgreen);
+            font-size: large;
+
+            & * {
+                white-space: nowrap;
+            }
+        }
     }
-
-    & .theme-color {
-      background-color: var(--bg-three);
-      height: 3em;
-      border-radius: var(--br-mid) var(--br-mid) 0 0;
-    }
-
-    & h3,
-    p {
-      margin: 0;
-    }
-
-    & .author {
-      color: var(--fg-two);
-      font-size: small;
-      margin-bottom: .5em;
-    }
-
-    & .data {
-      padding: 1em;
-
-      &>.cols.x {
-        align-items: flex-start;
-      }
-    }
-
-    & .getbtn {
-      background-color: var(--green);
-      color: var(--fg-one);
-      border-radius: var(--br-mid);
-      padding: .3em 1em;
-      font-size: medium;
-
-      &[value="Disable"] {
-        background-color: var(--diff-three);
-      }
-    }
-
-    & .buyCont {
-      margin-left: auto;
-      align-items: center;
-      gap: .5em;
-      color: var(--tgreen);
-      font-size: large;
-
-      & * {
-        white-space: nowrap;
-      }
-    }
-  }
 }
 
 .mod-list {
     display: flex;
     flex-direction: column;
-    gap: .5em;
+    gap: 0.5em;
     --green: rgb(0, 148, 0);
     --tgreen: rgb(155, 255, 155);
     padding-bottom: 5em;
     overflow-y: auto;
-    padding-right: .5em;
+    padding-right: 0.5em;
 
-  --green: rgb(0, 148, 0);
-  --tgreen: rgb(155, 255, 155);
+    --green: rgb(0, 148, 0);
+    --tgreen: rgb(155, 255, 155);
 
-  &>.mod-item {
-    background-color: var(--bg-two);
-    border-radius: var(--br-mid);
-    padding: 1em;
-    align-items: flex-start;
+    & > .mod-item {
+        background-color: var(--bg-two);
+        border-radius: var(--br-mid);
+        padding: 1em;
+        align-items: flex-start;
 
-    &:hover {
-      background-color: var(--diff-two);
+        &:hover {
+            background-color: var(--diff-two);
+        }
+
+        & h3,
+        p {
+            margin: 0;
+        }
+
+        & .author {
+            color: var(--fg-two);
+            font-size: small;
+            margin-bottom: 0.5em;
+        }
+
+        & .mod-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        & .mod-action {
+            margin-left: auto;
+            align-items: center;
+            flex-direction: row;
+            gap: 0.5em;
+            color: var(--tgreen);
+            font-size: large;
+
+            & * {
+                white-space: nowrap;
+            }
+        }
+
+        & .getbtn {
+            background-color: var(--green);
+            color: var(--fg-one);
+            border-radius: var(--br-mid);
+            padding: 0.3em 1em;
+            font-size: medium;
+
+            &[value="Disable"] {
+                background-color: var(--diff-three);
+            }
+        }
     }
-
-    & h3,
-    p {
-      margin: 0;
-    }
-
-    & .author {
-      color: var(--fg-two);
-      font-size: small;
-      margin-bottom: .5em;
-    }
-
-    & .mod-meta {
-      flex: 1;
-      min-width: 0;
-    }
-
-    & .mod-action {
-      margin-left: auto;
-      align-items: center;
-      flex-direction: row;
-      gap: .5em;
-      color: var(--tgreen);
-      font-size: large;
-
-      & * {
-        white-space: nowrap;
-      }
-    }
-
-    & .getbtn {
-      background-color: var(--green);
-      color: var(--fg-one);
-      border-radius: var(--br-mid);
-      padding: .3em 1em;
-      font-size: medium;
-
-      &[value="Disable"] {
-        background-color: var(--diff-three);
-      }
-    }
-  }
 }
 
 .quickcss {
-  box-shadow: var(--border);
-  border-radius: var(--br-mid);
-  width: calc(100% - 1.4em);
-  background-color: var(--bg-two);
-  padding: .7em;
+    box-shadow: var(--border);
+    border-radius: var(--br-mid);
+    width: calc(100% - 1.4em);
+    background-color: var(--bg-two);
+    padding: 0.7em;
 }
 
 .theme-actions {
-  display: flex;
-  gap: .2em;
-  flex-direction: row;
-  margin-bottom: .5em;
+    display: flex;
+    gap: 0.2em;
+    flex-direction: row;
+    margin-bottom: 0.5em;
 
-  & button {
+    & button {
+        background-color: var(--bg-two);
+        padding: 0.5em 0.8em;
+        border-radius: var(--br-mid);
+        cursor: pointer;
+
+        &.hl {
+            background-color: var(--hl-four);
+        }
+    }
+}
+
+.settings_button {
     background-color: var(--bg-two);
-    padding: .5em .8em;
+    padding: 0.5em 0.8em;
     border-radius: var(--br-mid);
     cursor: pointer;
 
     &.hl {
-      background-color: var(--hl-four);
+        background-color: var(--hl-four);
     }
-  }
 }
 
 .theme-sections {
-  display: flex;
-  gap: 8px;
-  margin-bottom: .5em;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.5em;
 }
 
 .theme-sections button {
-  appearance: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--fg-two);
-  cursor: pointer;
-  font: inherit;
+    appearance: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--fg-two);
+    cursor: pointer;
+    font: inherit;
 }
 
 .theme-sections button:hover {
-  color: var(--fg-one);
-  border-bottom-color: var(--diff-one);
+    color: var(--fg-one);
+    border-bottom-color: var(--diff-one);
 }
 
 .theme-sections button.active {
-  color: var(--fg-one);
-  border-bottom-color: var(--hl-one);
+    color: var(--fg-one);
+    border-bottom-color: var(--hl-one);
 }
 
 .theme-sections button.active:hover {
-  border-bottom-color: var(--hl-three);
+    border-bottom-color: var(--hl-three);
 }
 
 .unreaddot {
-  background-color: var(--hl-three);
-  color: var(--fg);
-  border-radius: 2em;
-  display: inline-flex;
-  padding: 11px;
-  height: 5px;
-  width: 5px;
-  align-items: center;
-  justify-content: center;
-  transform: scale(.8);
+    background-color: var(--hl-three);
+    color: var(--fg);
+    border-radius: 2em;
+    display: inline-flex;
+    padding: 11px;
+    height: 5px;
+    width: 5px;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0.8);
 }

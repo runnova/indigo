@@ -281,7 +281,8 @@ export default function EmojiPicker(props) {
               </div>
             </Show>
             <div class="gif_grid">
-              <Show when={!gifLoading()} fallback={<div>Loading...</div>}>
+              <Show when={!gifLoading()} fallback={
+                <div class="loader_spinner"></div>}>
                 <For each={gifs()}>
                   {(gif) => (
                     <button

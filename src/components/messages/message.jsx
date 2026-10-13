@@ -40,6 +40,20 @@ export function Message(props) {
   const gradient = member?.gradient;
   const [editValue, setEditValue] = createSignal("");
 
+  const isMentioned = createMemo(() => {
+    const me = tempState?.conn?.me?.()?.username;
+    if (!me) return false;
+
+    const pingedUsers = props.pings?.users ?? [];
+    if (pingedUsers.includes(me)) return true;
+
+    const content = props.content;
+    if (typeof content !== "string") return false;
+    const escaped = me.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(^|\\s)@${escaped}(?=[^a-zA-Z0-9_]|$)`, "i");
+    return regex.test(content);
+  });
+
   const displayUsername = () =>
     props.alias?.name ||
     props.webhook?.name ||
@@ -149,7 +163,7 @@ export function Message(props) {
 
   return (
     <div
-      class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""}`}
+      class={`message_single y ${props.grouped ? "grouped" : ""} ${props.fake || props.ephemeral ? "is-fake" : ""} ${props.deleted ? "deleted" : ""} ${isMentioned() ? "is-mention" : ""}`}
       onClick={props.onClick}
     >
       {(props.reply || props.interaction) && (
