@@ -216,8 +216,13 @@
     scroll-behavior: auto;
     overscroll-behavior: contain;
     position: relative;
+    touch-action: pan-y;
 }
 
+.vml-scroll.is-swiping {
+  user-select: none;
+  cursor: grabbing;
+}
 .vml-inner {
     will-change: contents;
 }
@@ -227,6 +232,7 @@
     transition: background 0.4s ease;
     content-visibility: auto;
     contain-intrinsic-size: 65px;
+    will-change: transform;
 
     &.is-grouped .message_single {
         padding-top: 0em;

@@ -517,6 +517,98 @@ export function VirtualMessageList(props) {
     if (scrollToMessageTimeout) clearTimeout(scrollToMessageTimeout);
   });
 
+  const SWIPE_LOCK_PX = 10;
+  const SWIPE_REPLY_PX = 70;
+  const SWIPE_SIDEBAR_PX = 90;
+  let swipe = null;
+
+  function resetSwipeVisual(item) {
+    if (!item) return;
+    item.style.transition = "transform 0.15s ease";
+    item.style.transform = "";
+    setTimeout(() => {
+      item.style.transition = "";
+    }, 160);
+  }
+
+  function onPointerDown(e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (e.target.closest("button, a, input, textarea, select, video, audio")) return;
+
+    const item = e.target.closest('[data-context="message"]');
+    swipe = {
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      dx: 0,
+      locked: false,
+      item,
+      messageId: item?.getAttribute("data-id") ?? null,
+    };
+  }
+
+  function onPointerMove(e) {
+    if (!swipe || e.pointerId !== swipe.pointerId) return;
+
+    const dx = e.clientX - swipe.x;
+    const dy = e.clientY - swipe.y;
+
+    if (!swipe.locked) {
+      if (Math.abs(dx) < SWIPE_LOCK_PX && Math.abs(dy) < SWIPE_LOCK_PX) return;
+
+      if (Math.abs(dy) > Math.abs(dx)) {
+        swipe = null;
+        return;
+      }
+
+      swipe.locked = true;
+      scrollEl.setPointerCapture(e.pointerId);
+      window.getSelection()?.removeAllRanges();
+      scrollEl.classList.add("is-swiping");
+    }
+
+    swipe.dx = dx;
+
+    if (swipe.item && dx < 0) {
+      swipe.item.style.transition = "none";
+      swipe.item.style.transform = `translateX(${Math.max(dx, -120)}px)`;
+    }
+  }
+
+  function endSwipe(e, cancelled = false) {
+    if (!swipe || e.pointerId !== swipe.pointerId) return;
+    const { locked, dx, item, messageId } = swipe;
+    swipe = null;
+
+    if (!locked) return;
+
+    scrollEl.classList.remove("is-swiping");
+    try {
+      scrollEl.releasePointerCapture(e.pointerId);
+    } catch {}
+    resetSwipeVisual(item);
+
+    const swallow = (ev) => ev.stopPropagation();
+    scrollEl.addEventListener("click", swallow, { capture: true, once: true });
+    setTimeout(() => scrollEl?.removeEventListener("click", swallow, true), 0);
+
+    if (cancelled) return;
+
+    if (dx <= -SWIPE_REPLY_PX && messageId) {
+      const m = getMessageById(messageId);
+      if (m && !m.ephemeral && !m.__fake && !m.deleted) {
+        setState("replying", { id: m.id, user: m.user, content: m.content });
+        document.querySelector(".message_input, textarea")?.focus?.();
+      }
+    } else if (dx >= SWIPE_SIDEBAR_PX) {
+      document.querySelector(".server_bar")?.scrollIntoView({
+        behavior: "smooth",
+        inline: "start",
+        block: "nearest",
+      });
+    }
+  }
+
   createEffect(
     on(fakeMessages, (msgs) => {
       const last = msgs[msgs.length - 1];
@@ -703,6 +795,10 @@ export function VirtualMessageList(props) {
           }}
           class="vml-scroll"
           onScroll={onScroll}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={(e) => endSwipe(e)}
+          onPointerCancel={(e) => endSwipe(e, true)}
         >
           <Show when={!hasOlderMessages() && messages().length}>
             <div class="vml-beginning">You've reached the beginning.</div>

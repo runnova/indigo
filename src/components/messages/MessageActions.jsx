@@ -1,3 +1,4 @@
+import { For, Show, createMemo } from "solid-js";
 import {
   HiOutlineChatBubbleOvalLeft,
   HiOutlineFaceSmile,
@@ -7,49 +8,51 @@ import {
 } from "solid-icons/hi";
 
 export function MessageActions(props) {
-  const { channel, messageId, onQuickReact, quickReactions, ...rest } = props;
-  const reactions = (quickReactions ?? "👍, ❤️, 😂, 🎉, 👎")
-    .split(",")
-    .map((emoji) => emoji.trim())
-    .filter((e) => e);
+  const reactions = createMemo(() =>
+    (props.quickReactions ?? "👍, ❤️, 😂, 🎉, 👎")
+      .split(",")
+      .map((emoji) => emoji.trim())
+      .filter(Boolean),
+  );
 
   return (
     <div class="message_actions x">
-      {reactions.length > 0 && (
+      <Show when={reactions().length > 0}>
         <div class="quick_reactions x">
-          {reactions.map((emoji, index) => (
-            <button
-              key={index}
-              data-tooltip={emoji}
-              onClick={() => onQuickReact?.(emoji, messageId, channel)}
-            >
-              {emoji}
-            </button>
-          ))}
+          <For each={reactions()}>
+            {(emoji) => (
+              <button
+                data-tooltip={emoji}
+                onClick={() =>
+                  props.onQuickReact?.(emoji, props.messageId, props.channel)
+                }
+              >
+                {emoji}
+              </button>
+            )}
+          </For>
         </div>
-      )}
+      </Show>
       <vr></vr>
 
       <button
         data-tooltip="Copy Text"
-        onClick={() => {
-          navigator.clipboard.writeText(rest.content);
-        }}
+        onClick={() => navigator.clipboard.writeText(props.content)}
       >
         <HiOutlineDocumentDuplicate />
       </button>
 
-      {rest.canEdit && (
+      <Show when={props.canEdit}>
         <button data-tooltip="Edit" onClick={() => props.onEdit?.()}>
           <HiOutlinePencil />
         </button>
-      )}
+      </Show>
 
-      {rest.canDelete && (
+      <Show when={props.canDelete}>
         <button data-tooltip="Delete" onClick={() => props.onDelete?.()}>
           <HiOutlineTrash />
         </button>
-      )}
+      </Show>
 
       <button onClick={() => props.onReact?.()} data-tooltip="React">
         <HiOutlineFaceSmile />
