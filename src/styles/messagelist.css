@@ -609,3 +609,11 @@
 .vml-pending.is-failed .message_single { /* whatever your message root class is */
   opacity: 0.6;
 }
+
+vr {
+    height: 1.5em;
+    margin: .25em;
+    display: flex;
+    width: 1px;
+    background-color: var(--diff-two);
+}

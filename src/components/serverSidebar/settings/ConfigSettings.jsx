@@ -38,7 +38,7 @@ export function ConfigSettings() {
             <div class="settings_item x">
                 <div class="settings_section_label y">
                     <span>Ping sound</span>
-                    <small>Trig wave sound played when mentioned or pinged.</small>
+                    <small>Choose what plays when you're mentioned or pinged</small>
                 </div>
                 <div class="x" style={{ gap: "8px", "align-items": "center" }}>
                     <SettingSelect setting="pingSound">
@@ -64,9 +64,16 @@ export function ConfigSettings() {
               <div class="settings_section_label y">
                 <span>
                   Window manager</span>
-                <small>Display pages like settings and explore as draggable windows.</small>
+                <small>Display pages like settings and explore as draggable windows</small>
               </div>
               <SettingCheckbox setting="windowManager" />
+            </div>
+            <div class="settings_item x">
+                <div class="settings_section_label y">
+                  <span>Quick reactions</span>
+                  <small>Emojis to show as quick reactions (comma-separated)</small>
+                </div>
+                <SettingInput setting="quickReactions" />
             </div>
         </>
     );

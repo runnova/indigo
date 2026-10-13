@@ -11,6 +11,14 @@ export function GeneralSettings() {
       <div class="settings_item x">
         <div class="settings_section_label y">
           <span>
+            Auto reply on ping</span>
+          <small>Automatically open reply box when mentioned.</small>
+        </div>
+        <SettingCheckbox setting="autoReplyOnPing" />
+      </div>
+      <div class="settings_item x">
+        <div class="settings_section_label y">
+          <span>
             Send typing</span>
           <small>Turn this off and nobody knows you are typing.</small>
         </div>

@@ -316,15 +316,22 @@ function renderToken(token, depth = 0) {
       );
 
     case "url": {
-      const provider = getEmbedProvider(token.url);
+      const url = token.url;
+      const isEmbedless = url.startsWith("<") && url.endsWith(">") && url.length > 2;
+      const cleanUrl = isEmbedless ? url.slice(1, -1) : url;
+
+      const provider = getEmbedProvider(cleanUrl);
       if (provider) {
         const Custom = provider.Component;
-        return <Custom key={key} url={token.url} />;
+        return <Custom key={key} url={cleanUrl} />;
       }
-      if (token.url.match(/^https:\/\/chats\.mistium\.com\/emojis\/\d+$/)) {
-        return <img key={key} class="inline_emoji" src={token.url} alt="" />;
+      if (cleanUrl.match(/^https:\/\/chats\.mistium\.com\/emojis\/\d+$/)) {
+        return <img key={key} class="inline_emoji" src={cleanUrl} alt="" />;
       }
-      return <EmbeddedLink key={key} url={token.url} />;
+      if (isEmbedless) {
+        return <span key={key} class="embedless_link">{cleanUrl}</span>;
+      }
+      return <EmbeddedLink key={key} url={cleanUrl} />;
     }
 
     case "emoji":

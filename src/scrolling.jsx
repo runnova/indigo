@@ -892,6 +892,8 @@ export function VirtualMessageList(props) {
           >
             <MessageActions
               content={hoveredMessage().content}
+              channel={state.current.channel}
+              messageId={hoveredMessage().id}
               canEdit={
                 hoveredMessage().user === tempState?.conn?.me()?.username
               }
@@ -922,6 +924,7 @@ export function VirtualMessageList(props) {
                   ...(props.threadId && { thread_id: props.threadId }),
                 })
               }
+              quickReactions={state.settings.quickReactions}
               onReact={(e) => {
                 console.log("send??", hoveredMessage());
                 const rect = hoverRect();
@@ -938,6 +941,14 @@ export function VirtualMessageList(props) {
                       emoji,
                     });
                   },
+                });
+              }}
+              onQuickReact={(emoji, messageId, channel) => {
+                tempState.conn.send({
+                  cmd: "message_react_add",
+                  channel,
+                  id: messageId,
+                  emoji,
                 });
               }}
             />

@@ -53,6 +53,8 @@ export const defaultState = {
     showSendButton: true,
     windowManager: true,
     pingSound: "triangle",
+    quickReactions: "👍, ❤️, 😂, 🎉, 👎",
+    autoReplyOnPing: false,
   },
 };
 

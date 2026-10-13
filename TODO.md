@@ -4,12 +4,18 @@
 - add reaction from actions doesnt work
 
 # Planned
+- polls
+
+user popout menu
 - block user
 - dms shortcut in profile popout
 - add/remove friend
 
+context menu
 - attachment right click
 - right click gif info
+
+cosmetic
 - ui DMs functionality instead of bot
 - background wallpaper setting
 - methods
