@@ -16,6 +16,8 @@
     height: calc(100% - 1em);
     width: calc(100% - 1em);
     gap: 2pt;
+    overflow-x: visible;
+    overflow-y: auto;
 }
 
 .server_bar_wrapper {

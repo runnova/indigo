@@ -14,6 +14,9 @@ import {
   HiOutlinePencil,
   HiOutlineArrowDownTray,
   HiOutlineLanguage,
+  HiOutlineArrowUp,
+  HiOutlineArrowDown,
+  HiOutlineCheckCircle,
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
 import { setState, state } from "../App.jsx";
@@ -30,6 +33,8 @@ import {
   getColorNames,
   getColorValue,
   setGroupColor,
+  moveServer,
+  moveGroup,
 } from "../components/serverSidebar/groups.js";
 import { translateTextToEnglish } from "./services/translate.js";
 
@@ -37,6 +42,30 @@ const removeServer = (src) => {
   setState("servers", (servers) =>
     servers.filter((server) => server.src !== src),
   );
+};
+
+const moveServerBy = (src, dir) => {
+  const result = moveServer(state.servers, state.serverGroups ?? [], src, dir);
+  setState("serverGroups", result.groups);
+  setState("servers", result.servers);
+};
+
+const moveGroupBy = (groupId, dir) => {
+  setState("servers", (servers) =>
+    moveGroup(servers, state.serverGroups ?? [], groupId, dir),
+  );
+};
+
+const markServerAsRead = (src) => {
+  const channels = state.unreads?.servers?.[src]?.channels ?? {};
+  for (const [channel, info] of Object.entries(channels)) {
+    unreadTracking.markAsRead(channel, info.lastMessageId, Date.now());
+  }
+};
+
+const markGroupAsRead = (groupId) => {
+  const group = state.serverGroups?.find((g) => g.id === groupId);
+  (group?.servers ?? []).forEach(markServerAsRead);
 };
 
 SystemContextMenu.init([
@@ -48,6 +77,13 @@ SystemContextMenu.init([
         icon: HiOutlineArrowPath,
         fn: (el) => reconnectServer(el.dataset.src),
       },
+      {
+        label: "Mark as read",
+        icon: HiOutlineCheckCircle,
+        fn: (el) => markServerAsRead(el.dataset.src),
+      },
+      { label: "Move up",   icon: HiOutlineArrowUp,   fn: (el) => moveServerBy(el.dataset.src, -1) },
+      { label: "Move down", icon: HiOutlineArrowDown, fn: (el) => moveServerBy(el.dataset.src, 1) },
       { special: "hr" },
       {
         label: "Advanced",
@@ -128,6 +164,14 @@ SystemContextMenu.init([
   {
     "data-context": "server_group",
     actions: [
+    {
+        label: "Mark group as read",
+        icon: HiOutlineCheckCircle,
+        fn: (el) => markGroupAsRead(el.dataset.groupId),
+      },
+      { label: "Move up",   icon: HiOutlineArrowUp,   fn: (el) => moveGroupBy(el.dataset.groupId, -1) },
+      { label: "Move down", icon: HiOutlineArrowDown, fn: (el) => moveGroupBy(el.dataset.groupId, 1) },
+      { special: "hr" },
       {
         label: "Rename group",
         icon: HiOutlineDocumentText,

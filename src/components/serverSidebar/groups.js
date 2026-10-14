@@ -110,3 +110,68 @@ export function renameGroup(groups, groupId, name) {
       : g
   );
 }
+
+// Top-level sidebar items, built the same way ServerBar builds `items`
+function topLevelItems(servers, groups) {
+  const order = renderedOrder(servers, groups);
+  const items = [];
+  const seen = new Set();
+
+  for (const src of order) {
+    const group = groups.find((g) => (g.servers ?? []).includes(src));
+    if (group) {
+      if (!seen.has(group.id)) {
+        seen.add(group.id);
+        items.push({ type: "group", id: group.id, srcs: [...(group.servers ?? [])] });
+      }
+    } else {
+      items.push({ type: "server", id: src, srcs: [src] });
+    }
+  }
+  return items;
+}
+
+// Flatten items back into a servers array (group members stay contiguous)
+function flattenItems(servers, items) {
+  const order = items.flatMap((i) => i.srcs);
+  const ordered = order.map((src) => serverBySrc(servers, src)).filter(Boolean);
+  const missing = servers.filter((s) => !order.includes(s.src));
+  return [...ordered, ...missing];
+}
+
+function swap(arr, index, dir) {
+  const j = index + dir;
+  if (index < 0 || j < 0 || j >= arr.length) return arr;
+  const copy = [...arr];
+  [copy[index], copy[j]] = [copy[j], copy[index]];
+  return copy;
+}
+
+/** dir: -1 = up, +1 = down. Returns { servers, groups } */
+export function moveServer(servers, groups, src, dir) {
+  const group = groups.find((g) => (g.servers ?? []).includes(src));
+
+  // Inside a group: reorder within that group
+  if (group) {
+    const nextGroups = groups.map((g) =>
+      g.id === group.id
+        ? { ...g, servers: swap(g.servers, g.servers.indexOf(src), dir) }
+        : g,
+    );
+    return {
+      groups: nextGroups,
+      servers: flattenItems(servers, topLevelItems(servers, nextGroups)),
+    };
+  }
+
+  // Ungrouped: swap with the neighbouring server/group
+  const items = topLevelItems(servers, groups);
+  const idx = items.findIndex((i) => i.type === "server" && i.id === src);
+  return { groups, servers: flattenItems(servers, swap(items, idx, dir)) };
+}
+
+export function moveGroup(servers, groups, groupId, dir) {
+  const items = topLevelItems(servers, groups);
+  const idx = items.findIndex((i) => i.type === "group" && i.id === groupId);
+  return flattenItems(servers, swap(items, idx, dir));
+}
