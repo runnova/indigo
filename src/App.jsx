@@ -19,7 +19,11 @@ import {
   HiOutlineUserCircle,
   HiOutlineArrowLeft,
   HiOutlineBars3,
+  HiOutlineStar
 } from "solid-icons/hi";
+
+import FavoritesSidebar from "./components/favorites/FavoritesSidebar.jsx";
+import { isFavorite, toggleFavorite, openFavorites } from "./core/favorites.js";
 
 const appIcon = `${import.meta.env.BASE_URL}icon.svg`;
 
@@ -435,6 +439,7 @@ function App() {
   });
 
   function selectServer(server) {
+    setState("current", "inFavorites", false);
     if (!server.src && server.url) server.src = server.url;
     if (state.current.server?.src === server.src && conn.status() === "ready")
       return;
@@ -541,16 +546,23 @@ function App() {
             "max-width": `${firstBarWidth()}px`,
           }}
         >
-          <Show when={conn.status() === "ready"}>
-            <ServerSidebar
-              serverInfo={conn.serverInfo()}
-              channels={conn.channels()}
-              currentChannel={state.current.channel}
-              unreads={unreads}
-              serverSrc={state.current.server?.src}
-              onSelectChannel={selectChannel}
-              preloadChannel={preloadChannelMessages}
-            />
+          <Show
+            when={state.current.inFavorites}
+            fallback={
+              <Show when={conn.status() === "ready"}>
+                <ServerSidebar
+                  serverInfo={conn.serverInfo()}
+                  channels={conn.channels()}
+                  currentChannel={state.current.channel}
+                  unreads={unreads}
+                  serverSrc={state.current.server?.src}
+                  onSelectChannel={selectChannel}
+                  preloadChannel={preloadChannelMessages}
+                />
+              </Show>
+            }
+          >
+            <FavoritesSidebar />
           </Show>
           <UserDisplay></UserDisplay>
         </div>
@@ -675,6 +687,22 @@ function App() {
                     </div>
                   </Show>
                   <div class="inpgrp x">
+                    <button
+                      class={isFavorite(state.current.server?.src, state.current.channel) ? "active" : ""}
+                      title="Toggle favorite"
+                      onClick={() =>
+                        toggleFavorite(
+                          {
+                            src: state.current.server?.src,
+                            name: conn.serverInfo()?.name ?? state.current.server?.name,
+                            icon: conn.serverInfo()?.icon ?? state.current.server?.icon,
+                          },
+                          currentChannel(),
+                        )
+                      }
+                    >
+                      <HiOutlineStar />
+                    </button>
                     <button
                       className={
                         state.thirdBarContext === "selfroles" ? "active" : ""

@@ -518,7 +518,7 @@ nav button.active {
             animation: tap 0.3s cubic-bezier(0.42, 1.67, 0.21, 0.9);
         }
 
-        &.channel_item--active {
+        &.channel_item--active, &.channel_item.active {
             background-color: var(--hl-four);
             opacity: 1;
             position: relative;
@@ -1065,6 +1065,7 @@ img.channel_icon_image {
         height: fit-content;
         cursor: pointer;
         display: flex;
+        border: 1px solid transparent;
 
         &:hover {
             background-color: var(--bg-three);
@@ -2575,4 +2576,12 @@ hr.channelPageList {
     & .rotur-login-icon {
         width: 100px;
     }
+}
+
+.fav_group_header.x {
+    gap: .5em;
+    padding: .5em 0em;
+    padding-top: 1em;
+    border-bottom: 1px solid var(--diff-three);
+    margin: 0 1em;
 }
