@@ -532,10 +532,14 @@ export function VirtualMessageList(props) {
   }
 
   function onPointerDown(e) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    if (e.target.closest("button, a, input, textarea, select, video, audio")) return;
+    if (e.pointerType !== "touch") return;
+
+    if (e.target.closest("button, a, input, textarea, select, video, audio")) {
+      return;
+    }
 
     const item = e.target.closest('[data-context="message"]');
+
     swipe = {
       pointerId: e.pointerId,
       x: e.clientX,
@@ -554,7 +558,9 @@ export function VirtualMessageList(props) {
     const dy = e.clientY - swipe.y;
 
     if (!swipe.locked) {
-      if (Math.abs(dx) < SWIPE_LOCK_PX && Math.abs(dy) < SWIPE_LOCK_PX) return;
+      if (Math.abs(dx) < SWIPE_LOCK_PX && Math.abs(dy) < SWIPE_LOCK_PX) {
+        return;
+      }
 
       if (Math.abs(dy) > Math.abs(dx)) {
         swipe = null;
@@ -577,27 +583,40 @@ export function VirtualMessageList(props) {
 
   function endSwipe(e, cancelled = false) {
     if (!swipe || e.pointerId !== swipe.pointerId) return;
+
     const { locked, dx, item, messageId } = swipe;
     swipe = null;
 
     if (!locked) return;
 
     scrollEl.classList.remove("is-swiping");
+
     try {
       scrollEl.releasePointerCapture(e.pointerId);
     } catch {}
+
     resetSwipeVisual(item);
 
     const swallow = (ev) => ev.stopPropagation();
-    scrollEl.addEventListener("click", swallow, { capture: true, once: true });
+    scrollEl.addEventListener("click", swallow, {
+      capture: true,
+      once: true,
+    });
+
     setTimeout(() => scrollEl?.removeEventListener("click", swallow, true), 0);
 
     if (cancelled) return;
 
     if (dx <= -SWIPE_REPLY_PX && messageId) {
       const m = getMessageById(messageId);
+
       if (m && !m.ephemeral && !m.__fake && !m.deleted) {
-        setState("replying", { id: m.id, user: m.user, content: m.content });
+        setState("replying", {
+          id: m.id,
+          user: m.user,
+          content: m.content,
+        });
+
         document.querySelector(".message_input, textarea")?.focus?.();
       }
     } else if (dx >= SWIPE_SIDEBAR_PX) {

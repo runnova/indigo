@@ -71,7 +71,7 @@ function AboutSettings() {
         state={state}
         clearCacheAndReload={clearCacheAndReload}
       ></VersionUpdate>
-      <h2>Indigo Client</h2>
+      <h2>Indigo Client v{state.settings.version}</h2>
       <p>
         The cooler <a href="https://originchats.com?ref=runnova">OriginChats</a>{" "}
         client, built in SolidJS and vanila Javascript.
@@ -107,6 +107,11 @@ function AboutSettings() {
           }}
         >
           Make indigo better
+        </button>
+        <button
+          onclick={clearCacheAndReload}
+        >
+          Update Now
         </button>
       </div>
     </>

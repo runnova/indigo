@@ -41,7 +41,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 22px;
+  margin-top: 1em;
   font-size: 13px;
   font-weight: 600;
 }

@@ -1,11 +1,27 @@
 import { createSignal, onMount, Show } from "solid-js";
 import "./versionupdate.css";
 import { HiOutlineArrowRight } from "solid-icons/hi";
+import { setState } from "../../../state";
 
 export default function VersionUpdate(props) {
   const [latestVersion, setLatestVersion] = createSignal("");
   const [currentVersion, setCurrentVersion] = createSignal("");
   const [isUpdateAvailable, setIsUpdateAvailable] = createSignal(false);
+
+  const getVersionDifference = (current, latest) => {
+    const a = current.split(".").map(Number);
+    const b = latest.split(".").map(Number);
+    const length = Math.max(a.length, b.length);
+    let differences = 0;
+
+    for (let i = 0; i < length; i++) {
+      if ((a[i] || 0) !== (b[i] || 0)) {
+        differences++;
+      }
+    }
+
+    return differences;
+  };
 
   const compareVersions = (current, latest) => {
     const a = current.split(".").map(Number);
@@ -47,33 +63,34 @@ export default function VersionUpdate(props) {
 
   return (
     <>
-    <Show when={isUpdateAvailable()}>
-      <div class="version-update">
-        <div class="version-update-content">
-          <h3>Your client is outdated</h3>
+      <Show when={isUpdateAvailable()}>
+        <div class="version-update">
+          <div class="version-update-content">
+            <h3>Your client is outdated</h3>
 
-          <p class="version-update-description">
-            Your client is {latestVersion() - currentVersion()} version(s) behind.
+            <p class="version-update-description">
+              Your client has {getVersionDifference(currentVersion(), latestVersion())} differing version component(s).
+              (Indigo v{currentVersion()} to v{latestVersion()})
             </p>
 
-          <button
-            class="version-update-button"
-            onClick={() => {
-              state.settings.version = latestVersion()
-              props.clearCacheAndReload()
-            }}
-          >
-            Apply v{latestVersion()} now
-          </button>
-          <div class="version-update-versions">
-              <span>{currentVersion()}</span>
-              <HiOutlineArrowRight></HiOutlineArrowRight>
-            <span>{latestVersion()}</span>
+            <button
+              class="version-update-button"
+              onClick={() => {
+                setState("settings", "version", latestVersion())
+                console.log("v set", latestVersion())
+                props.clearCacheAndReload();
+              }}
+            >
+              Apply v{latestVersion()} now
+            </button>
           </div>
-        </div>
 
-          <img class="fill version-update-artwork" src="/updaterIcon.svg" alt="" />
-      </div>
+          <img
+            class="fill version-update-artwork"
+            src="/updaterIcon.svg"
+            alt=""
+          />
+        </div>
       </Show>
     </>
   );
