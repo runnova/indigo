@@ -49,6 +49,7 @@ import {
   ensureConnected,
   connections,
   applyIdlePolicy,
+  reconnectServer,
 } from "./core/server_connection.jsx";
 import MediaPreview from "./components/MediaPreview";
 import useAppInitialization from "./core/useAppInitialization.js";
@@ -816,7 +817,15 @@ function App() {
                             state.current.server && conn.status() !== "ready"
                           }
                         >
-                          <p>{statusLabel() || "Connecting…"}</p>
+                          <p>{statusLabel() || "Connecting…"} <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              reconnectServer(state.current.server.src);
+                            }}
+                          >
+                            Reconnect
+                          </a></p>
                         </Show>
                         <Show
                           when={

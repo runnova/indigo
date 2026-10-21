@@ -41,7 +41,7 @@ export default function VersionUpdate(props) {
 
   onMount(async () => {
     try {
-      const response = await fetch("/version.json", {
+      const response = await fetch("version.json", {
         cache: "no-store",
       });
 
