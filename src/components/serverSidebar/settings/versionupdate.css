@@ -1,0 +1,93 @@
+.version-update {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2em 1.7em;
+  overflow: hidden;
+  border: var(--border);
+  border-radius: var(--br-big);
+  background-color: var(--bg-two);
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+.version-update-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-width: 0;
+}
+
+.version-update h3 {
+  margin: 0 0 8px;
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  color: var(--fg-one);
+}
+
+.version-update-description {
+  margin: 0 0 16px;
+  color: var(--fg-two);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.version-update-versions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.version-update-versions span:first-child {
+  color: var(--fg-two);
+}
+
+.version-update-versions span:last-child {
+  color: var(--fg-three);
+}
+
+.version-update-arrow {
+  color: var(--hl-one);
+}
+
+.version-update-button {
+  padding: 11px 18px;
+  border: 0;
+  border-radius: var(--br-mid);
+  background: var(--bg-three);
+  color: var(--fg-one);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.version-update-button:hover {
+  background: var(--diff-one);
+  transform: translateY(-1px);
+}
+
+.version-update-button:focus-visible {
+  outline: 2px solid var(--hl-two);
+  outline-offset: 4px;
+}
+
+.version-update-artwork {
+  position: relative;
+  display: grid;
+  flex: 0 0 120px;
+  width: 120px;
+  height: 120px;
+  place-items: center;
+}
