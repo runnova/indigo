@@ -1,4 +1,4 @@
-import { HiOutlineHome } from "solid-icons/hi"
+import { HiOutlineHome, HiOutlineShoppingBag } from "solid-icons/hi"
 import { setState, state } from "../../App"
 
 export default function DMsServerBtns() {
@@ -9,6 +9,10 @@ export default function DMsServerBtns() {
           <HiOutlineHome />
           Home
         </div>
+        {/* <div className="channelList_button" onClick={() => { setState("current", "channel_type", "dms_shop"); }}>
+          <HiOutlineShoppingBag />
+          Shop
+        </div>*/}
         <hr className="channelPageList" />
       </Show>
     </>

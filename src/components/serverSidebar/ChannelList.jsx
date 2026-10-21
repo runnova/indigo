@@ -29,9 +29,8 @@ import {
   HiOutlineSpeakerXMark
 } from "solid-icons/hi";
 
-import { preloadChannel, markActive, markBackground } from "../channelCache";
 import { createHoverPreloadHandlers } from "../useHoverPreload";
-import { state, conn, unreads, setUnreads, setState } from "../../App"
+import { state, conn, unreads, setUnreads, setState } from "../../App";
 import { playPingSound } from "../../core/pingSound.js";
 
 const channelIcons = {
@@ -162,20 +161,15 @@ export default function ChannelList(props) {
     if (channelName === props.currentChannel) return;
     if (state.settings.channelPreload === false) return;
 
-    preloadChannel(channelName, () => props.preloadChannel(channelName));
+    // channelCache.preload() dedupes in-flight requests and returns on a hit
+    props.preloadChannel(channelName);
   }
 
   function handleSelect(channelName) {
-    if (props.currentChannel && props.currentChannel !== channelName) {
-      markBackground(props.currentChannel);
-    }
-
-    document.getElementById("interactive_section").scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        })
-
-    markActive(channelName);
+    document.getElementById("interactive_section")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
 
     props.onSelect(channelName);
   }
@@ -305,9 +299,10 @@ export default function ChannelList(props) {
                       class="x channel_thread_item"
                       data-thread={thread.id}
                       onClick={() => {
-                        markActive(ch.name);
-                        props.onSelect(ch.name);
-                        setState("current", "thread", thread);
+                        batch(() => {
+                          props.onSelect(ch.name);
+                          setState("current", "thread", thread);
+                        });
                       }}
                     >
                       <span class="channel_icon">

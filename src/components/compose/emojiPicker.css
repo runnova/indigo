@@ -114,3 +114,17 @@
     transform: scale(1.2);
     border-radius: var(--br-tiny);
 }
+
+.sticker_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+  width: 0;
+  flex-grow: 1;
+  align-items: start;
+}
+.sticker_button img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}

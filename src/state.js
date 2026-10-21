@@ -32,6 +32,7 @@ export const defaultState = {
     quickCss: "",
   },
   settings: {
+    version: 0,
     dmsServer: "dms.mistium.com",
     profileOverlays: true,
     sendTypingStatus: true,

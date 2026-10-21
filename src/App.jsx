@@ -5,6 +5,7 @@ import {
   createMemo,
   createSignal,
   on,
+  batch,
 } from "solid-js";
 
 import Tooltip from "./components/utility/tooltip/Tooltip.jsx";
@@ -23,7 +24,13 @@ import {
 const appIcon = `${import.meta.env.BASE_URL}icon.svg`;
 
 import MemberPopout from "./components/rightSidebar/memberList/MemberPopout.jsx";
-
+import {
+  cacheKey,
+  preload,
+  applyEventToCache,
+  invalidateServer,
+  PAGE_SIZE,
+} from "./components/channelCache.js";
 import ServerBar from "./components/serverSidebar/ServerBar.jsx";
 import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
@@ -101,7 +108,6 @@ import {
   setEmojiPicker,
 } from "./state.js";
 
-
 export {
   state,
   setState,
@@ -143,25 +149,10 @@ export {
 };
 
 function preloadChannelMessages(channelName) {
-  return new Promise((resolve) => {
-    let resolved = false;
-
-    const dispose = createEffect(
-      on(conn.lastEvent, (packet) => {
-        if (resolved || !packet) return;
-        if (packet.cmd === "messages_get" && packet.channel === channelName) {
-          resolved = true;
-          resolve(packet.val ?? packet.messages ?? []);
-        }
-      }),
-    );
-
-    conn.send({ cmd: "messages_get", channel: channelName, limit: 20 });
-
-    setTimeout(() => {
-      if (!resolved) resolve([]);
-    }, 5000);
-  });
+  const src = state.current.server?.src;
+  return preload(cacheKey(src, channelName), () =>
+    conn.send({ cmd: "messages_get", channel: channelName, limit: PAGE_SIZE }),
+  );
 }
 
 function App() {
@@ -203,6 +194,33 @@ function App() {
       setUrlDeepLinkActive(false);
     }
   });
+
+  createEffect(() => {
+    const e = conn.lastEvent();
+    if (!e?.channel || conn.status() !== "ready") return;
+    const src = state.current.server?.src;
+    if (!src || e.channel === state.current.channel) return;
+    applyEventToCache(cacheKey(src, e.channel), e, {
+      messageLogger: state.settings.messageLogger,
+    });
+  });
+
+  createEffect(
+    on(
+      () => state.current.server?.src,
+      (_src, prevSrc) => invalidateServer(prevSrc),
+      { defer: true },
+    ),
+  );
+  createEffect(
+    on(
+      () => conn.status(),
+      (status) => {
+        if (status !== "ready") invalidateServer(state.current.server?.src);
+      },
+      { defer: true },
+    ),
+  );
 
   createEffect(() => {
     state.settings.idleConnections;
@@ -448,14 +466,14 @@ function App() {
   });
 
   function selectChannel(channelName) {
-    setState("current", "channel", channelName);
-    setState("current", "channel_type", "");
-    setState("current", "thread", null);
+    batch(() => {
+      setState("current", "channel", channelName);
+      setState("current", "channel_type", "");
+      setState("current", "thread", null);
 
-    const serverSrc = state.current.server?.src;
-    if (serverSrc) {
-      setState("serverChannels", serverSrc, channelName);
-    }
+      const serverSrc = state.current.server?.src;
+      if (serverSrc) setState("serverChannels", serverSrc, channelName);
+    });
   }
   const currentServerName = () =>
     conn.serverInfo()?.name ?? state.current.server?.name ?? "";
@@ -562,6 +580,16 @@ function App() {
             className="actual_real_servercontent fill y"
             style={{ height: "0" }}
           >
+            {/*
+            <Show when={state.current?.channel_type === "dms_shop"}>
+              <iframe
+                src="https://rotur.dev/embed/shop"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-storage-access-by-user-activation"
+                allow="storage-access"
+                frameborder="0"
+                className="fill"
+              ></iframe>
+              </Show> */}
             <Show when={state.current?.channel_type === "dms_home"}>
               <div class="topbar">
                 <div class="channelbar x">
@@ -591,7 +619,7 @@ function App() {
               </div>
             </Show>
 
-            <Show when={state.current?.channel_type !== "dms_home"}>
+            <Show when={!state.current?.channel_type.startsWith("dms_")}>
               <div class="topbar">
                 <div class="channelbar x">
                   <Show

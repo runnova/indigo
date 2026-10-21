@@ -1,8 +1,10 @@
 import { createEffect, createSignal } from "solid-js";
+
 import { state, setState, unreads, setUnreads, setLoaded } from "../App";
-import { createStore } from "solid-js/store";
+import { createStore, reconcile } from "solid-js/store";
 
 export const [serverEmojis, setServerEmojis] = createStore({});
+export const [serverStickers, setServerStickers] = createStore({});
 
 export const connections = new Map();
 
@@ -308,6 +310,7 @@ function createConnection(server, roturToken, crackedUser) {
       channels: [],
       roles: [],
       emojis: [],
+      stickers: {},
       members: [],
       membersOnline: [],
       loaded: false,
@@ -579,6 +582,7 @@ function handlePacket(connection, packet) {
         connection.ws.send(JSON.stringify({ cmd: "users_online" }));
         connection.ws.send(JSON.stringify({ cmd: "roles_list" }));
         connection.ws.send(JSON.stringify({ cmd: "emoji_list" }));
+        connection.ws.send(JSON.stringify({ cmd: "sticker_list" }));
       }
 
       break;
@@ -596,6 +600,11 @@ function handlePacket(connection, packet) {
       connection.state.emojis = packet.emojis ?? [];
       setServerEmojis(connection.src, connection.state.emojis);
       syncActive(connection);
+      break;
+
+    case "sticker_list":
+      connection.state.stickers = packet.stickers ?? {};
+      setServerStickers(connection.src, reconcile(connection.state.stickers));
       break;
 
     case "users_list":

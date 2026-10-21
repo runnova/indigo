@@ -3,7 +3,10 @@ import { produce } from "solid-js/store";
 import { unreads, setUnreads, state, tempState } from "../App";
 import { playPingSound } from "./pingSound.js";
 
-const PAGE_SIZE = 20;
+import {
+  cacheKey, getCached, setCached, invalidate, PAGE_SIZE, sortMessages,
+} from "../components/channelCache.js";
+
 const LOAD_OLDER_COOLDOWN_MS = 500;
 
 const MAX_MESSAGES = 200;
@@ -22,19 +25,6 @@ function getMessageList(event) {
 
 function getThreadList(event) {
   return event.val ?? event.threads ?? [];
-}
-
-function sortMessages(msgs) {
-  return [...(msgs ?? [])]
-    .filter(Boolean)
-    .map(normalizeMessage)
-    .sort((a, b) => {
-      const ta = Number(a.timestamp);
-      const tb = Number(b.timestamp);
-
-      if (ta !== tb) return ta - tb;
-      return String(a.id).localeCompare(String(b.id));
-    });
 }
 
 function handleUnreadEvent(event) {
@@ -83,6 +73,8 @@ export function createForumThreads({ channel, wsEvent, sendRequest }) {
       limit: 20,
     });
   }
+
+
 
   function handleThreadsGet(event) {
     const list = getThreadList(event);
@@ -143,6 +135,7 @@ export function createChannelMessages({
   let lastLoadTime = 0;
   let pendingDirection = null;
   let pendingAnchorId = null;
+  let loadedKey = null;
 
   function request(payload) {
     sendRequest({
@@ -162,7 +155,43 @@ export function createChannelMessages({
     request({ cmd: "messages_get", limit: PAGE_SIZE });
   }
 
+  const currentKey = () =>
+    threadId?.() ? null : cacheKey(state.current.server?.src, channel());
+
+  let lastLoadSig = null;
+
+  function loadChannel() {
+    const sig = `${state.current.server?.src}|${channel()}|${threadId?.() ?? ""}`;
+    if (sig === lastLoadSig) return;
+    lastLoadSig = sig;
+    pendingDirection = null;
+    pendingAnchorId = null;
+    loadingOlderLock = false;
+
+    loadedKey = currentKey();
+
+    const hit = getCached(currentKey());
+    if (hit) {
+      batch(() => {
+        setMessages(hit.messages);
+        setHasOlderMessages(hit.hasOlder);
+        setLoadingOlder(false);
+        setLoadingInitial(false);
+        setLastUpdate({ type: "initial" });
+      });
+      return;
+    }
+
+    batch(() => {
+      setMessages([]);
+      setHasOlderMessages(true);
+      setLastUpdate(null);
+    });
+    fetchInitial();
+  }
+
   function reload() {
+    loadedKey = currentKey();
     loadingOlderLock = false;
     lastLoadTime = 0;
     pendingDirection = null;
@@ -488,33 +517,26 @@ export function createChannelMessages({
     if (event.cmd === "message_delete") return handleMessageDelete(event);
   }
 
-  createEffect(
-    on(channel, () => {
-      setMessages([]);
-      setHasOlderMessages(true);
-      setLastUpdate(null);
-      pendingDirection = null;
-      pendingAnchorId = null;
-      loadingOlderLock = false;
-      fetchInitial();
-    }),
-  );
+  createEffect(on(channel, loadChannel));
 
   createEffect(
     on(
       () => threadId?.(),
-      () => {
-        setMessages([]);
-        setHasOlderMessages(true);
-        setLastUpdate(null);
-        pendingDirection = null;
-        pendingAnchorId = null;
-        loadingOlderLock = false;
-        fetchInitial();
+      (tid) => {
+        if (tid) invalidate(cacheKey(state.current.server?.src, channel()));
+        loadChannel();
       },
       { defer: true },
     ),
   );
+
+  createEffect(() => {
+    const msgs = messages();
+    const key = currentKey();
+    if (loadingInitial()) return;
+    if (!key || key !== loadedKey) return;
+    setCached(currentKey(), msgs, hasOlderMessages());
+  });
 
   createEffect(() => {
     handleEvent(wsEvent());

@@ -13,6 +13,8 @@ import emojis from "emoji-picker-element-data/en/emojibase/data.json";
 import { tempState, state } from "../../App.jsx";
 import { twemojiUrl } from "../messages/twemoji.js";
 
+import { serverStickers } from "../../core/server_connection.jsx";
+
 let searchInput;
 
 const GROUP_ICONS = {
@@ -100,45 +102,78 @@ export default function EmojiPicker(props) {
   });
 
   const emojiServers = createMemo(() => {
-      return state.servers.map((server) => ({
-        src: server.src,
-        name: server.name ?? server.src,
-        icon: server.icon ?? null,
-      }));
-    });
+    return state.servers.map((server) => ({
+      src: server.src,
+      name: server.name ?? server.src,
+      icon: server.icon ?? null,
+    }));
+  });
 
-    const [customServer, setCustomServer] = createSignal(null);
+  const [customServer, setCustomServer] = createSignal(null);
 
-    const activeCustomServer = createMemo(() => {
-      return (
-        customServer() ??
-        tempState.conn?.serverInfo?.()?.src ??
-        emojiServers()[0]?.src ??
-        null
-      );
-    });
+  const activeCustomServer = createMemo(() => {
+    return (
+      customServer() ??
+      tempState.conn?.serverInfo?.()?.src ??
+      emojiServers()[0]?.src ??
+      null
+    );
+  });
 
-    const customEmojisFor = (src) => {
-      const list = tempState.serverEmojis?.[src];
+  const customEmojisFor = (src) => {
+    const list = tempState.serverEmojis?.[src];
 
-      if (!list) return [];
+    if (!list) return [];
 
-      if (Array.isArray(list)) {
-        return list.map((emoji) => ({
-          custom: true,
-          src,
-          id: emoji.id,
-          name: emoji.name,
-        }));
-      }
-
-      return Object.entries(list).map(([id, emoji]) => ({
+    if (Array.isArray(list)) {
+      return list.map((emoji) => ({
         custom: true,
         src,
-        id,
-        ...emoji,
+        id: emoji.id,
+        name: emoji.name,
       }));
-    };
+    }
+
+    return Object.entries(list).map(([id, emoji]) => ({
+      custom: true,
+      src,
+      id,
+      ...emoji,
+    }));
+  };
+
+  const [stickerServer, setStickerServer] = createSignal(null);
+
+  const activeStickerServer = createMemo(
+    () =>
+      stickerServer() ??
+      state.current.server?.src ??
+      emojiServers()[0]?.src ??
+      null,
+  );
+
+  const stickersFor = (src) =>
+    Object.entries(serverStickers[src] ?? {}).map(([id, s]) => ({
+      id,
+      src,
+      name: s.name,
+      description: s.description ?? "",
+      fileName: s.fileName,
+    }));
+
+  const stickerUrl = (s) => `https://${s.src}/stickers/${s.fileName}`;
+
+  const stickerResults = createMemo(() => {
+    const q = query().trim().toLowerCase();
+
+    if (!q) return stickersFor(activeStickerServer());
+
+    return emojiServers().flatMap((server) =>
+      stickersFor(server.src).filter((s) =>
+        `${s.name ?? ""} ${s.description}`.toLowerCase().includes(q),
+      ),
+    );
+  });
 
   const grouped = createMemo(() => {
     const map = new Map();
@@ -215,7 +250,11 @@ export default function EmojiPicker(props) {
           ref={searchInput}
           type="text"
           placeholder={
-            tab() === "emoji" ? "Search emojis..." : "Search GIFs..."
+            tab() === "emoji"
+              ? "Search emojis..."
+              : tab() === "gif"
+                ? "Search GIFs..."
+                : "Search stickers..."
           }
           value={query()}
           onInput={(e) => setQuery(e.currentTarget.value)}
@@ -246,7 +285,68 @@ export default function EmojiPicker(props) {
         when={tab() === "emoji"}
         fallback={
           <>
-            <Show when={tab() === "gif"}>
+            <Show
+              when={tab() === "gif"}
+              fallback={
+                <div class="x fill">
+                  <Show when={!query().trim()}>
+                    <div class="emoji_categories y">
+                      <For each={emojiServers()}>
+                        {(server) => (
+                          <button
+                            type="button"
+                            class="emoji_category"
+                            classList={{
+                              active: activeStickerServer() === server.src,
+                            }}
+                            title={server.name}
+                            onClick={() => setStickerServer(server.src)}
+                          >
+                            <Show
+                              when={server.icon}
+                              fallback={server.name?.[0] ?? "?"}
+                            >
+                              <img src={server.icon} alt="" />
+                            </Show>
+                          </button>
+                        )}
+                      </For>
+                    </div>
+                  </Show>
+
+                  <div class={(stickerResults()) ? "sticker_grid" : ""}>
+                    <For
+                      each={stickerResults()}
+                      fallback={<p class="empty_state">No stickers found.</p>}
+                    >
+                      {(sticker) => (
+                        <button
+                          type="button"
+                          class="sticker_button"
+                          title={
+                            sticker.description
+                              ? `${sticker.name} – ${sticker.description}`
+                              : sticker.name
+                          }
+                          onClick={() =>
+                            (props.onSelectSticker ?? props.onSelect)?.(
+                              stickerUrl(sticker),
+                              sticker,
+                            )
+                          }
+                        >
+                          <img
+                            src={stickerUrl(sticker)}
+                            alt={sticker.name}
+                            loading="lazy"
+                          />
+                        </button>
+                      )}
+                    </For>
+                  </div>
+                </div>
+              }
+            >
               <div class="gif_toolbar x">
                 <div class="gif_tags">
                   <button
@@ -279,38 +379,42 @@ export default function EmojiPicker(props) {
                   <option value="likes">Most Liked</option>
                 </select>
               </div>
-            </Show>
-            <div class="gif_grid">
-              <Show when={!gifLoading()} fallback={
-                <div class="loader_spinner"></div>}>
-                <For each={gifs()}>
-                  {(gif) => (
-                    <button
-                      class="gif_button"
-                      onClick={() =>
-                        props.onSelect("https://gifs.originchats.com" + gif.url)
-                      }
-                    >
-                      <img
-                        src={"https://gifs.originchats.com" + gif.url}
-                        alt={gif.title}
-                        loading="lazy"
-                      />
-                    </button>
-                  )}
-                </For>
 
-                <button
-                  class="gif_button load_more"
-                  disabled={gifLoading()}
-                  onClick={() => setOffset(offset() + 10)}
+              <div class="gif_grid">
+                <Show
+                  when={!gifLoading()}
+                  fallback={<div class="loader_spinner"></div>}
                 >
-                  <Show when={!gifLoading()} fallback="Loading...">
+                  <For each={gifs()}>
+                    {(gif) => (
+                      <button
+                        type="button"
+                        class="gif_button"
+                        onClick={() =>
+                          props.onSelect(
+                            "https://gifs.originchats.com" + gif.url,
+                          )
+                        }
+                      >
+                        <img
+                          src={"https://gifs.originchats.com" + gif.url}
+                          alt={gif.title}
+                          loading="lazy"
+                        />
+                      </button>
+                    )}
+                  </For>
+
+                  <button
+                    type="button"
+                    class="gif_button load_more"
+                    onClick={() => setOffset((prev) => prev + 10)}
+                  >
                     Load More
-                  </Show>
-                </button>
-              </Show>
-            </div>
+                  </button>
+                </Show>
+              </div>
+            </Show>
           </>
         }
       >

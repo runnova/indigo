@@ -17,6 +17,8 @@ import Customize from "./settings/Customize.jsx";
 import { GeneralSettings } from "./settings/GeneralSettings.jsx";
 import { ConfigSettings } from "./settings/ConfigSettings.jsx";
 import { AddonsSettings } from "./settings/AddonsSettings.jsx";
+import VersionUpdate from "./settings/VersionUpdate.jsx";
+import { clearCacheAndReload } from "../../core/swClient.js";
 
 function AppIcon(props) {
   return <img src={appIcon} alt="" {...props} />;
@@ -65,6 +67,10 @@ function AboutSettings() {
   onMount(window.roturEmbed.scan);
   return (
     <>
+      <VersionUpdate
+        state={state}
+        clearCacheAndReload={clearCacheAndReload}
+      ></VersionUpdate>
       <h2>Indigo Client</h2>
       <p>
         The cooler <a href="https://originchats.com?ref=runnova">OriginChats</a>{" "}
