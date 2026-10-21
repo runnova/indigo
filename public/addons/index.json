@@ -1,0 +1,10 @@
+[
+  {
+    "name": "encoder",
+    "desc": "Encodes text content in your message into different charecter encodings, when a prefix is used."
+  },
+  {
+    "name": "textReplace",
+    "desc": "Replaces words in your text messages with a different text."
+  }
+]

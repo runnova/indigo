@@ -111,7 +111,7 @@ export async function signSlashCall(payload, timestamp, signingUrl) {
   return { ...payload, timestamp, nonce, ...proof };
 }
 
-export async function sendMessage(content, attachments) {
+export async function sendMessage(content, attachments, onPayload) {
   let basePayload = {
     cmd: "message_new",
     channel: state.current.channel,
@@ -120,7 +120,15 @@ export async function sendMessage(content, attachments) {
     attachments,
     ...(state.replying && { reply_to: state.replying.id }),
   };
-  basePayload = await executeHook('message:before-send', basePayload);
+
+  try {
+    const hooked = await executeHook("message:before-send", basePayload);
+    if (hooked && typeof hooked === "object") basePayload = hooked;
+  } catch (error) {
+    console.error("message:before-send hook failed:", error);
+  }
+
+  onPayload?.(basePayload);
   if (hasCapability("message_signatures_v1")) {
     const timestamp = getServerTime();
     const signingUrl = getSigningUrl();

@@ -16,7 +16,7 @@ context menu
 - right click gif info
 
 cosmetic
-- ui DMs functionality instead of bot
+- DMs functionality instead of bot
 - background wallpaper setting
 - methods
     - show nicknames

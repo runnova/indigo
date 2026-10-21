@@ -96,6 +96,16 @@ export default function MemberItem(props) {
                 />
               );
             }
+            if (item === "quid") {
+              return (
+                <img
+                  class="client_icon"
+                  src="https://avatars.rotur.dev/quid"
+                  data-tooltip={"Quid: available for 0 quid!!"}
+                  data-tooltip-icon="https://avatars.rotur.dev/quid"
+                />
+              );
+            }
             if (item === "originchats.com") {
               return <img class="client_icon" src="https://originchats.com/dms.png" data-tooltip={item} />;
             }

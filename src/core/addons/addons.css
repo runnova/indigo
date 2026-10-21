@@ -1,3 +1,9 @@
+.addon-manager-list {
+    display: flex;
+    flex-direction: column;
+    gap: .3em;
+}
+
 .addon-manager-item {
     display: flex;
     background-color: var(--bg-two);

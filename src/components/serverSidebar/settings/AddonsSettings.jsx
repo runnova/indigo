@@ -12,9 +12,28 @@ export function AddonsSettings() {
   const [expandedAddon, setExpandedAddon] = createSignal(null);
   const [isLoading, setIsLoading] = createSignal(false);
 
+  const [availableAddons, setAvailableAddons] = createSignal([]);
+  const [indexError, setIndexError] = createSignal(null);
+
+  const getAddonSrc = (name) => new URL(`addons/${name}.js`, document.baseURI).href;
+  const findLoadedBySrc = (name) =>
+    loadedAddons().find((a) => a.url === getAddonSrc(name));
+
   onMount(async () => {
     try {
       setIsLoading(true);
+
+      fetch(new URL("addons/index.json", document.baseURI))
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((list) => setAvailableAddons(list))
+        .catch((err) => {
+          console.warn("[Settings] Failed to load addon index:", err);
+          setIndexError(err.message);
+        });
+
       const persisted = loadPersistedAddons();
 
       for (const addon of persisted) {
@@ -34,28 +53,29 @@ export function AddonsSettings() {
     }
   });
 
-  const handleLoadAddon = async () => {
-    const url = addonUrl().trim();
-    if (!url) {
-      alert("Please enter an addon URL");
-      return;
-    }
-
+  const installAddon = async (url) => {
     try {
       setIsLoading(true);
       const addonId = await loadAddon(url);
-      setAddonUrl("");
-
       const updatedAddons = getLoadedAddons();
       setLoadedAddons([...updatedAddons]);
       persistAddons(updatedAddons);
-
       alert(`Addon loaded successfully: ${addonId}`);
     } catch (error) {
       alert(`Failed to load addon: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLoadAddon = async () => {
+    const url = addonUrl().trim();
+    if (!url) {
+      alert("Please enter an addon URL");
+      return;
+    }
+    await installAddon(url);
+    setAddonUrl("");
   };
 
   const handleUnloadAddon = (addonId) => {
@@ -101,6 +121,61 @@ export function AddonsSettings() {
             >
               {isLoading() ? "Loading..." : "Load"}
             </button>
+          </div>
+          <div class="addon-manager-section">
+            <h3 class="settings_title">Available Addons</h3>
+            <Show
+              when={availableAddons().length > 0}
+              fallback={
+                <p class="addon-manager-empty">
+                  {indexError() ? `Couldn't load addon list (${indexError()})` : "No addons available"}
+                </p>
+              }
+            >
+              <div class="addon-manager-list">
+                <For each={availableAddons()}>
+                  {(item) => {
+                    const installed = () => findLoadedBySrc(item.name);
+                    return (
+                      <div class="addon-manager-item y">
+                        <div class="addon-manager-item-header x">
+                          <div class="addon-manager-item-info">
+                            <strong>{item.name}</strong>
+                            <div class="addon-manager-item-url">{item.desc}</div>
+                          </div>
+
+                          <div class="theme-actions">
+                            <Show
+                              when={installed()}
+                              fallback={
+                                <button
+                                  class="addon-manager-button addon-manager-button-primary"
+                                  disabled={isLoading()}
+                                  onClick={() => installAddon(getAddonSrc(item.name))}
+                                >
+                                  Load
+                                </button>
+                              }
+                            >
+                              {(addon) => (
+                                <button
+                                  class="button addon-unload-button"
+                                  disabled={isLoading()}
+                                  onClick={() => handleUnloadAddon(addon().id)}
+                                >
+                                  <HiOutlineXCircle />
+                                  <span>Unload</span>
+                                </button>
+                              )}
+                            </Show>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
+                </For>
+              </div>
+            </Show>
           </div>
         </div>
 

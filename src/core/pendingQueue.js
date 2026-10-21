@@ -29,8 +29,8 @@ export function removePending(id) {
   setPending((list) => list.filter((m) => m.id !== id));
 }
 
-export function retryPending(id) {
-  setPending((m) => m.id === id, "status", "queued");
+export function updatePending(id, patch) {
+  setPending((m) => m.id === id, patch);
 }
 
 export function resolvePending(message, channel) {
@@ -40,9 +40,13 @@ export function resolvePending(message, channel) {
       p.status !== "queued" &&
       p.channel === channel &&
       p.user === message.user &&
-      p.content === message.content,
+      (p.sentContent ?? p.content) === message.content,
   );
   if (match) removePending(match.id);
+}
+
+export function retryPending(id) {
+  setPending((m) => m.id === id, "status", "queued");
 }
 
 function armTimeout(id) {
@@ -64,7 +68,9 @@ export async function flushQueue(canSend) {
 
       setPending((m) => m.id === next.id, "status", "sending");
       try {
-        await sendMessage(next.content, next.attachments);
+        await sendMessage(next.content, next.attachments, (payload) =>
+          updatePending(next.id, { sentContent: payload.content }),
+        );
         armTimeout(next.id);
       } catch (err) {
         console.error("send failed", err);
