@@ -111,16 +111,15 @@
 
 .server_single {
     position: relative;
-    width: calc(100% - 0.6em);
+    width: calc(100% - 0.3em);
     aspect-ratio: 1 / 1;
-    padding: 0.3em;
     height: fit-content;
     border-radius: var(--br-mid);
 
     & > .unread_badge {
         position: absolute;
         bottom: 45%;
-        left: -13%;
+        left: -15%;
         background-color: var(--hl-two);
         width: 4px;
         height: 10%;
@@ -132,6 +131,13 @@
         align-items: center;
         justify-content: center;
         transition: 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+    }
+
+    .unread_badge.none {
+        opacity: 0;
+    }
+    &:hover > .unread_badge.none {
+        opacity: 1;
     }
 
     &:hover > .unread_badge,
@@ -218,7 +224,10 @@
 
     &.server_single--active {
         z-index: 3;
-        background-color: var(--bg-three);
+
+        & > .unread_badge {
+            opacity: 1;
+        }
     }
 }
 
@@ -340,7 +349,6 @@ nav button {
     border: 1px solid transparent;
 }
 
-.server_single--active,
 .browser_tabs button.active,
 .discovery_join,
 .emoji_category.active,
@@ -1371,7 +1379,6 @@ img.channel_icon_image {
 }
 
 .server_offline_indicator {
-    background-color: #6a6a6a;
     width: 100%;
     height: 100%;
     display: flex;
@@ -1381,7 +1388,7 @@ img.channel_icon_image {
     border-radius: inherit;
     opacity: 0.5;
     z-index: 2;
-    box-shadow: 0 0 10px red inset;
+    box-shadow: 0 0 10px 3px red inset;
 }
 
 .attachment_queue {

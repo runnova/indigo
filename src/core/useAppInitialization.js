@@ -15,7 +15,6 @@ export default async function (conn, setState, state, Rotur, setLoadingProgress)
 
   tempState.rotur = new Rotur({ token: settings.token });
   if (settings.type === "token" && settings.token) {
-    localStorage.setItem("rotur_embed_token", settings.token);
     conn.connect(server, settings.token);
   } else {
     conn.connectCracked(server, { username: "guest", password: "guest" });

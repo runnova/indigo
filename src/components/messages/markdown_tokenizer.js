@@ -22,13 +22,12 @@ function consumeWhile(text, i, predicate) {
 const SHORTCODE_EMOJI_MAP = emojis.reduce((acc, entry) => {
   if (entry.shortcodes && entry.emoji) {
     for (const code of entry.shortcodes) {
-      if (!(code in acc)) {
-        acc[code.toLowerCase()] = entry.emoji;
-      }
+      const key = code.toLowerCase();
+      if (!(key in acc)) acc[key] = entry.emoji;
     }
   }
   return acc;
-}, {});
+}, Object.create(null));
 
 const NATIVE_EMOJI_REGEX =
   /^(?:\p{Extended_Pictographic}(?:\uFE0F)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F)?)*)/u;
@@ -441,6 +440,7 @@ function tryParseShortcodeEmoji(text, i) {
 
   const name = match[1].toLowerCase();
   const char = SHORTCODE_EMOJI_MAP[name];
+  if (typeof char !== "string") return null;
 
   if (!char) return null;
 

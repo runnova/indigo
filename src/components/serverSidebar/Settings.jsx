@@ -64,7 +64,6 @@ function SettingSelect(props) {
 export { SettingInput, SettingCheckbox, SettingSelect };
 
 function AboutSettings() {
-  onMount(window.roturEmbed.scan);
   return (
     <>
       <VersionUpdate

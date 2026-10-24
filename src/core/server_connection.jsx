@@ -15,9 +15,19 @@ function saveToken(token) {
   settings.token = token;
 
   localStorage.setItem("settings", JSON.stringify(settings));
-  localStorage.setItem("rotur_embed_token", token);
   location.reload();
 }
+
+function removeToken() {
+  const settings = JSON.parse(localStorage.getItem("settings") || "{}");
+
+  delete settings.token;
+  settings.type = "";
+
+  localStorage.setItem("settings", JSON.stringify(settings));
+  location.reload();
+}
+
 export async function fetchRoturValidator(validatorKey, roturToken) {
   const url = `https://api.rotur.dev/generate_validator?key=${encodeURIComponent(validatorKey)}`;
 
@@ -28,7 +38,23 @@ export async function fetchRoturValidator(validatorKey, roturToken) {
   });
 
   if (!res.ok) {
-    throw new Error(`Rotur validator request failed: ${res.status}`);
+    let data = {};
+
+    try {
+      data = await res.json();
+    } catch {}
+
+    if (
+      data.message === "Invalid authentication key" ||
+      data.error === "Invalid authentication key"
+    ) {
+      removeToken();
+      throw new Error("Invalid authentication key");
+    }
+
+    throw new Error(
+      data.message || data.error || `Rotur validator request failed: ${res.status}`
+    );
   }
 
   const data = await res.json();

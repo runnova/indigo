@@ -97,7 +97,7 @@ function ServerEntry(local) {
           </span>
         ) : local.unreadTotal(local.src) > 0 ? (
           <span class="unread_badge"></span>
-        ) : null}
+        ) : <span class="unread_badge none"></span>}
       </div>
     </Show>
   );
