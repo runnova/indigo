@@ -1,0 +1,126 @@
+.notifications-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.notification {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 14px 12px 17px;
+  overflow: hidden;
+  background: var(--bg-two);
+  border: 1px solid var(--diff-three);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+  pointer-events: auto;
+  animation: notification-enter 200ms ease-out;
+}
+
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.notification-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.notification-text {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.notification-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.notification-close:hover {
+  background: rgb(255 255 255 / 10%);
+  opacity: 1;
+}
+
+.notification-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: rgb(255 255 255 / 12%);
+}
+
+.notification-progress-bar {
+  width: 100%;
+  height: 100%;
+  background: var(--accent-color, #7c83ff);
+  transform-origin: left;
+  animation: notification-progress var(--notification-duration, 5000ms) linear forwards;
+}
+
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification,
+  .notification-progress-bar {
+    animation: none;
+  }
+}

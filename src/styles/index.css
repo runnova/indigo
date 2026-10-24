@@ -15,9 +15,13 @@
     border-right: 1px solid var(--diff-three);
     height: calc(100% - 1em);
     width: calc(100% - 1em);
-    gap: 2pt;
+    gap: 0.3em;
     overflow-x: visible;
     overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 0;
+    }
 }
 
 .server_bar_wrapper {
@@ -35,6 +39,13 @@
     position: relative;
     display: flex;
     flex-direction: column;
+
+    & .server_icon {
+        width: 80%;
+        height: 80%;
+        margin: 10%;
+        border-radius: var(--br-tiny);
+    }
 }
 
 .server_group--drag-over {
@@ -69,6 +80,7 @@
     align-items: center;
     border-radius: var(--br-mid);
     padding: 0.4em 0;
+    padding-bottom: 0;
     background-color: color-mix(in srgb, var(--group-color) 15%, transparent);
 
     & > * {
@@ -109,17 +121,27 @@
     box-shadow: 0 3px 0 0 #5865f2;
 }
 
+.floatbox {
+    gap: 0.3em;
+    position: sticky;
+    bottom: 0;
+    background-color: inherit;
+    border-radius: 1em;
+    box-shadow: 0 -18px 1em 0px var(--bg-two);
+}
+
 .server_single {
     position: relative;
     width: calc(100% - 0.3em);
     aspect-ratio: 1 / 1;
     height: fit-content;
     border-radius: var(--br-mid);
+    margin-left: 0.1em;
 
     & > .unread_badge {
         position: absolute;
         bottom: 45%;
-        left: -15%;
+        left: -20%;
         background-color: var(--hl-two);
         width: 4px;
         height: 10%;
@@ -216,10 +238,6 @@
         height: 70%;
         padding: 17%;
         opacity: 0.5;
-    }
-
-    &:hover {
-        background-color: var(--bg-three);
     }
 
     &.server_single--active {
@@ -388,8 +406,7 @@ nav button.active {
     z-index: 2;
     border-right: 1px solid var(--diff-three);
 
-    &
-    > * {
+    & > * {
         &:last-child {
             margin-bottom: 0.5em;
         }
@@ -466,7 +483,7 @@ nav button.active {
 }
 
 .channel_list {
-    padding: .5em 0;
+    padding: 0.5em 0;
     overflow-y: auto;
     gap: 0.2em;
     padding-bottom: 5em;
@@ -528,7 +545,8 @@ nav button.active {
             animation: tap 0.3s cubic-bezier(0.42, 1.67, 0.21, 0.9);
         }
 
-        &.channel_item--active, &.channel_item.active {
+        &.channel_item--active,
+        &.channel_item.active {
             background-color: var(--hl-four);
             opacity: 1;
             position: relative;
@@ -856,7 +874,7 @@ span.channel_badge--ping {
     border-radius: 1em;
     padding: 1px 9px;
     font-size: 11px;
-    margin-right: .5em !important;
+    margin-right: 0.5em !important;
 }
 
 .channelbar_ping_badge {
@@ -2502,28 +2520,106 @@ hr.channelPageList {
 }
 
 .loader_spinner {
-  width: 25px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 2px solid var(--hl-three);
-  animation:
-    l20-1 0.8s infinite linear alternate,
-    l20-2 1.6s infinite linear;
+    width: 25px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid var(--hl-three);
+    animation:
+        l20-1 0.8s infinite linear alternate,
+        l20-2 1.6s infinite linear;
 }
-@keyframes l20-1{
-   0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
-   12.5% {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100%   0%, 100%   0%, 100%   0% )}
-   25%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 100% 100%, 100% 100% )}
-   50%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
-   62.5% {clip-path: polygon(50% 50%,100%    0, 100%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
-   75%   {clip-path: polygon(50% 50%,100% 100%, 100% 100%,  100% 100%, 100% 100%, 50%  100%, 0%   100% )}
-   100%  {clip-path: polygon(50% 50%,50%  100%,  50% 100%,   50% 100%,  50% 100%, 50%  100%, 0%   100% )}
+@keyframes l20-1 {
+    0% {
+        clip-path: polygon(
+            50% 50%,
+            0 0,
+            50% 0%,
+            50% 0%,
+            50% 0%,
+            50% 0%,
+            50% 0%
+        );
+    }
+    12.5% {
+        clip-path: polygon(
+            50% 50%,
+            0 0,
+            50% 0%,
+            100% 0%,
+            100% 0%,
+            100% 0%,
+            100% 0%
+        );
+    }
+    25% {
+        clip-path: polygon(
+            50% 50%,
+            0 0,
+            50% 0%,
+            100% 0%,
+            100% 100%,
+            100% 100%,
+            100% 100%
+        );
+    }
+    50% {
+        clip-path: polygon(
+            50% 50%,
+            0 0,
+            50% 0%,
+            100% 0%,
+            100% 100%,
+            50% 100%,
+            0% 100%
+        );
+    }
+    62.5% {
+        clip-path: polygon(
+            50% 50%,
+            100% 0,
+            100% 0%,
+            100% 0%,
+            100% 100%,
+            50% 100%,
+            0% 100%
+        );
+    }
+    75% {
+        clip-path: polygon(
+            50% 50%,
+            100% 100%,
+            100% 100%,
+            100% 100%,
+            100% 100%,
+            50% 100%,
+            0% 100%
+        );
+    }
+    100% {
+        clip-path: polygon(
+            50% 50%,
+            50% 100%,
+            50% 100%,
+            50% 100%,
+            50% 100%,
+            50% 100%,
+            0% 100%
+        );
+    }
 }
-@keyframes l20-2{
-  0%    {transform:scaleY(1)  rotate(0deg)}
-  49.99%{transform:scaleY(1)  rotate(135deg)}
-  50%   {transform:scaleY(-1) rotate(0deg)}
-  100%  {transform:scaleY(-1) rotate(-135deg)}
+@keyframes l20-2 {
+    0% {
+        transform: scaleY(1) rotate(0deg);
+    }
+    49.99% {
+        transform: scaleY(1) rotate(135deg);
+    }
+    50% {
+        transform: scaleY(-1) rotate(0deg);
+    }
+    100% {
+        transform: scaleY(-1) rotate(-135deg);
+    }
 }
 
 .smallnote {
@@ -2534,7 +2630,7 @@ hr.channelPageList {
 }
 
 .rotur-login-prompt {
-    padding: 3em 1em ;
+    padding: 3em 1em;
     border-radius: 1em;
     outline: none;
     border: 1px solid var(--diff-three);
@@ -2552,29 +2648,30 @@ hr.channelPageList {
         text-align: center;
 
         & h1 {
-          margin-bottom: 0;
+            margin-bottom: 0;
         }
 
-        & h1, small {
+        & h1,
+        small {
             max-width: 300px;
         }
 
         & small {
-            opacity: .8;
+            opacity: 0.8;
             margin-top: 1em;
         }
     }
 
     & .rotur-signin-button {
         background-color: var(--hl-three);
-        padding: .7em 1em;
+        padding: 0.7em 1em;
         font-size: 1.2em;
-        border-radius: .5em;
+        border-radius: 0.5em;
         align-items: center;
         justify-content: space-between;
         display: flex;
         flex-direction: row;
-        gap: .5em;
+        gap: 0.5em;
         width: 200px;
 
         & svg {
@@ -2588,13 +2685,12 @@ hr.channelPageList {
 }
 
 .fav_group_header.x {
-    gap: .5em;
-    padding: .5em 0em;
+    gap: 0.5em;
+    padding: 0.5em 0em;
     padding-top: 1em;
     border-bottom: 1px solid var(--diff-three);
     margin: 0 1em;
 }
-
 
 .link_that_doesnt_look_like_one {
     text-decoration: none;

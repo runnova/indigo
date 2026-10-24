@@ -472,16 +472,16 @@ export default function ServerBar(props) {
             class="server_icon add_server legit_add_server"
           />
         </div>
-        <div
-          class="server_single"
-          onClick={() => openFavorites()}
-          data-tooltip="Favorite channels"
-          data-tooltip-position="right"
-        >
-          <HiOutlineStar class="add_server" />
-        </div>
-        <div className="fill"></div>
-        <div
+        <div className="fill" style={{"min-height": "5em"}}></div>
+        <div className="floatbox y">
+          <div
+            class="server_single"
+            onClick={() => openFavorites()}
+            data-tooltip="Favorite channels"
+            data-tooltip-position="right"
+          >
+            <HiOutlineStar class="add_server" />
+          </div><div
           class="server_single"
           onClick={() => showSpotlight(true)}
           data-tooltip={"Spotlight: CTRL + /"}
@@ -509,6 +509,8 @@ export default function ServerBar(props) {
           <HiOutlineAdjustmentsHorizontal class="add_server" />
         </div>
       </div>
+        </div>
+
       <Dialog open={dialogOpen()} onClose={() => setDialogOpen(false)}>
         <ServerBrowser
           servers={props.servers}

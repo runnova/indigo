@@ -136,8 +136,7 @@ SystemContextMenu.init([
         icon: HiOutlineMapPin,
         fn: (el) => {
           tempState.notify({
-            icon: "success",
-            text: "Connected successfully!"
+            text: "Pinning isnt a thing yet."
           });
         },
       },
@@ -146,7 +145,9 @@ SystemContextMenu.init([
         color: "#ff99a3",
         icon: HiOutlineTrash,
         fn: (el) => {
-          //
+          tempState.notify({
+            text: "Use cmds channel to edit DMs."
+          });
         },
       },
     ],
@@ -184,6 +185,9 @@ SystemContextMenu.init([
           setState("serverGroups", (groups) =>
             renameGroup(groups, el.dataset.groupId, name.trim() || "New Group"),
           );
+          tempState.notify({
+            text: "Group renamed."
+          });
         },
       },
       {
