@@ -324,13 +324,42 @@ function tryParseMaskedLink(text, i) {
 }
 
 function tryParseUrl(text, i) {
-  if (text.slice(i, i + 7) === 'http://') {
-    return parseHttpUrl(text, i, 7);
+  const wrapped = text[i] === '<';
+  const start = wrapped ? i + 1 : i;
+
+  let protocolLen;
+
+  if (text.slice(start, start + 7) === 'http://') {
+    protocolLen = 7;
+  } else if (text.slice(start, start + 8) === 'https://') {
+    protocolLen = 8;
+  } else {
+    return null;
   }
-  if (text.slice(i, i + 8) === 'https://') {
-    return parseHttpUrl(text, i, 8);
+
+  let j = start + protocolLen;
+
+  while (
+    j < text.length &&
+    !isWhitespace(text[j]) &&
+    text[j] !== '"' &&
+    text[j] !== "'" &&
+    (!wrapped || text[j] !== '>')
+  ) {
+    j++;
   }
-  return null;
+
+  if (wrapped) {
+    if (text[j] !== '>') return null;
+    j++;
+  }
+
+  const url = text.slice(start, wrapped ? j - 1 : j);
+
+  return {
+    token: { type: 'url', url },
+    end: j
+  };
 }
 
 function tryParseTimestamp(text, i) {

@@ -1,11 +1,12 @@
-import { For, createSignal, Show, createMemo } from "solid-js";
+import { For, createSignal, Show, createMemo, createResource } from "solid-js";
 import Dialog from "../Dialog.jsx";
 import ServerBrowser from "./discovery/ServerBrowser.jsx";
-import Settings from "./Settings";
+import Settings, { openSettings } from "./Settings";
 import {
   HiOutlineAdjustmentsHorizontal,
   HiOutlineChatBubbleOvalLeft,
   HiOutlineChevronDown,
+  HiOutlineExclamationTriangle,
   HiOutlineMagnifyingGlass,
   HiOutlineStar,
 } from "solid-icons/hi";
@@ -24,6 +25,7 @@ import {
 import { showSpotlight } from "../spotlight/Spotlight.jsx";
 import { state } from "../../App.jsx";
 import { openFavorites } from "../../core/favorites.js";
+import { isVersionOutdated } from "./settings/VersionUpdate.jsx";
 
 const FALLBACK_ICON = HiOutlineChatBubbleOvalLeft;
 function ServerEntry(local) {
@@ -37,7 +39,10 @@ function ServerEntry(local) {
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = "move";
           e.dataTransfer.setData("text/plain", local.src);
-          local.setDragSrc({ src: local.src, fromGroupId: local.groupId ?? null });
+          local.setDragSrc({
+            src: local.src,
+            fromGroupId: local.groupId ?? null,
+          });
         }}
         onDragEnter={(e) => {
           e.preventDefault();
@@ -72,7 +77,9 @@ function ServerEntry(local) {
         class={`server_single ${
           local.currentServer?.src === local.src ? "server_single--active" : ""
         } ${
-          local.dragOverServerSrc() === local.src ? "server_single--drop-target" : ""
+          local.dragOverServerSrc() === local.src
+            ? "server_single--drop-target"
+            : ""
         }`}
         data-tooltip={local.server().name + ": " + local.server().src}
         data-tooltip-position="right"
@@ -97,7 +104,9 @@ function ServerEntry(local) {
           </span>
         ) : local.unreadTotal(local.src) > 0 ? (
           <span class="unread_badge"></span>
-        ) : <span class="unread_badge none"></span>}
+        ) : (
+          <span class="unread_badge none"></span>
+        )}
       </div>
     </Show>
   );
@@ -110,8 +119,15 @@ export default function ServerBar(props) {
   const [dragOverGroupId, setDragOverGroupId] = createSignal(null);
   const [dragOverGapIndex, setDragOverGapIndex] = createSignal(null);
   const [dragOverServerSrc, setDragOverServerSrc] = createSignal(null);
+  const [outdated] = createResource(() => state.settings.version, isVersionOutdated);
 
   const groups = () => props.groups ?? [];
+
+  function showSettings(id = "general") {
+    if (openSettings(id)) {
+      setSettingsDialogOpen(true);
+    }
+  }
 
   const order = createMemo(() => renderedOrder(props.servers, groups()));
 
@@ -384,16 +400,18 @@ export default function ServerBar(props) {
                       {(() => {
                         const groupPings = (item.group.servers ?? []).reduce(
                           (sum, s) => sum + (props.pingTotal?.(s) ?? 0),
-                          0
+                          0,
                         );
                         const groupUnreads = (item.group.servers ?? []).reduce(
                           (sum, s) => sum + (props.unreadTotal?.(s) ?? 0),
-                          0
+                          0,
                         );
                         if (groupPings > 0) {
                           return (
                             <span class="unread_badge unread_badge--ping">
-                              <span class="server_ping_count">{groupPings}</span>
+                              <span class="server_ping_count">
+                                {groupPings}
+                              </span>
                             </span>
                           );
                         }
@@ -457,26 +475,36 @@ export default function ServerBar(props) {
         <div
           class="server_single"
           onClick={() => openFavorites()}
-          data-tooltip="Add Server"
+          data-tooltip="Favorite channels"
           data-tooltip-position="right"
         >
-
           <HiOutlineStar class="add_server" />
         </div>
+        <div className="fill"></div>
         <div
           class="server_single"
           onClick={() => showSpotlight(true)}
-          style={{ "margin-top": "auto" }}
           data-tooltip={"Spotlight: CTRL + /"}
           data-tooltip-position="right"
         >
           <HiOutlineMagnifyingGlass class="add_server" />
         </div>
+        <Show when={outdated()}>
+          <div
+            class="server_single"
+            onClick={() => showSettings("about")}
+            style={{ "margin-top": "auto", color: "var(--danger)" }}
+            data-tooltip={"OLD INDIGO VERSION: Im old and I need updates."}
+            data-tooltip-position="right"
+          >
+            <HiOutlineExclamationTriangle class="add_server" />
+          </div>
+        </Show>
         <div
           class="server_single"
           data-tooltip={"Settings"}
           data-tooltip-position="right"
-          onClick={() => setSettingsDialogOpen(true)}
+          onClick={() => showSettings("general")}
         >
           <HiOutlineAdjustmentsHorizontal class="add_server" />
         </div>

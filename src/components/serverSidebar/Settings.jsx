@@ -63,6 +63,16 @@ function SettingSelect(props) {
 }
 export { SettingInput, SettingCheckbox, SettingSelect };
 
+const [activeTab, setActiveTab] = createSignal("general");
+
+export function openSettings(id) {
+  if (tabs.some((tab) => tab.id === id)) {
+    setActiveTab(id);
+    return true;
+  }
+  return false;
+}
+
 function AboutSettings() {
   return (
     <>
@@ -188,8 +198,6 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = createSignal("general");
-
   const currentTab = () => tabs.find((tab) => tab.id === activeTab());
 
   return (

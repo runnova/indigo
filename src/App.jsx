@@ -19,7 +19,7 @@ import {
   HiOutlineUserCircle,
   HiOutlineArrowLeft,
   HiOutlineBars3,
-  HiOutlineStar
+  HiOutlineStar,
 } from "solid-icons/hi";
 
 import FavoritesSidebar from "./components/favorites/FavoritesSidebar.jsx";
@@ -111,6 +111,10 @@ import {
   emojiPicker,
   setEmojiPicker,
 } from "./state.js";
+import {
+  notify,
+  NotificationContainer
+} from "./components/utility/notifications/Notifications.jsx";
 
 export {
   state,
@@ -164,6 +168,7 @@ function App() {
   setConn(activeConn);
 
   tempState.conn = activeConn;
+  tempState.notify = notify;
   bindVoiceEvents(activeConn);
 
   const [showLoader, setShowLoader] = createSignal(true);
@@ -593,15 +598,15 @@ function App() {
             style={{ height: "0" }}
           >
             {/*
-            <Show when={state.current?.channel_type === "dms_shop"}>
-              <iframe
-                src="https://rotur.dev/embed/shop"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-storage-access-by-user-activation"
-                allow="storage-access"
-                frameborder="0"
-                className="fill"
-              ></iframe>
-              </Show> */}
+              <Show when={state.current?.channel_type === "dms_shop"}>
+                <iframe
+                  src="https://rotur.dev/embed/shop"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-storage-access-by-user-activation"
+                  allow="storage-access"
+                  frameborder="0"
+                  className="fill"
+                ></iframe>
+                </Show> */}
             <Show when={state.current?.channel_type === "dms_home"}>
               <div class="topbar">
                 <div class="channelbar x">
@@ -688,14 +693,25 @@ function App() {
                   </Show>
                   <div class="inpgrp x">
                     <button
-                      class={isFavorite(state.current.server?.src, state.current.channel) ? "active" : ""}
+                      class={
+                        isFavorite(
+                          state.current.server?.src,
+                          state.current.channel,
+                        )
+                          ? "active"
+                          : ""
+                      }
                       title="Toggle favorite"
                       onClick={() =>
                         toggleFavorite(
                           {
                             src: state.current.server?.src,
-                            name: conn.serverInfo()?.name ?? state.current.server?.name,
-                            icon: conn.serverInfo()?.icon ?? state.current.server?.icon,
+                            name:
+                              conn.serverInfo()?.name ??
+                              state.current.server?.name,
+                            icon:
+                              conn.serverInfo()?.icon ??
+                              state.current.server?.icon,
                           },
                           currentChannel(),
                         )
@@ -816,15 +832,18 @@ function App() {
                             state.current.server && conn.status() !== "ready"
                           }
                         >
-                          <p>{statusLabel() || "Connecting…"} <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              reconnectServer(state.current.server.src);
-                            }}
-                          >
-                            Reconnect
-                          </a></p>
+                          <p>
+                            {statusLabel() || "Connecting…"}{" "}
+                            <a
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                reconnectServer(state.current.server.src);
+                              }}
+                            >
+                              Reconnect
+                            </a>
+                          </p>
                         </Show>
                         <Show
                           when={
@@ -918,6 +937,7 @@ function App() {
       <ContextMenu />
       <Spotlight />
       <Tooltip />
+      <NotificationContainer />
       <ServerJoinDialog
         join={pendingServerJoin()}
         onCancel={() => {

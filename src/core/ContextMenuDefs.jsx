@@ -135,7 +135,10 @@ SystemContextMenu.init([
         label: "Pin DM",
         icon: HiOutlineMapPin,
         fn: (el) => {
-          console.log(el.dataset.name);
+          tempState.notify({
+            icon: "success",
+            text: "Connected successfully!"
+          });
         },
       },
       {
