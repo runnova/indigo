@@ -465,9 +465,10 @@ nav button.active {
 }
 
 .channel_list {
-    padding-bottom: 5em;
+    padding: .5em 0;
     overflow-y: auto;
     gap: 0.2em;
+    padding-bottom: 5em;
 
     & > .channel_item,
     .channel_thread_item {
@@ -2591,4 +2592,10 @@ hr.channelPageList {
     padding-top: 1em;
     border-bottom: 1px solid var(--diff-three);
     margin: 0 1em;
+}
+
+
+.link_that_doesnt_look_like_one {
+    text-decoration: none;
+    color: inherit;
 }

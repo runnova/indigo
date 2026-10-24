@@ -1,4 +1,4 @@
-import { For, Show, onCleanup, createSignal, createEffect } from "solid-js";
+import { For, Show, onCleanup, createSignal, createEffect, batch } from "solid-js";
 import {
   HiOutlineHashtag,
   HiOutlineSpeakerWave,
@@ -26,7 +26,9 @@ import {
   HiOutlineArrowTurnDownRight,
   HiOutlineChevronRight,
   HiOutlineMicrophone,
-  HiOutlineSpeakerXMark
+  HiOutlineSpeakerXMark,
+HiOutlineArrowTopRightOnSquare,
+HiOutlineGlobeAlt
 } from "solid-icons/hi";
 
 import { createHoverPreloadHandlers } from "../useHoverPreload";
@@ -37,7 +39,8 @@ const channelIcons = {
   text: HiOutlineHashtag,
   voice: HiOutlineSpeakerWave,
   announcement: HiOutlineMegaphone,
-  forum: HiOutlineChatBubbleLeftRight
+  forum: HiOutlineChatBubbleLeftRight,
+  link: HiOutlineGlobeAlt
 };
 
 const iconRules = [
@@ -161,7 +164,6 @@ export default function ChannelList(props) {
     if (channelName === props.currentChannel) return;
     if (state.settings.channelPreload === false) return;
 
-    // channelCache.preload() dedupes in-flight requests and returns on a hit
     props.preloadChannel(channelName);
   }
 
@@ -185,6 +187,40 @@ export default function ChannelList(props) {
         {(ch) => {
           if (ch.type === "separator") {
             return <hr class="channel_separator" />;
+          }
+
+          if (ch.type === "link") {
+            const Icon = channelIcons.link;
+
+            return (
+              <a
+                class="x channel_item channel_link_item link_that_doesnt_look_like_one"
+                href={ch.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-name={ch.name}
+                title={ch.url}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span class="channel_icon">
+                  <Show when={isImageSrc(ch.icon)} fallback={<Icon />}>
+                    <img
+                      src={ch.icon}
+                      alt=""
+                      class="channel_icon_image"
+                    />
+                  </Show>
+                </span>
+
+                <div class="y channel_name">
+                  {ch.display_name || ch.name}
+                </div>
+
+                <span class="channel_link_external">
+                  <HiOutlineArrowTopRightOnSquare></HiOutlineArrowTopRightOnSquare>
+                </span>
+              </a>
+            );
           }
 
           const Icon = getChannelIcon(ch);
