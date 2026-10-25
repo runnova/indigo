@@ -1,5 +1,3 @@
-/* Uses your existing theme variables where it can; the fallbacks only apply if a var is missing. */
-
 .ws-root {
   --ws-tabbar-h: 36px;
   --ws-accent: var(--hl-two, var(--accent, var(--peace, #7c83ff)));
@@ -13,8 +11,6 @@
   overflow: hidden;
   background: var(--bg-one, #000);
 }
-
-/* ---- group frame + tab strip ---- */
 
 .ws-group {
   position: absolute;
@@ -146,8 +142,6 @@
   color: var(--fg-dim, rgba(255, 255, 255, 0.45));
 }
 
-/* ---- pane content ---- */
-
 .ws-content {
   position: absolute;
   display: flex;
@@ -169,12 +163,9 @@
   padding: .5em;
 }
 
-/* the hover action bar in VirtualMessageList is positioned against this */
 .ws-pane-inner .realchannelcontent {
   position: relative;
 }
-
-/* ---- splitters ---- */
 
 .ws-splitter {
   position: absolute;
@@ -200,8 +191,6 @@ body.ws-resizing .ws-splitter:active {
 body.ws-resizing {
   user-select: none;
 }
-
-/* ---- drag & drop overlay ---- */
 
 .ws-drop {
   position: absolute;

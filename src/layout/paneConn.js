@@ -1,11 +1,5 @@
 import { getConnectionView } from "../core/server_connection.jsx";
 
-/*
-  A pane's view of ITS server's connection. Backed by the reactive "view"
-  that server_connection.jsx now attaches to every connection (active or idle),
-  so panes on non-active servers still receive events and reactive state.
-  Every accessor is safe to call before the connection exists.
-*/
 export function getPaneConn(src) {
   const v = () => getConnectionView(src);
 

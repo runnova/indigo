@@ -201,7 +201,7 @@ export function VirtualMessageList(props) {
 
   const messages = createMemo(() => [...realMessages(), ...fakeMessages()]);
   const messageMap = createMessageLookup(messages);
-  const getMessageById = (id) => messageMap().get(id);   // shadows the export, per pane
+  const getMessageById = (id) => messageMap().get(id);
   createEffect(() => { if (isActive()) activeLookup = getMessageById; });
 
   const prevById = createMemo(() => {

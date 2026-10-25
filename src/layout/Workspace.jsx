@@ -10,7 +10,7 @@ import {
   onMount,
   untrack,
 } from "solid-js";
-import { HiOutlinePlus, HiOutlineViewColumns } from "solid-icons/hi";
+import { HiOutlinePlus, HiOutlineViewColumns, HiOutlineXMark } from "solid-icons/hi";
 
 import {
   state,
@@ -43,8 +43,8 @@ import {
 } from "./layoutStore.js";
 import "./workspace.css";
 
-const TABBAR_H = 35; // keep in sync with --ws-tabbar-h
-const EDGE = 0.25; // outer 25% of a pane splits, the middle adds a tab
+const TABBAR_H = 35;
+const EDGE = 0.25;
 
 const [showTabBar, setShowTabBar] = createSignal({});
 
@@ -66,8 +66,6 @@ export function TabBarToggle() {
     </Show>
   );
 }
-
-/* ---------- geometry ---------- */
 
 function computeLayout(root) {
   const groups = {};
@@ -105,8 +103,6 @@ function computeLayout(root) {
   walk(root, { x: 0, y: 0, w: 100, h: 100 });
   return { groups, splitters };
 }
-
-/* ---------- one channel / voice / forum view ---------- */
 
 function PaneContent(props) {
   const pconn = getPaneConn(props.tab.src);
@@ -183,8 +179,6 @@ function PaneContent(props) {
   );
 }
 
-/* ---------- workspace ---------- */
-
 export function Workspace() {
   let rootEl;
 
@@ -219,8 +213,6 @@ export function Workspace() {
     const g = findNode(layout.root, layout.focusedGroup);
     return g?.tabs.find((t) => t.id === g.active);
   });
-
-  /* --- style helpers --- */
 
   const frame = (gid) => {
     const r = geo().groups[gid];
@@ -262,8 +254,6 @@ export function Workspace() {
           width: `${sp.r.w}%`,
         };
 
-  /* --- per-pane APIs: tempState.virtMsgList always points at the focused pane --- */
-
   const apiMap = new Map();
   const [apiVer, setApiVer] = createSignal(0);
 
@@ -271,7 +261,6 @@ export function Workspace() {
     apiMap.set(tabId, api);
     setApiVer((v) => v + 1);
     onCleanup(() => {
-      // don't clobber a newer registration for the same tab
       if (apiMap.get(tabId) === api) apiMap.delete(tabId);
       setApiVer((v) => v + 1);
     });
@@ -282,8 +271,6 @@ export function Workspace() {
     const t = focusedTab();
     tempState.virtMsgList = t ? apiMap.get(t.id) : undefined;
   });
-
-  /* --- focused pane  ->  state.current (what the rest of the app reads) --- */
 
   const currentKey = () =>
     `${state.current.server?.src}|${state.current.channel}|${
@@ -308,8 +295,6 @@ export function Workspace() {
       { defer: true },
     ),
   );
-
-  /* --- sidebar / links / hotkeys  ->  the focused pane --- */
 
   createEffect(() => {
     const src = state.current.server?.src;
@@ -339,15 +324,11 @@ export function Workspace() {
     );
   });
 
-  /* --- persistence --- */
-
   createEffect(() => {
     try {
       localStorage.setItem("workspace", JSON.stringify(layout));
     } catch {}
   });
-
-  /* --- splitter drag --- */
 
   function startResize(e, sp) {
     e.preventDefault();
@@ -373,17 +354,32 @@ export function Workspace() {
     window.addEventListener("pointerup", up);
   }
 
-  /* --- drag & drop --- */
-
   const [dragging, setDragging] = createSignal(false);
-  const [hover, setHover] = createSignal(null); // { groupId, zone, index }
+  const [hover, setHover] = createSignal(null);
+
+  let lastOver = 0;
+  const cancelStale = () => {
+    lastOver = Date.now();
+  };
+  createEffect(() => {
+    if (!dragging()) return;
+    const id = setInterval(() => {
+      if (Date.now() - lastOver > 400) {
+        setDragging(false);
+        setHover(null);
+      }
+    }, 400);
+    onCleanup(() => clearInterval(id));
+  });
 
   onMount(() => {
     const isOurs = (e) => {
       const t = Array.from(e.dataTransfer?.types ?? []);
       return t.includes(TAB_MIME) || t.includes(CHAN_MIME);
     };
-    const start = (e) => isOurs(e) && setDragging(true);
+    const start = (e) => {
+      if (isOurs(e)) setTimeout(() => setDragging(true), 0);
+    };
     const end = () => {
       setDragging(false);
       setHover(null);
@@ -392,10 +388,12 @@ export function Workspace() {
     window.addEventListener("dragstart", start);
     window.addEventListener("dragend", end);
     window.addEventListener("drop", end);
+    window.addEventListener("dragover", cancelStale);
     onCleanup(() => {
       window.removeEventListener("dragstart", start);
       window.removeEventListener("dragend", end);
       window.removeEventListener("drop", end);
+      window.removeEventListener("dragover", cancelStale);
     });
   });
 
@@ -464,8 +462,6 @@ export function Workspace() {
     }
   }
 
-  /* --- "new tab" picker --- */
-
   function addTabViaSpotlight(gid) {
     focusGroup(gid);
     showSpotlight({
@@ -502,8 +498,6 @@ export function Workspace() {
     });
   }
 
-  /* --- tab bar --- */
-
   function TabBar(props) {
     const g = () => props.group;
     return (
@@ -539,7 +533,7 @@ export function Workspace() {
                   closeTab(g().id, tab.id);
                 }}
               >
-                ×
+                <HiOutlineXMark></HiOutlineXMark>
               </button>
             </div>
           )}
@@ -559,11 +553,8 @@ export function Workspace() {
     );
   }
 
-  /* --- render --- */
-
   return (
     <div class="ws-root" ref={rootEl}>
-      {/* tab bars + frames */}
       <For each={groups()}>
         {(g) => (
           <div
@@ -586,7 +577,6 @@ export function Workspace() {
         )}
       </For>
 
-      {/* every visible channel stays mounted and keeps receiving events */}
       <For each={activeTabs()}>
         {(tab) => {
           const gid = () => tabGroup()[tab.id];
@@ -640,7 +630,6 @@ export function Workspace() {
         )}
       </For>
 
-      {/* drop targets, only mounted while one of our drags is in flight */}
       <Show when={dragging()}>
         <For each={groups()}>
           {(g) => (

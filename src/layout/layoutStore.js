@@ -1,19 +1,5 @@
 import { createStore, produce } from "solid-js/store";
 
-/*
-  Layout model
-  ------------
-  node  = group | split
-  group = { type: "group", id, tabs: Tab[], active: tabId | null }
-  split = { type: "split", id, dir: "row" | "col", children: node[], sizes: number[] }  // sizes sum to 1
-  tab   = { id, src, serverName, icon, channel, title, threadId }
-
-  Nodes are kept in a Solid store and mutated in place, so a group/tab keeps its
-  object identity when the tree around it changes. The Workspace renders panes
-  from a *flat* list keyed by that identity, which means splitting or resizing
-  never remounts an existing message list.
-*/
-
 export const TAB_MIME = "application/x-indigo-tab";
 export const CHAN_MIME = "application/x-indigo-channel";
 
@@ -40,8 +26,6 @@ const newGroup = (tabs = []) => ({
   tabs,
   active: tabs[0]?.id ?? null,
 });
-
-/* ---------- tree helpers (work on plain objects, store proxies or drafts) ---------- */
 
 export function findNode(node, id) {
   if (node.id === id) return node;
@@ -70,7 +54,6 @@ export function listGroups(node, out = []) {
   return out;
 }
 
-/** Drops empty groups, unwraps single-child splits, merges same-direction nested splits. */
 function normalize(node) {
   if (node.type === "group") return node;
 
@@ -113,8 +96,6 @@ function finish(s) {
   }
 }
 
-/* ---------- store ---------- */
-
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem("workspace") || "null");
@@ -130,8 +111,6 @@ function load() {
 }
 
 export const [layout, setLayout] = createStore(load());
-
-/* ---------- operations ---------- */
 
 export function focusGroup(id) {
   if (!id || layout.focusedGroup === id) return;
@@ -189,12 +168,6 @@ export function closeTab(groupId, tabId) {
   );
 }
 
-/**
- * source: { groupId, tabId }  – an existing tab
- *       | { data }            – a channel dragged from the sidebar
- * zone:   "center" | "left" | "right" | "top" | "bottom"
- * index:  insertion index for "center" (tab strip drops)
- */
 export function moveTab(source, targetId, zone, index = null) {
   setLayout(
     produce((s) => {
@@ -266,7 +239,6 @@ export function moveTab(source, targetId, zone, index = null) {
   );
 }
 
-/** Moves the divider after child `index`. Returns the delta actually applied. */
 export function resizeSplit(splitId, index, delta) {
   let applied = 0;
   setLayout(
@@ -284,8 +256,6 @@ export function resizeSplit(splitId, index, delta) {
   );
   return applied;
 }
-
-/* ---------- drag source helper for the channel sidebar ---------- */
 
 export function channelDragProps(server, channel, threadId = null) {
   return {
