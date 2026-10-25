@@ -6,6 +6,7 @@ import {
   openFavorite,
   removeFavorite,
 } from "../../core/favorites.js";
+import { channelDragProps } from "../../layout/layoutStore.js";
 
 export default function FavoritesSidebar() {
   const groups = createMemo(() => {
@@ -66,6 +67,11 @@ export default function FavoritesSidebar() {
                       <div
                         class={`channel_item x ${isActive(f) ? "active" : ""}`}
                         onClick={() => openFavorite(f)}
+                        {...channelDragProps(
+                          { src: f.src, name: g.name, icon: g.icon },
+                          { name: f.channel, display_name: f.displayName },
+                          f.threadId ?? null
+                        )}
                       >
                         <span className="channel_icon">
                           <HiOutlineHashtag class="" />

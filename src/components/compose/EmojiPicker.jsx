@@ -10,7 +10,7 @@ import "./emojiPicker.css";
 import { HiOutlineMagnifyingGlass, HiOutlineSparkles } from "solid-icons/hi";
 
 import emojis from "emoji-picker-element-data/en/emojibase/data.json";
-import { tempState, state } from "../../App.jsx";
+import { tempState, state, setState } from "../../App.jsx";
 import { twemojiUrl } from "../messages/twemoji.js";
 
 import { serverStickers } from "../../core/server_connection.jsx";

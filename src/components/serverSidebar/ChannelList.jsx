@@ -34,6 +34,7 @@ HiOutlineGlobeAlt
 import { createHoverPreloadHandlers } from "../useHoverPreload";
 import { state, conn, unreads, setUnreads, setState } from "../../App";
 import { playPingSound } from "../../core/pingSound.js";
+import { channelDragProps } from "../../layout/layoutStore.js";
 
 const channelIcons = {
   text: HiOutlineHashtag,
@@ -258,6 +259,10 @@ export default function ChannelList(props) {
                 onClick={() => handleSelect(ch.name)}
                 onMouseEnter={hover.onMouseEnter}
                 onMouseLeave={hover.onMouseLeave}
+                {...channelDragProps(
+                  props.server ?? state.current.server ?? { src: props.serverSrc ?? state.current.server?.src },
+                  ch
+                )}
               >
                 <Show when={hasThreads()}>
                   <span
@@ -340,6 +345,11 @@ export default function ChannelList(props) {
                           setState("current", "thread", thread);
                         });
                       }}
+                      {...channelDragProps(
+                        props.server ?? state.current.server ?? { src: props.serverSrc ?? state.current.server?.src },
+                        ch,
+                        thread.id
+                      )}
                     >
                       <span class="channel_icon">
                         <HiOutlineArrowTurnDownRight />

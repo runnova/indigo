@@ -7,6 +7,7 @@ export default function ServerSidebar(props) {
       <ServerHeader serverInfo={props.serverInfo} />
       <DMsServerBtns/>
       <ChannelList
+        server={props.server}
         channels={props.channels}
         currentChannel={props.currentChannel}
         unreads={props.unreads}

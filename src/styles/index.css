@@ -566,13 +566,6 @@ nav button.active {
     height: 0;
     flex: 1;
     gap: 1px;
-
-    & > * {
-        padding-bottom: 0.5em;
-        & > * {
-            margin: 0 0.5em;
-        }
-    }
 }
 
 .server_content {

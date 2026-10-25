@@ -24,8 +24,8 @@ import { buildResults } from "./buildResults.jsx";
 
 let openSpotlight = null;
 
-export function showSpotlight() {
-  openSpotlight?.();
+export function showSpotlight(options) {
+  openSpotlight?.(options);
 }
 
 export function fuzzyScore(query, target) {
@@ -83,10 +83,11 @@ export function collectServerEntries() {
   return [...bySrc.values()];
 }
 
-export default function Spotlight() {
+export default function Spotlight(props) {
   const [open, setOpen] = createSignal(false);
   const [query, setQuery] = createSignal("");
   const [activeIndex, setActiveIndex] = createSignal(0);
+  let customSelect = null;
   let inputRef;
   let listRef;
 
@@ -94,9 +95,11 @@ export default function Spotlight() {
     setOpen(false);
     setQuery("");
     setActiveIndex(0);
+    customSelect = null;
   }
 
-  function show() {
+  function show(opts) {
+    customSelect = typeof opts === "function" ? opts : (opts?.onSelect ?? null);
     setOpen(true);
     setActiveIndex(0);
     queueMicrotask(() => inputRef?.focus());
@@ -155,6 +158,12 @@ export default function Spotlight() {
 
   function selectResult(result) {
     if (!result) return;
+
+    if (customSelect) {
+      customSelect(result);
+      close();
+      return;
+    }
 
     if (result.kind === "channel") {
       switchToChannel(result.server, result.channel.name);

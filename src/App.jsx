@@ -22,6 +22,8 @@ import {
   HiOutlineStar,
 } from "solid-icons/hi";
 
+import { Workspace, TabBarToggle } from "./layout/Workspace.jsx";
+
 import FavoritesSidebar from "./components/favorites/FavoritesSidebar.jsx";
 import { isFavorite, toggleFavorite, openFavorites } from "./core/favorites.js";
 
@@ -556,6 +558,7 @@ function App() {
             fallback={
               <Show when={conn.status() === "ready"}>
                 <ServerSidebar
+                  server={state.current.server}
                   serverInfo={conn.serverInfo()}
                   channels={conn.channels()}
                   currentChannel={state.current.channel}
@@ -690,17 +693,17 @@ function App() {
                         ></HiOutlineBars3>
                       </div>
                     </div>
-                  </Show>
-                  <div class="inpgrp x">
-                    <button
-                      class={
-                        isFavorite(
-                          state.current.server?.src,
-                          state.current.channel,
-                        )
-                          ? "active"
-                          : ""
-                      }
+                    <div class="inpgrp x">
+                      <TabBarToggle />
+                      <button
+                        class={
+                          isFavorite(
+                            state.current.server?.src,
+                            state.current.channel,
+                          )
+                            ? "active"
+                            : ""
+                        }
                       title="Toggle favorite"
                       onClick={() =>
                         toggleFavorite(
@@ -812,84 +815,13 @@ function App() {
                       />
                       <HiOutlineMagnifyingGlass />
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div class="x fill server_content_box">
-                <div
-                  class="interactive_section y fill"
-                  id="interactive_section"
-                >
-                  <Show
-                    when={conn.status() === "ready" && state.current.channel}
-                    fallback={
-                      <div class="empty_state fill y">
-                        <Show when={!state.current.server}>
-                          <p>Select a server to get started.</p>
-                        </Show>
-                        <Show
-                          when={
-                            state.current.server && conn.status() !== "ready"
-                          }
-                        >
-                          <p>
-                            {statusLabel() || "Connecting…"}{" "}
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                reconnectServer(state.current.server.src);
-                              }}
-                            >
-                              Reconnect
-                            </a>
-                          </p>
-                        </Show>
-                        <Show
-                          when={
-                            conn.status() === "ready" && !state.current.channel
-                          }
-                        >
-                          <p>Pick a channel from the sidebar.</p>
-                        </Show>
-                      </div>
-                    }
-                  >
-                    {currentChannel()?.type === "voice" ? (
-                      <VoiceChannelView
-                        channel={state.current.channel}
-                        server={state.current.server}
-                        conn={conn}
-                      />
-                    ) : currentChannel()?.type === "forum" ? (
-                      <ForumView
-                        channel={state.current.channel}
-                        sendRequest={conn.send}
-                        wsMessages={conn.lastEvent}
-                        onReady={(api) => {
-                          tempState.virtMsgList = api;
-                        }}
-                      />
-                    ) : (
-                      <>
-                        <VirtualMessageList
-                          channel={state.current.channel}
-                          thread={state.current.thread}
-                          sendRequest={conn.send}
-                          wsMessages={conn.lastEvent}
-                          onReady={(api) => {
-                            tempState.virtMsgList = api;
-                          }}
-                        />
-
-                        <MessageComposer
-                          channel={state.current.channel}
-                          thread={state.current.thread}
-                        />
-                      </>
-                    )}
+                    </div>
                   </Show>
                 </div>
+
+              </div>
+              <div class="x fill server_content_box">
+                <Workspace />
 
                 <div
                   class="resize_handle left"

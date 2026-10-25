@@ -8,6 +8,70 @@ export const [serverStickers, setServerStickers] = createStore({});
 
 export const connections = new Map();
 
+const pinned = new Set();
+const [connVersion, bumpConn] = createSignal(0);
+
+function sendOn(connection, payload) {
+  const ws = connection.ws;
+  if (!ws || ws.readyState !== WebSocket.OPEN || connection.state.status !== "ready") {
+    connection.pending.push(payload);
+    return;
+  }
+  ws.send(JSON.stringify(payload));
+}
+
+function createView(connection) {
+  const s = connection.state;
+  const [status, setStatus] = createSignal(s.status);
+  const [error, setError] = createSignal(null);
+  const [serverInfo, setServerInfo] = createSignal(null);
+  const [me, setMe] = createSignal(null);
+  const [channels, setChannels] = createSignal([]);
+  const [roles, setRoles] = createSignal([]);
+  const [emojis, setEmojis] = createSignal([]);
+  const [members, setMembers] = createSignal([]);
+  const [membersOnline, setMembersOnline] = createSignal([]);
+  const [lastEvent, setLastEvent] = createSignal(null);
+
+  return {
+    status, error, serverInfo, me, channels, roles, emojis, members, membersOnline, lastEvent,
+    send: (payload) => sendOn(connection, payload),
+    emit: (packet) => setLastEvent({ ...packet, _ts: Date.now() }),
+    sync() {
+      setStatus(s.status);
+      setError(s.error ?? null);
+      setServerInfo(s.serverInfo);
+      setMe(s.me);
+      setChannels(s.channels);
+      setRoles(s.roles);
+      setEmojis(s.emojis);
+      setMembers(s.members);
+      setMembersOnline(s.membersOnline);
+    },
+  };
+}
+
+export function getConnectionView(src) {
+  connVersion(); // re-run readers when a connection appears / disappears
+  return connections.get(src)?.view ?? null;
+}
+
+/** Called by panes: keeps the server connected and creates the connection if needed. */
+export function pinServer(src) {
+  pinned.add(src);
+  if (connections.has(src)) return;
+  // the active server's connection is created by connect(); don't race it
+  if (src === state.current.server?.src) return;
+
+  const settings = JSON.parse(localStorage.getItem("settings") || "{}");
+  const token = settings.type === "token" ? settings.token : null;
+  createConnection(
+    { src },
+    token,
+    token ? null : { username: "guest", password: "guest" },
+  );
+}
+
 function saveToken(token) {
   const settings = JSON.parse(localStorage.getItem("settings") || "{}");
 
@@ -215,6 +279,7 @@ function openSocket(connection) {
   ws.onopen = () => {
     connection.reconnectAttempts = 0;
     connection.state.status = "handshake";
+    syncActive(connection);
   };
 
   ws.onmessage = (ev) => {
@@ -242,6 +307,7 @@ function getIdlePolicy() {
 }
 
 function shouldKeepIdle(src) {
+  if (pinned.has(src)) return true;
   switch (getIdlePolicy()) {
     case "none":
       return false;
@@ -260,6 +326,7 @@ function closeConnection(connection) {
   }
 
   connections.delete(connection.src);
+  bumpConn((v) => v + 1);
   setUnreads("servers", connection.src, "online", false);
 
   const ws = connection.ws;
@@ -342,15 +409,18 @@ function createConnection(server, roturToken, crackedUser) {
       loaded: false,
     },
   };
+  connection.view = createView(connection);
 
   setUnreads("servers", server.src, (prev) => prev ?? { online: false });
   connections.set(server.src, connection);
+  bumpConn((v) => v + 1);
 
   openSocket(connection);
 
   return connection;
 }
 function syncActive(connection) {
+  connection.view?.sync();
   if (connection.mode !== "active") return;
 
   const ui = connection.ui;
@@ -369,6 +439,11 @@ function syncActive(connection) {
 }
 
 function handlePacket(connection, packet) {
+  handlePacketInner(connection, packet);
+  connection.view?.emit(packet);
+}
+
+function handlePacketInner(connection, packet) {
   if (connection.mode === "active") {
     connection.ui?.emit(packet);
   }

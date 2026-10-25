@@ -83,24 +83,15 @@ function requestReplyMessage(channel, id) {
 
 let getMessage = () => undefined;
 
-export function getMessageById(id) {
-  return getMessage(id);
-}
+let activeLookup = () => undefined;
+export function getMessageById(id) { return activeLookup(id); }
 
 export function createMessageLookup(messages) {
-  const messageMap = createMemo(() => {
+  return createMemo(() => {
     const map = new Map();
-
-    for (const message of messages()) {
-      map.set(message.id, message);
-    }
-
+    for (const m of messages()) map.set(m.id, m);
     return map;
   });
-
-  getMessage = (id) => messageMap().get(id);
-
-  return messageMap;
 }
 
 const TEN_MINUTES_MS = 10 * 60 * 1000;
@@ -108,9 +99,22 @@ const SCROLL_NEAR_TOP = 100;
 const SCROLL_NEAR_BOTTOM = 80;
 
 export function VirtualMessageList(props) {
+  let rootEl;
   let scrollEl;
   let resizeObserver;
   let shiftWindowRaf = null;
+
+  const isActive = () => (props.active ? props.active() : true);
+
+  const [fetchedReplies, setFetchedReplies] = createSignal(new Map());
+  const pendingReplyFetches = new Set();
+  const getCachedReply = (id) => fetchedReplies().get(id);
+
+  function requestReplyMessage(channel, id) {
+    if (!id || pendingReplyFetches.has(id) || fetchedReplies().has(id)) return;
+    pendingReplyFetches.add(id);
+    props.conn.send({ cmd: "message_get", channel, id });
+  }
 
   const unreadTracking = createUnreadTracking();
 
@@ -123,7 +127,7 @@ export function VirtualMessageList(props) {
   }
 
   createEffect(() => {
-    const evt = tempState?.conn?.lastevent?.();
+    const evt = props.conn.lastEvent();
     if (!evt || evt.cmd !== "message_get" || !evt.message) return;
 
     const msg = evt.message;
@@ -191,11 +195,14 @@ export function VirtualMessageList(props) {
     getScrollElement: () => scrollEl,
     isNearBottom,
     threadId: () => props.threadId,
+    serverSrc: () => props.serverSrc,
+    me: () => props.conn?.me?.()?.username,
   });
 
   const messages = createMemo(() => [...realMessages(), ...fakeMessages()]);
-
-  createMessageLookup(messages);
+  const messageMap = createMessageLookup(messages);
+  const getMessageById = (id) => messageMap().get(id);   // shadows the export, per pane
+  createEffect(() => { if (isActive()) activeLookup = getMessageById; });
 
   const prevById = createMemo(() => {
     const map = new Map();
@@ -229,13 +236,11 @@ export function VirtualMessageList(props) {
     const channel = props.channel;
     if (!channel) return;
 
-    if (update.type === "append" && !scrollLocked()) {
-      unreadTracking.addUnread(channel);
-    }
+    if (update.type === "append" && !(scrollLocked() && isActive())) { unreadTracking.addUnread(channel); }
   });
 
   createEffect(() => {
-    if (!scrollLocked()) return;
+   if (!scrollLocked() || !isActive()) return;
 
     const channel = props.channel;
     if (!channel) return;
@@ -302,8 +307,9 @@ export function VirtualMessageList(props) {
       ) {
         return;
       }
+      if (!isActive()) return;
       e.preventDefault();
-      const username = tempState.conn?.me?.()?.username;
+      const username = props.conn.me?.()?.username;
       const allMessages = messages();
       if (!username || !allMessages.length) return;
       const lastOwnMessage = allMessages
@@ -478,15 +484,17 @@ export function VirtualMessageList(props) {
     setShowScrollButton(!nearBottom);
     if (nearBottom) {
       setUnreadCount(0);
-      const msgs = messages();
-      if (msgs.length > 0) {
-        const lastMsg = msgs[msgs.length - 1];
+      if (isActive()) {
+        const msgs = messages();
+        if (msgs.length > 0) {
+          const lastMsg = msgs[msgs.length - 1];
 
-        unreadTracking.markAsRead(
-          props.channel,
-          lastMsg.id,
-          toMs(lastMsg.timestamp),
-        );
+          unreadTracking.markAsRead(
+            props.channel,
+            lastMsg.id,
+            toMs(lastMsg.timestamp),
+          );
+        }
       }
     }
 
@@ -643,7 +651,7 @@ export function VirtualMessageList(props) {
 
   createEffect(
     on(
-      () => pendingMessages.length,
+      () => visiblePending().length,
       (len, prev) => {
         if (len > (prev ?? 0)) {
           requestAnimationFrame(() =>
@@ -774,7 +782,7 @@ export function VirtualMessageList(props) {
           </button>
 
           {state.current.thread.participants.includes(
-            tempState.conn.me().username,
+            props.conn.me().username,
           ) ? (
             <button class="forum-back-btn x" onClick={props.onLeave}>
               <HiOutlineUserMinus /> Leave
@@ -790,7 +798,7 @@ export function VirtualMessageList(props) {
           )}
         </div>
       </Show>
-      <div className="realchannelcontent">
+      <div className="realchannelcontent" ref={rootEl}>
       <Show when={loadingInitial()}>
         <div class="chatloading">Loading...</div>
       </Show>
@@ -1001,44 +1009,27 @@ export function VirtualMessageList(props) {
             }}
             style={{
               position: "absolute",
-              top: `${hoverRect().top - 60}px`,
+              top: `${hoverRect().top - rootEl.getBoundingClientRect().top - 24}px`,
               right: `25px`,
             }}
           >
             <MessageActions
               content={hoveredMessage().content}
-              channel={state.current.channel}
-              messageId={hoveredMessage().id}
-              canEdit={
-                hoveredMessage().user === tempState?.conn?.me()?.username
-              }
-              canDelete={
-                hoveredMessage().user === tempState?.conn?.me()?.username
-              }
-              onReply={() => {
-                tempState.virtMsgList.scrollToMessage(hoveredMessage().id);
-                setState("replying", {
-                  id: hoveredMessage().id,
-                  user: hoveredMessage().user,
-                  content: hoveredMessage().content,
-                });
-              }}
-              onEdit={() => {
-                tempState.virtMsgList.scrollToMessage(hoveredMessage().id);
-                setState("editing", {
-                  id: hoveredMessage().id,
-                  user: hoveredMessage().user,
-                  content: hoveredMessage().content,
-                });
-              }}
-              onDelete={() =>
-                tempState.conn.send({
-                  cmd: "message_delete",
-                  id: hoveredMessage().id,
-                  channel: state.current.channel,
-                  ...(props.threadId && { thread_id: props.threadId }),
-                })
-              }
+              channel={props.channel}
+              canEdit={hoveredMessage().user === props.conn.me()?.username}
+              canDelete={hoveredMessage().user === props.conn.me()?.username}
+              onReply={() => { scrollToMessage(hoveredMessage().id); setState("replying", {
+                id: hoveredMessage().id,
+                user: hoveredMessage().user,
+                content: hoveredMessage().content,
+              }); }}
+              onEdit={() => { scrollToMessage(hoveredMessage().id); setState("editing", {
+                id: hoveredMessage().id,
+                user: hoveredMessage().user,
+                content: hoveredMessage().content,
+              }); }}
+              onDelete={() => props.conn.send({ cmd: "message_delete", id: hoveredMessage().id,
+                channel: props.channel, ...(props.threadId && { thread_id: props.threadId }) })}
               quickReactions={state.settings.quickReactions}
               onReact={(e) => {
                 console.log("send??", hoveredMessage());
@@ -1049,22 +1040,12 @@ export function VirtualMessageList(props) {
                 setEmojiPicker({
                   open: true,
                   onSelect: (emoji) => {
-                    tempState.conn.send({
-                      cmd: "message_react_add",
-                      channel: state.current.channel,
-                      id: messageId,
-                      emoji,
-                    });
+                    props.conn.send({ cmd: "message_react_add", channel: props.channel, id: messageId, emoji });
                   },
                 });
               }}
               onQuickReact={(emoji, messageId, channel) => {
-                tempState.conn.send({
-                  cmd: "message_react_add",
-                  channel,
-                  id: messageId,
-                  emoji,
-                });
+                props.conn.send({ cmd: "message_react_add", channel, id: messageId, emoji });
               }}
             />
           </div>

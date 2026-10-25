@@ -4,7 +4,12 @@ import { unreads, setUnreads, state, tempState } from "../App";
 import { playPingSound } from "./pingSound.js";
 
 import {
-  cacheKey, getCached, setCached, invalidate, PAGE_SIZE, sortMessages,
+  cacheKey,
+  getCached,
+  setCached,
+  invalidate,
+  PAGE_SIZE,
+  sortMessages,
 } from "../components/channelCache.js";
 
 const LOAD_OLDER_COOLDOWN_MS = 500;
@@ -74,8 +79,6 @@ export function createForumThreads({ channel, wsEvent, sendRequest }) {
     });
   }
 
-
-
   function handleThreadsGet(event) {
     const list = getThreadList(event);
 
@@ -124,6 +127,8 @@ export function createChannelMessages({
   getScrollElement,
   isNearBottom,
   threadId,
+  serverSrc = () => state.current.server?.src,
+  me = () => tempState?.conn?.me?.()?.username,
 }) {
   const [messages, setMessages] = createSignal([]);
   const [loadingOlder, setLoadingOlder] = createSignal(false);
@@ -156,12 +161,12 @@ export function createChannelMessages({
   }
 
   const currentKey = () =>
-    threadId?.() ? null : cacheKey(state.current.server?.src, channel());
+    threadId?.() ? null : cacheKey(serverSrc(), channel());
 
   let lastLoadSig = null;
 
   function loadChannel() {
-    const sig = `${state.current.server?.src}|${channel()}|${threadId?.() ?? ""}`;
+    const sig = `${serverSrc()}|${channel()}|${threadId?.() ?? ""}`;
     if (sig === lastLoadSig) return;
     lastLoadSig = sig;
     pendingDirection = null;
@@ -388,14 +393,17 @@ export function createChannelMessages({
       return next;
     });
 
-    const me = tempState?.conn?.me?.()?.username;
-    if (me && incomingMessage.user !== me) {
+    const myName = me();
+    if (myName && incomingMessage.user !== myName) {
       const pingedUsers = incomingMessage.pings?.users ?? [];
       const content = incomingMessage.content;
       const contentMentioned =
         typeof content === "string" &&
-        new RegExp(`(^|\\s)@${me.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=[^a-zA-Z0-9_]|$)`, "i").test(content);
-      if (pingedUsers.includes(me) || contentMentioned) {
+        new RegExp(
+          `(^|\\s)@${myName.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=[^a-zA-Z0-9_]|$)`,
+          "i",
+        ).test(content);
+      if (pingedUsers.includes(myName) || contentMentioned) {
         playPingSound();
       }
     }
@@ -503,7 +511,7 @@ export function createChannelMessages({
       event.cmd === "unreads_update" ||
       event.cmd === "unreads_ack"
     ) {
-      handleUnreadEvent(event);
+      if (serverSrc() === state.current.server?.src) handleUnreadEvent(event);
       return;
     }
 
@@ -523,7 +531,7 @@ export function createChannelMessages({
     on(
       () => threadId?.(),
       (tid) => {
-        if (tid) invalidate(cacheKey(state.current.server?.src, channel()));
+        if (tid) invalidate(cacheKey(serverSrc(), channel()));
         loadChannel();
       },
       { defer: true },

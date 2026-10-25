@@ -1,6 +1,6 @@
 :root {
-  --bg-one: #090a0b;
-  --bg-two: #0B0C0E;
+  --bg-one: #0b0c0e;
+  --bg-two: #0f1114;
   --bg-three: #0F1115;
   --bg-four: #1E2E60;
 
@@ -22,12 +22,20 @@ path {
     stroke-width: 3px;
 }
 
+.server_bar, .first_bar {
+    background-color: #090a0b;
+}
+
 .first_bar {
   border-right: 1px solid var(--diff-three);
 }
 
 .topbar {
   border-bottom: 1px solid var(--diff-three);
+}
+
+.pfpWO>* {
+    border-radius: 50% !important;
 }
 
 .text_box,

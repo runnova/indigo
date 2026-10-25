@@ -1,0 +1,227 @@
+/* Uses your existing theme variables where it can; the fallbacks only apply if a var is missing. */
+
+.ws-root {
+  --ws-tabbar-h: 36px;
+  --ws-accent: var(--hl-two, var(--accent, var(--peace, #7c83ff)));
+  --ws-line: var(--diff-three, rgba(255, 255, 255, 0.08));
+  position: relative;
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-one, #000);
+}
+
+/* ---- group frame + tab strip ---- */
+
+.ws-group {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ws-line);
+  pointer-events: none;
+}
+
+.ws-group.focused {
+  border-color: var(--ws-accent);
+}
+
+.ws-tabbar {
+  pointer-events: auto;
+  display: flex;
+  align-items: stretch;
+  flex: none;
+  height: var(--ws-tabbar-h);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  background: var(--bg-two, #111);
+  border-bottom: 1px solid var(--ws-line);
+}
+
+.ws-tabbar::-webkit-scrollbar {
+  display: none;
+}
+
+.ws-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  max-width: 220px;
+  padding: 0 10px 0 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-dim, rgba(255, 255, 255, 0.6));
+  border-right: 1px solid var(--ws-line);
+  box-sizing: border-box;
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ws-tab:hover {
+  color: var(--fg-one, #fff);
+  background: var(--diff-one, rgba(255, 255, 255, 0.04));
+}
+
+.ws-tab.active {
+  color: var(--fg-one, #fff);
+  background: var(--bg-one, #000);
+  box-shadow: inset 0 -2px 0 var(--ws-accent);
+}
+
+.ws-group.focused .ws-tab.active {
+  box-shadow: inset 0 -2px 0 var(--ws-accent);
+}
+
+.ws-tab-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex: none;
+  object-fit: cover;
+}
+
+.ws-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-tab-close {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.ws-tab:hover .ws-tab-close,
+.ws-tab.active .ws-tab-close {
+  opacity: 0.75;
+}
+
+.ws-tab-close:hover {
+  opacity: 1;
+  background: var(--diff-two, rgba(255, 255, 255, 0.15));
+}
+
+.ws-tab-add {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg-dim, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ws-tab-add:hover {
+  color: var(--fg-one, #fff);
+  background: var(--diff-one, rgba(255, 255, 255, 0.05));
+}
+
+.ws-empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--fg-dim, rgba(255, 255, 255, 0.45));
+}
+
+/* ---- pane content ---- */
+
+.ws-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-one, #000);
+}
+
+.ws-pane-inner {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 1em);
+  padding: .5em;
+}
+
+/* the hover action bar in VirtualMessageList is positioned against this */
+.ws-pane-inner .realchannelcontent {
+  position: relative;
+}
+
+/* ---- splitters ---- */
+
+.ws-splitter {
+  position: absolute;
+  z-index: 5;
+  background: transparent;
+  transition: background 0.12s;
+}
+
+.ws-splitter.row {
+  cursor: col-resize;
+}
+
+.ws-splitter.col {
+  cursor: row-resize;
+}
+
+.ws-splitter:hover,
+body.ws-resizing .ws-splitter:active {
+  background: var(--ws-accent);
+  opacity: 0.6;
+}
+
+body.ws-resizing {
+  user-select: none;
+}
+
+/* ---- drag & drop overlay ---- */
+
+.ws-drop {
+  position: absolute;
+  z-index: 20;
+}
+
+.ws-drop-preview {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--ws-accent) 22%, transparent);
+  border: 2px solid var(--ws-accent);
+  border-radius: 6px;
+  transition: top 0.08s, left 0.08s, right 0.08s, bottom 0.08s, width 0.08s,
+    height 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-drop-preview,
+  .ws-splitter {
+    transition: none;
+  }
+}
