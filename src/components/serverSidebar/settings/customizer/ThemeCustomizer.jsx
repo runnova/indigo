@@ -28,6 +28,7 @@ const FONT_OPTIONS = [
   { id: "outfit", label: "Outfit", family: "'Outfit', sans-serif", googleName: "Outfit:wght@400;500;600;700" },
   { id: "sora", label: "Sora", family: "'Sora', sans-serif", googleName: "Sora:wght@400;500;600;700" },
   { id: "dm-sans", label: "DM Sans", family: "'DM Sans', sans-serif", googleName: "DM+Sans:wght@400;500;600;700" },
+  { id: "noto-sans", label: "Noto Sans", family: "'Noto Sans', sans-serif", googleName: "Noto+Sans:wght@400;500;600;700" },
   { id: "space-grotesk", label: "Space Grotesk", family: "'Space Grotesk', sans-serif", googleName: "Space+Grotesk:wght@400;500;600;700" },
   { id: "plus-jakarta-sans", label: "Plus Jakarta Sans", family: "'Plus Jakarta Sans', sans-serif", googleName: "Plus+Jakarta+Sans:wght@400;500;600;700" },
   { id: "lexend", label: "Lexend", family: "'Lexend', sans-serif", googleName: "Lexend:wght@400;500;600;700" },
