@@ -25,22 +25,25 @@
     .third_bar {
         scroll-snap-align: start;
     }
-    .interactive_section {
+    .ws-root {
         scroll-snap-align: center;
     }
 
-    .first_bar,
-    .interactive_section,
+    .ws-root,
     .third_bar {
-        width: calc(100vw - 1.5em) !important;
-        min-width: calc(100vw - 1.5em) !important;
-        margin: 0 .5em;
-        content-visibility: auto
+        width: calc(100vw - 15pt) !important;
+        min-width: calc(100vw - 15pt) !important;
+        content-visibility: auto;
+        margin: 0 0.5em;
+
+        &.first_bar {
+            margin-left: 0;
+        }
     }
     .channel_data,
-   .emoji_popup {
+    .emoji_popup {
         width: calc(100dvw - 1em);
-        margin: .5em;
+        margin: 0.5em;
     }
 
     .emoji_popup {
@@ -52,13 +55,13 @@
             max-width: calc(100vw - 1em) !important;
 
             &.first_bar {
-                max-width: calc(100vw - 6em) !important;
-                width: calc(100vw - 6em) !important;
+                max-width: calc(100vw - 50pt) !important;
+                width: calc(100vw - 50pt) !important;
                 overflow-x: hidden;
             }
         }
 
-        & .fill.y {
+        & > .fill.y {
             min-width: 200vw;
         }
     }
@@ -77,18 +80,19 @@
             min-width: fit-content !important;
         }
 
-        & .icon_button{
-           &.text {
-               width: fit-content;
-               min-width: 0;
-           }
+        & .icon_button {
+            &.text {
+                width: fit-content;
+                min-width: 0;
+            }
             span {
-            display: none;
-        }}
+                display: none;
+            }
+        }
     }
 
     .settings_item {
-        margin-bottom: .2em;
+        margin-bottom: 0.2em;
     }
 
     .settings_input {
@@ -118,10 +122,19 @@
         }
 
         & .scm-item {
-            padding: .8em 1em;
+            padding: 0.8em 1em;
             & .scm-item-content {
                 gap: 1em;
             }
         }
+    }
+
+    .ws-pane-inner {
+        margin-top: 0;
+        width: calc(100% - 1em) !important;
+    }
+
+    .interactive_section {
+        border: 0 !important;
     }
 }
