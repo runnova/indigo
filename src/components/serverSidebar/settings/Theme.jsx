@@ -80,7 +80,7 @@ export default function ThemeSettings() {
     <>
       <h2 class="settings_title">Themes</h2>
 
-      <p class="settings_subt">Select a theme to apply it.</p>
+      <p class="settings_subt">Apply multiple themes to mix them.</p>
 
       <div class="theme-actions">
         <button onClick={removeAllThemes}>Remove All Themes</button>

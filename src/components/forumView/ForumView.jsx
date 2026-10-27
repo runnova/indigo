@@ -12,6 +12,7 @@ import { timeAgo } from "../Utility";
 import { state, setState, conn } from "../../App";
 import MessageComposer from "../compose/MessageComposer";
 import "./style.css";
+import { getPaneConn } from "../../layout/paneConn";
 
 export function ForumView(props) {
   const { threads, loading } = createForumThreads({
@@ -32,6 +33,7 @@ export function ForumView(props) {
       setState("current", "thread", stillCurrent);
     }
   });
+
   return (
     <Show
       when={state.current.thread}
@@ -46,18 +48,21 @@ export function ForumView(props) {
       <VirtualMessageList
         channel={props.channel}
         threadId={state.current.thread.id}
+        serverSrc={props.serverSrc}
+        conn={props.conn}
+        active={props.active}
         sendRequest={props.sendRequest}
         wsMessages={props.wsMessages}
         onReady={props.onReady}
         onBack={() => setState("current", "thread", null)}
         onLeave={() => {
-          conn.send({
+          props.conn.send({
             cmd: "thread_leave",
             thread_id: state.current.thread.id,
           });
         }}
         onJoin={() => {
-          conn.send({
+          props.conn.send({
             cmd: "thread_join",
             thread_id: state.current.thread.id,
           });
@@ -65,11 +70,12 @@ export function ForumView(props) {
       />
 
       <MessageComposer
-        channel={state.current.channel}
+        channel={props.channel}
+        thread={state.current.thread}
         onSend={(content, attachments) => {
-          conn.send({
+          props.conn.send({
             cmd: "message_new",
-            channel: state.current.channel,
+            channel: props.channel,
             thread_id: state.current.thread.id,
             content,
             attachments,

@@ -1,5 +1,9 @@
 import { tempState, state, setState } from "../App";
 import { executeHook } from "./addons/AddonsSystem.jsx";
+import { getConnectionView } from "./server_connection.jsx";
+
+const SIGNING_URL_WAIT_MS = 8000;
+const verifyCache = new Map();
 
 let clockOffset = 0;
 
@@ -22,30 +26,21 @@ export function updateClockOffset(serverTime, roundTripStart) {
   if (roundTripTime < 0 || roundTripTime > 10000) return;
   if (serverAnchor === null || monotonicAnchor === null) return;
 
-  const estimatedServerNow =
-    Number(serverTime) + roundTripTime / 2000;
+  const estimatedServerNow = Number(serverTime) + roundTripTime / 2000;
 
   const localEstimatedServerNow =
-    serverAnchor +
-    (now - monotonicAnchor) / 1000 +
-    clockOffset;
+    serverAnchor + (now - monotonicAnchor) / 1000 + clockOffset;
 
-  const newOffset =
-    estimatedServerNow - localEstimatedServerNow;
-
-  if (smoothedRtt === null) {
-    smoothedRtt = roundTripTime;
-  } else {
-    const alpha = 0.3;
-    smoothedRtt =
-      smoothedRtt * (1 - alpha) +
-      roundTripTime * alpha;
-  }
+  const newOffset = estimatedServerNow - localEstimatedServerNow;
 
   const alpha = 0.3;
-  clockOffset =
-    clockOffset * (1 - alpha) +
-    newOffset * alpha;
+
+  smoothedRtt =
+    smoothedRtt === null
+      ? roundTripTime
+      : smoothedRtt * (1 - alpha) + roundTripTime * alpha;
+
+  clockOffset = clockOffset * (1 - alpha) + newOffset * alpha;
 
   lastRtt = roundTripTime;
 }
@@ -81,9 +76,15 @@ function getSigningUrl() {
   return tempState?.conn?.serverInfo()?.signing_url;
 }
 
+const normalizeContent = (payload) =>
+  typeof payload.content === "string" ? payload.content : "";
+
+const normalizeAttachments = (payload) =>
+  Array.isArray(payload.attachments) ? payload.attachments : [];
+
 export async function signMessageNew(payload, signedAt, signingUrl) {
-  const content = typeof payload.content === "string" ? payload.content : "";
-  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
+  const content = normalizeContent(payload);
+  const attachments = normalizeAttachments(payload);
 
   const proof = await tempState.rotur.signing.sign((authorId) => [
     "originchats.message.v1",
@@ -96,6 +97,8 @@ export async function signMessageNew(payload, signedAt, signingUrl) {
 
   return { ...payload, timestamp: signedAt, signed_at: signedAt, ...proof };
 }
+
+export const signMessageEdit = signMessageNew;
 
 export async function signSlashCall(payload, timestamp, signingUrl) {
   const nonce = crypto.randomUUID();
@@ -134,10 +137,6 @@ export async function sendMessage(content, attachments, onPayload) {
     const signingUrl = getSigningUrl();
     try {
       const signed = await signMessageNew(basePayload, timestamp, signingUrl);
-      console.log("OUTGOING SIGNED", {
-        timestamp: signed.timestamp,
-        signed_at: signed.signed_at,
-      });
       tempState.conn.send(signed);
     } catch (error) {
       console.error("Failed to sign message:", error);
@@ -172,7 +171,19 @@ export async function sendSlashCall(command, args) {
     tempState.conn.send(basePayload);
   }
 }
-export async function verifyMessage(message) {
+
+const waitForSigningUrl = async (serverSrc) => {
+  if (!serverSrc) return getSigningUrl();
+  const deadline = Date.now() + SIGNING_URL_WAIT_MS;
+  while (Date.now() < deadline) {
+    const info = getConnectionView(serverSrc)?.serverInfo();
+    if (info) return info.signing_url ?? null;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return null;
+};
+
+async function verifyMessageUncached(message, serverSrc) {
   if (
     !message?.author_id ||
     !message?.key_id ||
@@ -182,7 +193,7 @@ export async function verifyMessage(message) {
     return "unsigned";
   }
 
-  const signingUrl = getSigningUrl();
+  const signingUrl = await waitForSigningUrl(serverSrc);
 
   if (!signingUrl) {
     return "unavailable";
@@ -199,10 +210,8 @@ export async function verifyMessage(message) {
       [
         "originchats.message.v1",
         message.author_id,
-        typeof message.content === "string" ? message.content : "",
-        Array.isArray(message.attachments)
-          ? message.attachments
-          : [],
+        normalizeContent(message),
+        normalizeAttachments(message),
         message.signed_at,
         signingUrl,
       ],
@@ -214,20 +223,19 @@ export async function verifyMessage(message) {
     return "unavailable";
   }
 }
-export async function signMessageEdit(payload, signedAt, signingUrl) {
-  const content = typeof payload.content === "string" ? payload.content : "";
-  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
 
-  const proof = await tempState.rotur.signing.sign((authorId) => [
-    "originchats.message.v1",
-    authorId,
-    content,
-    attachments,
-    signedAt,
-    signingUrl,
-  ]);
+export function verifyMessage(message, serverSrc) {
+  const key = `${serverSrc}|${message?.id}|${message?.signature}`;
+  const cached = verifyCache.get(key);
+  if (cached) return cached;
 
-  return { ...payload, timestamp: signedAt, signed_at: signedAt, ...proof };
+  const promise = verifyMessageUncached(message, serverSrc).then((result) => {
+    if (result === "unavailable") verifyCache.delete(key);
+    return result;
+  });
+
+  verifyCache.set(key, promise);
+  return promise;
 }
 
 export async function sendMessageEdit(id, edit, current) {
@@ -241,7 +249,7 @@ export async function sendMessageEdit(id, edit, current) {
     content: nextContent,
     attachments: nextAttachments,
   };
-  basePayload = await executeHook('message:edit:before-send', basePayload);
+  basePayload = await executeHook("message:edit:before-send", basePayload);
 
   if (hasCapability("message_signatures_v1")) {
     const timestamp = getServerTime();

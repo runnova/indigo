@@ -155,6 +155,9 @@ function PaneContent(props) {
         ) : info()?.type === "forum" ? (
           <ForumView
             channel={props.tab.channel}
+            serverSrc={props.tab.src}
+            conn={pconn}
+            active={props.active}
             sendRequest={pconn.send}
             wsMessages={pconn.lastEvent}
             onReady={(api) => props.registerApi(props.tab.id, api)}

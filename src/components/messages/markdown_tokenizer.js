@@ -4,21 +4,6 @@ function isWhitespace(char) {
   return char === ' ' || char === '\t' || char === '\n' || char === '\r';
 }
 
-function isAlphanumeric(char) {
-  return /[a-zA-Z0-9_]/.test(char);
-}
-
-function peekChar(text, i, offset = 1) {
-  return text[i + offset] || null;
-}
-
-function consumeWhile(text, i, predicate) {
-  while (i < text.length && predicate(text[i])) {
-    i++;
-  }
-  return i;
-}
-
 const SHORTCODE_EMOJI_MAP = emojis.reduce((acc, entry) => {
   if (entry.shortcodes && entry.emoji) {
     for (const code of entry.shortcodes) {
@@ -31,6 +16,11 @@ const SHORTCODE_EMOJI_MAP = emojis.reduce((acc, entry) => {
 
 const NATIVE_EMOJI_REGEX =
   /^(?:\p{Extended_Pictographic}(?:\uFE0F)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F)?)*)/u;
+
+const CUSTOM_EMOJI_REGEX = /^<emoji:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>/;
+const STICKER_REGEX = /^<sticker:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>/;
+const USER_MENTION_REGEX = /^<@([a-zA-Z0-9-]+)>/;
+const ROLE_MENTION_REGEX = /^<@&([a-zA-Z0-9-]+)>/;
 
 function parseInlineContent(text, start = 0, endMarker = null) {
   const tokens = [];
@@ -100,13 +90,6 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
-    const urlMatch = tryParseUrl(text, i);
-    if (urlMatch) {
-      tokens.push(urlMatch.token);
-      i = urlMatch.end;
-      continue;
-    }
-
     const emojiMatch = tryParseEmoji(text, i);
     if (emojiMatch) {
       tokens.push(emojiMatch.token);
@@ -114,24 +97,10 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
-    const shortcodeEmojiMatch = tryParseShortcodeEmoji(text, i);
-    if (shortcodeEmojiMatch) {
-      tokens.push(shortcodeEmojiMatch.token);
-      i = shortcodeEmojiMatch.end;
-      continue;
-    }
-
     const stickerMatch = tryParseSticker(text, i);
     if (stickerMatch) {
       tokens.push(stickerMatch.token);
       i = stickerMatch.end;
-      continue;
-    }
-
-    const channelMatch = tryParseChannel(text, i);
-    if (channelMatch) {
-      tokens.push(channelMatch.token);
-      i = channelMatch.end;
       continue;
     }
 
@@ -149,17 +118,24 @@ function parseInlineContent(text, start = 0, endMarker = null) {
       continue;
     }
 
+    const urlMatch = tryParseUrl(text, i);
+    if (urlMatch) {
+      tokens.push(urlMatch.token);
+      i = urlMatch.end;
+      continue;
+    }
+
+    const shortcodeEmojiMatch = tryParseShortcodeEmoji(text, i);
+    if (shortcodeEmojiMatch) {
+      tokens.push(shortcodeEmojiMatch.token);
+      i = shortcodeEmojiMatch.end;
+      continue;
+    }
+
     const nativeEmojiMatch = tryParseNativeEmoji(text, i);
     if (nativeEmojiMatch) {
       tokens.push(nativeEmojiMatch.token);
       i = nativeEmojiMatch.end;
-      continue;
-    }
-
-    const messageLinkMatch = tryParseMessageLink(text, i);
-    if (messageLinkMatch) {
-      tokens.push(messageLinkMatch.token);
-      i = messageLinkMatch.end;
       continue;
     }
 
@@ -204,12 +180,19 @@ function isSpecialChar(text, i) {
   if (char === '~' && next === '~') return true;
   if (char === '`') return true;
   if (char === '[') return true;
-  if (char === 'h' && (text.slice(i, i + 7) === 'http://' || text.slice(i, i + 8) === 'https://')) return true;
-  if (text.startsWith("originChats:", i)) return true;
-  if (char === '@') return true;
+  if (char === 'h' && (text.startsWith('http://', i) || text.startsWith('https://', i))) return true;
   if (char === '\n') return true;
-  if (char === "<" && text.startsWith("<t:", i)) return true;
-  if (char === "#") return true;
+  if (
+    char === '<' &&
+    (text.startsWith('<t:', i) ||
+      text.startsWith('<emoji:', i) ||
+      text.startsWith('<sticker:', i) ||
+      text.startsWith('<@', i) ||
+      text.startsWith('<http://', i) ||
+      text.startsWith('<https://', i))
+  ) {
+    return true;
+  }
   if (char === ':' && /^:[a-zA-Z0-9_+-]+:/.test(text.slice(i))) return true;
   if (NATIVE_EMOJI_REGEX.test(text.slice(i))) return true;
 
@@ -357,12 +340,14 @@ function tryParseUrl(text, i) {
   const url = text.slice(start, wrapped ? j - 1 : j);
 
   return {
-    token: { type: 'url', url },
+    token: { type: 'url', url: wrapped ? `<${url}>` : url },
     end: j
   };
 }
 
 function tryParseTimestamp(text, i) {
+  if (text[i] !== '<') return null;
+
   const match = text
     .slice(i)
     .match(/^<t:(\d+)(?::([tTdDfFR]))?>/);
@@ -379,85 +364,51 @@ function tryParseTimestamp(text, i) {
   };
 }
 
-function tryParseChannelLink(text, i) {
-  if (text[i] !== "#") return null;
+function tryParseEmoji(text, i) {
+  if (text[i] !== '<') return null;
 
-  const match = text
-    .slice(i)
-    .match(/^#([a-zA-Z0-9.-]+)\/([a-zA-Z0-9_-]+)/);
-
+  const match = text.slice(i).match(CUSTOM_EMOJI_REGEX);
   if (!match) return null;
 
   return {
-    token: {
-      type: "channel",
-      host: match[1],
-      name: match[2]
-    },
+    token: { type: 'emoji', host: match[1], id: match[2] },
     end: i + match[0].length
   };
 }
 
-function tryParseMessageLink(text, i) {
-  const prefix = 'originChats:<message>//';
-  if (!text.startsWith(prefix, i)) return null;
+function tryParseSticker(text, i) {
+  if (text[i] !== '<') return null;
 
-  let j = i + prefix.length;
-  while (j < text.length && !isWhitespace(text[j])) j++;
-
-  const raw = text.slice(i + prefix.length, j).replace(/[.,!?;:)\]]+$/, '');
-  j = i + prefix.length + raw.length;
-
-  const parts = raw.split('/');
-  if (parts.length < 3 || parts.length > 4) return null;
-  if (!/^[a-zA-Z0-9.:-]+$/.test(parts[0])) return null;
-  if (!parts.every(Boolean)) return null;
-
-  const id = parts[parts.length - 1];
-  if (!/^[a-zA-Z0-9-]+$/.test(id)) return null;
+  const match = text.slice(i).match(STICKER_REGEX);
+  if (!match) return null;
 
   return {
-    token: {
-      type: 'messageLink',
-      host: parts[0],
-      channel: parts[1],
-      threadId: parts.length === 4 ? parts[2] : undefined,
-      id,
-    },
-    end: j,
+    token: { type: 'sticker', host: match[1], id: match[2] },
+    end: i + match[0].length
   };
 }
 
-function parseHttpUrl(text, i, protocolLen) {
-  let j = i + protocolLen;
-  while (j < text.length && !isWhitespace(text[j]) && text[j] !== '"' && text[j] !== "'") {
-    j++;
-  }
+function tryParseRoleMention(text, i) {
+  if (text[i] !== '<') return null;
 
-  const url = text.slice(i, j);
-  return { token: { type: 'url', url }, end: j };
-}
-
-function tryParseEmoji(text, i) {
-  if (!text.slice(i).startsWith('originChats:<emoji>//')) return null;
-
-  const urlStart = i + 'originChats:<emoji>//'.length;
-  let j = urlStart;
-
-  while (j < text.length && !isWhitespace(text[j])) {
-    j++;
-  }
-
-  const urlPart = text.slice(urlStart, j);
-  const match = urlPart.match(/^(.+)\/(\d+)$/);
-
+  const match = text.slice(i).match(ROLE_MENTION_REGEX);
   if (!match) return null;
 
-  const [, host, id] = match;
+  return {
+    token: { type: 'roleMention', id: match[1] },
+    end: i + match[0].length
+  };
+}
+
+function tryParseMention(text, i) {
+  if (text[i] !== '<') return null;
+
+  const match = text.slice(i).match(USER_MENTION_REGEX);
+  if (!match) return null;
 
   return {
-    token: { type: 'emoji', host, id },
-    end: j
+    token: { type: 'mention', id: match[1] },
+    end: i + match[0].length
   };
 }
 
@@ -469,9 +420,7 @@ function tryParseShortcodeEmoji(text, i) {
 
   const name = match[1].toLowerCase();
   const char = SHORTCODE_EMOJI_MAP[name];
-  if (typeof char !== "string") return null;
-
-  if (!char) return null;
+  if (typeof char !== "string" || !char) return null;
 
   return {
     token: { type: 'nativeEmoji', char, shortcode: name },
@@ -488,99 +437,6 @@ function tryParseNativeEmoji(text, i) {
   return {
     token: { type: 'nativeEmoji', char: match[0] },
     end: i + match[0].length
-  };
-}
-
-function tryParseSticker(text, i) {
-  if (!text.slice(i).startsWith('originChats:<sticker>//')) return null;
-
-  const urlStart = i + 'originChats:<sticker>//'.length;
-  let j = urlStart;
-
-  while (j < text.length && !isWhitespace(text[j])) {
-    j++;
-  }
-
-  const urlPart = text.slice(urlStart, j);
-  const match = urlPart.match(/^(.+)\/(\d+)$/);
-
-  if (!match) return null;
-
-  const [, host, id] = match;
-
-  return {
-    token: { type: 'sticker', host, id },
-    end: j
-  };
-}
-
-function tryParseChannel(text, i) {
-  if (!text.slice(i).startsWith('originChats://')) return null;
-
-  let j = i + 'originChats://'.length;
-
-  while (j < text.length && !isWhitespace(text[j])) {
-    j++;
-  }
-
-  const raw = text.slice(i + 'originChats://'.length, j);
-  const parts = raw.split('/');
-
-  if (parts.length === 1 && /^[a-zA-Z0-9.-]+$/.test(parts[0])) {
-    return {
-      token: { type: 'serverInvite', host: parts[0] },
-      end: j
-    };
-  }
-
-  if (parts.length === 2) {
-    return {
-      token: { type: 'channel', host: parts[0], name: parts[1] },
-      end: j
-    };
-  }
-
-  return {
-    token: { type: 'channel', host: parts[0], name: parts[1], threadId: parts[2] },
-    end: j
-  };
-}
-
-function tryParseRoleMention(text, i) {
-  if (text[i] !== '@' || text[i + 1] !== '&') return null;
-
-  let j = i + 2;
-  while (j < text.length && (isAlphanumeric(text[j]) || text[j] === '-')) {
-    j++;
-  }
-
-  if (j === i + 2) return null;
-
-  const id = text.slice(i + 2, j);
-
-  return {
-    token: { type: 'roleMention', id },
-    end: j
-  };
-}
-
-function tryParseMention(text, i) {
-  if (text[i] !== '@') return null;
-
-  if (i > 0 && !isWhitespace(text[i - 1])) return null;
-
-  let j = i + 1;
-  while (j < text.length && isAlphanumeric(text[j])) {
-    j++;
-  }
-
-  if (j === i + 1) return null;
-
-  const username = text.slice(i + 1, j);
-
-  return {
-    token: { type: 'mention', username },
-    end: j
   };
 }
 
@@ -601,22 +457,19 @@ function parseMarkdown(input) {
     }
 
     if (line.startsWith('### ')) {
-      const heading = parseHeading(line, 3);
-      tokens.push(heading);
+      tokens.push(parseHeading(line, 3));
       i++;
       continue;
     }
 
     if (line.startsWith('## ')) {
-      const heading = parseHeading(line, 2);
-      tokens.push(heading);
+      tokens.push(parseHeading(line, 2));
       i++;
       continue;
     }
 
     if (line.startsWith('# ')) {
-      const heading = parseHeading(line, 1);
-      tokens.push(heading);
+      tokens.push(parseHeading(line, 1));
       i++;
       continue;
     }

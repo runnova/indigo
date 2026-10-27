@@ -52,15 +52,13 @@ function createView(connection) {
 }
 
 export function getConnectionView(src) {
-  connVersion(); // re-run readers when a connection appears / disappears
+  connVersion();
   return connections.get(src)?.view ?? null;
 }
 
-/** Called by panes: keeps the server connected and creates the connection if needed. */
 export function pinServer(src) {
   pinned.add(src);
   if (connections.has(src)) return;
-  // the active server's connection is created by connect(); don't race it
   if (src === state.current.server?.src) return;
 
   const settings = JSON.parse(localStorage.getItem("settings") || "{}");

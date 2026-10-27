@@ -2,15 +2,38 @@ import { For, createResource, createSignal, Show } from "solid-js";
 import { setPreview } from "../../App";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { twemojiUrl } from "./twemoji.js";
-import { switchToChannel } from "../../App";
 import { getEmbedProvider } from "./embeds/registry.jsx";
 import hljs from "highlight.js";
 import "highlight.js/styles/atom-one-dark.css";
-import { setState, state, tempState, openMessageLink } from "../../App";
-import { HiOutlineChatBubbleLeft } from "solid-icons/hi";
+import { state, tempState } from "../../App";
+import { parseMarkdown as tokenizeMarkdown } from "./markdown_tokenizer.js";
 
 const markdownCache = new Map();
-import { parseMarkdown as tokenizeMarkdown } from "./markdown_tokenizer.js";
+
+const ROTUR_API_HOST = "api.rotur.dev";
+
+function customEmojiUrl(host, id) {
+  if (host === ROTUR_API_HOST) {
+    return `https://${ROTUR_API_HOST}/v2/emojis/${id}`;
+  }
+  return `https://${host}/emojis/${id}`;
+}
+
+function customStickerUrl(host, id) {
+  return `https://${host}/stickers/${id}`;
+}
+
+function emojiOwnerLabel(host) {
+  return host.startsWith("api.rotur") ? "User" : "Server";
+}
+
+function resolveUsername(id) {
+  const me = tempState.conn?.me?.();
+  if (me?.id === id) return me.username;
+  const users = tempState.conn?.users?.();
+  const list = Array.isArray(users) ? users : Object.values(users ?? {});
+  return list.find((u) => u?.id === id)?.username ?? null;
+}
 
 function getParsedMarkdown(id, content) {
   if (markdownCache.has(id)) {
@@ -21,57 +44,6 @@ function getParsedMarkdown(id, content) {
   markdownCache.set(id, parsed);
 
   return parsed;
-}
-
-function ServerInviteEmbed(props) {
-  const [info] = createResource(async () => {
-    try {
-      const res = await fetch(`https://${props.host}/info`);
-      if (!res.ok) return null;
-      return await res.json();
-    } catch {
-      return null;
-    }
-  });
-
-  return (
-    <Show
-      when={info()}
-      fallback={
-        <div class="embed_card server_invite x">
-          <div class="col fill">
-            <div class="embed_title">{props.host}</div>
-            <div class="embed_url">This server may be down</div>
-          </div>
-          <button
-            class="server_invite_join"
-            onClick={() => switchToChannel(props.host, null)}
-          >
-            Join
-          </button>
-        </div>
-      }
-    >
-      {(data) => (
-        <div class="embed_card server_invite x">
-          <img src={data().server?.icon} alt="" class="server_invite_icon" />
-          <div class="col fill">
-            <div class="embed_title">{data().server?.name}</div>
-            <div class="embed_url">
-              {data().stats?.total_users} members • {data().stats?.online_users}{" "}
-              online
-            </div>
-          </div>
-          <button
-            class="server_invite_join"
-            onClick={() => switchToChannel(props.host, null)}
-          >
-            Join
-          </button>
-        </div>
-      )}
-    </Show>
-  );
 }
 
 export function Embed(props) {
@@ -197,8 +169,14 @@ function EmbeddedLink(props) {
         }
 
         if (type.startsWith("audio/")) {
-          return <audio
-          data-context="attachment" src={props.url} controls loading="lazy" />;
+          return (
+            <audio
+              data-context="attachment"
+              src={props.url}
+              controls
+              loading="lazy"
+            />
+          );
         }
 
         return (
@@ -317,7 +295,8 @@ function renderToken(token, depth = 0) {
 
     case "url": {
       const url = token.url;
-      const isEmbedless = url.startsWith("<") && url.endsWith(">") && url.length > 2;
+      const isEmbedless =
+        url.startsWith("<") && url.endsWith(">") && url.length > 2;
       const cleanUrl = isEmbedless ? url.slice(1, -1) : url;
 
       const provider = getEmbedProvider(cleanUrl);
@@ -325,26 +304,29 @@ function renderToken(token, depth = 0) {
         const Custom = provider.Component;
         return <Custom key={key} url={cleanUrl} />;
       }
-      if (cleanUrl.match(/^https:\/\/chats\.mistium\.com\/emojis\/\d+$/)) {
-        return <img key={key} class="inline_emoji" src={cleanUrl} alt="" />;
-      }
       if (isEmbedless) {
-        return <span key={key} class="embedless_link">{cleanUrl}</span>;
+        return (
+          <span key={key} class="embedless_link">
+            {cleanUrl}
+          </span>
+        );
       }
       return <EmbeddedLink key={key} url={cleanUrl} />;
     }
 
-    case "emoji":
+    case "emoji": {
+      const src = customEmojiUrl(token.host, token.id);
       return (
         <img
           key={key}
           class="inline_emoji"
-          src={`https://${token.host}/emojis/${token.id}`}
+          src={src}
           alt=""
-          data-tooltip={`${token.host.startsWith("api.rotur") ? "User" : "Server"} Emoji: Emoji from ${token.host}`}
-          data-tooltip-icon={`https://${token.host}/emojis/${token.id}`}
+          data-tooltip={`${emojiOwnerLabel(token.host)} Emoji: Emoji from ${token.host}`}
+          data-tooltip-icon={src}
         />
       );
+    }
 
     case "nativeEmoji": {
       if (!state.settings.twemoji) {
@@ -367,45 +349,17 @@ function renderToken(token, depth = 0) {
     case "newline":
       return <br key={key} />;
 
-    case "sticker":
+    case "sticker": {
+      const src = customStickerUrl(token.host, token.id);
       return (
         <img
           key={key}
           class="inline_sticker"
-          src={`https://${token.host}/stickers/${token.id}`}
+          src={src}
           alt=""
-          data-tooltip={`${token.host.startsWith("api.rotur") ? "User" : "Server"} Sticker: Sticker from ${token.host}`}
-          data-tooltip-icon={`https://${token.host}/stickers/${token.id}`}
+          data-tooltip={`${emojiOwnerLabel(token.host)} Sticker: Sticker from ${token.host}`}
+          data-tooltip-icon={src}
         />
-      );
-
-    case "messageLink": {
-      const isCurrentServer =
-        tempState.conn?.serverInfo?.()?.src === token.host;
-
-      const local = isCurrentServer
-        ? state.messages?.[token.channel]?.find((m) => m.id === token.id)
-        : null;
-
-      const preview = local
-        ? `${local.user}: ${(local.content || "").slice(0, 120)}`
-        : `Jump to message in #${token.channel}`;
-
-      return (
-        <a
-          key={key}
-          href="#"
-          class="channel_link message_link"
-          data-tooltip={preview}
-          onClick={(e) => {
-            e.preventDefault();
-            openMessageLink(token);
-          }}
-        >
-          <HiOutlineChatBubbleLeft /> Message in { " "}
-          {isCurrentServer ? "" : `${token.host} • `}#{token.channel}
-          {local ? ` • ${local.user}` : ""}
-        </a>
       );
     }
 
@@ -469,118 +423,11 @@ function renderToken(token, depth = 0) {
       }
     }
 
-    case "channel": {
-      if (token.threadId) {
-        const channels = tempState.conn?.channels?.() ?? [];
-        let threadName = null;
-        let parentChannel = token.name;
-        for (const ch of channels) {
-          const match = ch.threads?.find((t) => t.id === token.threadId);
-          if (match) {
-            threadName = match.name;
-            parentChannel = ch.name;
-            break;
-          }
-        }
-        const isCurrentServer =
-          token.host && tempState.conn?.serverInfo?.()?.src === token.host;
-        const label = threadName
-          ? `#${parentChannel} • ${threadName}`
-          : `#${token.name} • ${token.threadId}`;
-        if (isCurrentServer) {
-          return (
-            <a
-              key={key}
-              href="#"
-              class="channel_link"
-              onClick={(e) => {
-                e.preventDefault();
-                switchToChannel(token.host, token.name, token.threadId);
-              }}
-            >
-              {label}
-            </a>
-          );
-        }
-        if (token.host) {
-          return (
-            <a
-              key={key}
-              href={`https://${token.host}/${token.name}/${token.threadId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="channel_link"
-            >
-              #{token.host}/{parentChannel}
-              {threadName ? ` • ${threadName}` : ` • ${token.threadId}`}
-            </a>
-          );
-        }
-        return label;
-      }
-      const isCurrentServer =
-        token.host && tempState.conn?.serverInfo?.()?.src === token.host;
-      if (isCurrentServer) {
-        return (
-          <a
-            key={key}
-            href="#"
-            class="channel_link"
-            onClick={(e) => {
-              e.preventDefault();
-              switchToChannel(token.host, token.name);
-            }}
-          >
-            #{token.name}
-          </a>
-        );
-      }
-      if (token.host) {
-        return (
-          <a
-            key={key}
-            href={`https://${token.host}/${token.name}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="channel_link"
-            onClick={(e) => {
-              e.preventDefault();
-              switchToChannel(token.host, token.name, token.threadId);
-            }}
-          >
-            #{token.host} • {token.name}
-          </a>
-        );
-      }
-      const available = tempState.conn
-        ?.channels?.()
-        ?.some((x) => x.name === token.name);
-      if (available) {
-        return (
-          <a
-            key={key}
-            href="#"
-            class="channel_link"
-            onClick={(e) => {
-              e.preventDefault();
-              switchToChannel(state.current.server?.src, token.name);
-            }}
-          >
-            #{token.name}
-          </a>
-        );
-      }
-      return `#${token.name}`;
-    }
-
-    case "serverInvite":
-      return <ServerInviteEmbed key={key} host={token.host} />;
-
     case "mention": {
-      const isMe =
-        tempState?.conn?.me?.()?.username &&
-        token.username?.toLowerCase() ===
-          tempState?.conn?.me?.()?.username?.toLowerCase();
+      const username = resolveUsername(token.id);
+      const me = tempState?.conn?.me?.();
+      const isMe = me?.id === token.id;
+      const name = username ?? token.id;
       return (
         <a
           key={key}
@@ -588,22 +435,22 @@ function renderToken(token, depth = 0) {
           class={`mention ${isMe ? "is-self" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            openPopout(token.username, e.currentTarget);
+            openPopout(name, e.currentTarget);
           }}
         >
           @
           <img
-            src={`https://avatars.rotur.dev/${token.username}`}
+            src={`https://avatars.rotur.dev/${name}`}
             alt=""
             class="pfp"
             loading="lazy"
           />
-          {token.username}
+          {name}
         </a>
       );
     }
 
-    case "roleMention":
+    case "roleMention": {
       const entry = Object.entries(tempState.conn?.roles?.() ?? {}).find(
         ([, role]) => role.id === token.id,
       );
@@ -621,6 +468,7 @@ function renderToken(token, depth = 0) {
         );
       }
       return `@${token.id}`;
+    }
 
     case "heading":
       switch (token.level) {
@@ -642,6 +490,8 @@ function renderToken(token, depth = 0) {
               {token.children?.map((t) => renderToken(t, depth + 1))}
             </h3>
           );
+        default:
+          return null;
       }
 
     case "small":
@@ -693,10 +543,7 @@ function renderTokens(tokens) {
       parts.push(rendered);
     }
 
-    if (
-      token.type === "paragraph" &&
-      tokens[i + 1]?.type === "paragraph"
-    ) {
+    if (token.type === "paragraph" && tokens[i + 1]?.type === "paragraph") {
       parts.push(<br key={getKey()} />);
       parts.push(<br key={getKey()} />);
     }
@@ -704,6 +551,8 @@ function renderTokens(tokens) {
 
   return parts;
 }
+
+const BIG_EMOJI_CUSTOM_REGEX = /^<emoji:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>$/;
 
 function isBigEmojiMessage(input) {
   if (!input) return;
@@ -717,7 +566,7 @@ function isBigEmojiMessage(input) {
 
   return tokens.every(
     (token) =>
-      token.startsWith("originChats:<emoji>//") ||
+      BIG_EMOJI_CUSTOM_REGEX.test(token) ||
       /\p{Extended_Pictographic}/u.test(token),
   );
 }
@@ -728,20 +577,18 @@ export function parseMarkdown(input) {
       .trim()
       .split(/\s+/)
       .map((token) => {
-        if (token.startsWith("originChats:<emoji>//")) {
-          const url = token.slice("originChats:<emoji>//".length);
-          const match = url.match(/^(.+)\/(\d+)$/);
+        const match = token.match(BIG_EMOJI_CUSTOM_REGEX);
 
-          if (!match) return token;
-
+        if (match) {
+          const src = customEmojiUrl(match[1], match[2]);
           return (
             <img
               key={getKey()}
               class="inline_emoji big_emoji"
-              src={`https://${match[1]}/emojis/${match[2]}`}
+              src={src}
               alt=""
-              data-tooltip={`${match[1].startsWith("api.rotur") ? "User" : "Server"} Emoji: Emoji from ${match[1]}`}
-              data-tooltip-icon={`https://${match[1]}/emojis/${match[2]}`}
+              data-tooltip={`${emojiOwnerLabel(match[1])} Emoji: Emoji from ${match[1]}`}
+              data-tooltip-icon={src}
             />
           );
         }

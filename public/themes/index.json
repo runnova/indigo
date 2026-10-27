@@ -70,6 +70,16 @@
     "type": "theme"
   },
   {
+    "id": "oled",
+    "name": "OLED dark",
+    "author": "darkdot",
+    "version": "1.0.0",
+    "description": "dark oled monochrome theme",
+    "file": "oled.css",
+    "preview": "#000000",
+    "type": "theme"
+  },
+  {
     "id": "aqua",
     "name": "Aqua",
     "author": "darkdot",
