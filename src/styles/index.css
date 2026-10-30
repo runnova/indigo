@@ -552,6 +552,26 @@ nav button.active {
             position: relative;
             z-index: 33;
         }
+
+        & .channel_talkers {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            margin: 0;
+        }
+
+        .channel_talker_avatar {
+            width: 16pt;
+            height: 16pt;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--bg-three);
+            box-sizing: content-box;
+        }
+
+        .channel_talker_avatar + .channel_talker_avatar {
+            margin-left: -6px;
+        }
     }
     & > hr {
         margin: 0.3em 0;
@@ -2688,4 +2708,12 @@ hr.channelPageList {
 .link_that_doesnt_look_like_one {
     text-decoration: none;
     color: inherit;
+}
+
+.quick_reactions img.twemoji {
+  width: 13pt;
+  height: 13pt;
+  border-radius: 0;
+  object-fit: contain;
+  vertical-align: middle;
 }

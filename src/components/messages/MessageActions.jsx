@@ -7,6 +7,9 @@ import {
   HiOutlineTrash,
 } from "solid-icons/hi";
 
+import { state } from "../../state";
+import { twemojiUrl } from "./twemoji";
+
 export function MessageActions(props) {
   const reactions = createMemo(() =>
     (props.quickReactions ?? "👍, ❤️, 😂, 🎉, 👎")
@@ -27,12 +30,22 @@ export function MessageActions(props) {
                   props.onQuickReact?.(emoji, props.messageId, props.channel)
                 }
               >
-                {emoji}
+                <Show
+                  when={state.settings.twemoji === true}
+                  fallback={emoji}
+                >
+                  <img
+                    src={twemojiUrl(emoji)}
+                    alt={emoji}
+                    class="twemoji"
+                  />
+                </Show>
               </button>
             )}
           </For>
         </div>
       </Show>
+
       <vr></vr>
 
       <button
@@ -57,6 +70,7 @@ export function MessageActions(props) {
       <button onClick={() => props.onReact?.()} data-tooltip="React">
         <HiOutlineFaceSmile />
       </button>
+
       <button onClick={() => props.onReply?.()} data-tooltip="Reply">
         <HiOutlineChatBubbleOvalLeft />
       </button>

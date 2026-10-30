@@ -1,7 +1,21 @@
-import { Show, createSignal, createEffect, onMount, createResource, For } from "solid-js";
-import "./popout.css"
-import { parseMarkdown } from "../../messages/ParseMarkdown"
-import { HiOutlineBanknotes, HiOutlineCalendar, HiOutlineEllipsisVertical, HiOutlineUser, HiOutlineUserMinus, HiOutlineUserPlus } from "solid-icons/hi";
+import {
+  Show,
+  createSignal,
+  createEffect,
+  onMount,
+  createResource,
+  For,
+} from "solid-js";
+import "./popout.css";
+import { parseMarkdown } from "../../messages/ParseMarkdown";
+import {
+  HiOutlineBanknotes,
+  HiOutlineCalendar,
+  HiOutlineEllipsisVertical,
+  HiOutlineUser,
+  HiOutlineUserMinus,
+  HiOutlineUserPlus,
+} from "solid-icons/hi";
 import { renderICN } from "./renderICN";
 import { ActivityCard } from "./ActivityCard";
 import SystemContextMenu from "../../Systemcontextmenu";
@@ -22,20 +36,20 @@ function formatMonthYear(utcMs) {
 }
 
 export default function MemberProfile(props) {
- const [profile] = createResource(
-  () => props.username,
-  async (username) => {
-    console.log("loading profile:", username);
+  const [profile] = createResource(
+    () => props.username,
+    async (username) => {
+      console.log("loading profile:", username);
 
-    if (!username) return null;
+      if (!username) return null;
 
-    const res = await fetch(
-      `https://api.rotur.dev/profile?name=${username}&include_posts=0`
-    );
+      const res = await fetch(
+        `https://api.rotur.dev/profile?name=${username}&include_posts=0`,
+      );
 
-    return await res.json();
-  }
-);
+      return await res.json();
+    },
+  );
 
   const [showAllRoles, setShowAllRoles] = createSignal(false);
 
@@ -53,14 +67,16 @@ export default function MemberProfile(props) {
         className="member_popout y"
         style={{
           "--accent": profile()?.theme?.accent || "transparent",
-          ...(state.settings?.customProfileThemes ? {
-            "--fg-one": profile()?.theme?.text || "#ffffff",
-            "--hl-one": profile()?.theme?.accent || "rgb(141, 42, 255)",
-            "--bg-one": profile()?.theme?.background || "#010101",
-            "--bg-two": profile()?.theme?.primary || "#0D0D0D",
-            "--bg-three": profile()?.theme?.secondary || "#1d1d1d",
-            "--bg-four": profile()?.theme?.tertiary || "#3a3a3a",
-          } : {})
+          ...(state.settings?.customProfileThemes
+            ? {
+                "--fg-one": profile()?.theme?.text || "#ffffff",
+                "--hl-one": profile()?.theme?.accent || "rgb(141, 42, 255)",
+                "--bg-one": profile()?.theme?.background || "#010101",
+                "--bg-two": profile()?.theme?.primary || "#0D0D0D",
+                "--bg-three": profile()?.theme?.secondary || "#1d1d1d",
+                "--bg-four": profile()?.theme?.tertiary || "#3a3a3a",
+              }
+            : {}),
         }}
       >
         <Show when={profile.loading}>
@@ -68,7 +84,7 @@ export default function MemberProfile(props) {
             <div class="spinner" />
           </div>
         </Show>
-        <div classList={{ "popup_content": true, loading: profile.loading }}>
+        <div classList={{ popup_content: true, loading: profile.loading }}>
           <video
             src={`https://avatars.rotur.dev/.backgrounds/${props.username}`}
             autoplay
@@ -82,23 +98,29 @@ export default function MemberProfile(props) {
             <div class="icon_ball_button">
               {() => {
                 if (tempState?.conn?.me()?.friends?.includes(props.username)) {
-                  return (<HiOutlineUserMinus></HiOutlineUserMinus>);
+                  return <HiOutlineUserMinus></HiOutlineUserMinus>;
                 } else {
-                  return (<HiOutlineUserPlus></HiOutlineUserPlus>);
+                  return <HiOutlineUserPlus></HiOutlineUserPlus>;
                 }
               }}
             </div>
-              <div class="icon_ball_button dropdown_button"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  SystemContextMenu.instance.openAt(
-                    dropdownActions,
-                    rect.left,
-                    rect.bottom
-                  );
-                }}>
-                <HiOutlineEllipsisVertical></HiOutlineEllipsisVertical>
-              </div>
+            <div
+              class="icon_ball_button dropdown_button"
+              data-context="member_profile"
+              data-username={props.username}
+              on:click={(e) => {
+                e.stopPropagation();
+                const rect = e.currentTarget.getBoundingClientRect();
+                SystemContextMenu.instance.openContext(
+                  "member_profile",
+                  rect.left,
+                  rect.bottom,
+                  e.currentTarget,
+                );
+              }}
+            >
+              <HiOutlineEllipsisVertical></HiOutlineEllipsisVertical>
+            </div>
           </div>
           <img
             src={`https://avatars.rotur.dev/.banners/${props.username}`}
@@ -107,9 +129,7 @@ export default function MemberProfile(props) {
           />
           <Show when={status()?.status}>
             <div className="status">
-              <div className="status_text">
-                {status().status}
-              </div>
+              <div className="status_text">{status().status}</div>
             </div>
           </Show>
 
@@ -124,7 +144,7 @@ export default function MemberProfile(props) {
                 src={`https://avatars.rotur.dev/.overlay/${props.username}`}
                 alt=""
                 class="overlay"
-                onError={(e) => e.currentTarget.style.display = "none"}
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
               {status() && (
                 <span
@@ -132,43 +152,65 @@ export default function MemberProfile(props) {
                   classList={{
                     online: status().presence === "online",
                     idle: status().presence === "idle",
-                    offline: status().presence === "offline" || !status().presence
+                    offline:
+                      status().presence === "offline" || !status().presence,
                   }}
                 />
               )}
             </div>
 
-            <div class="data y" style={{ "margin": ".5em 0wa" }}>
-              <div class="x" style={{
-                "font-size": "1.5em",
-                "flex-wrap": "wrap",
-                "align-items": "center",
-                "overflow-wrap": "anywhere"
-              }}>
-                <span onClick={() => window.open("https://rotur.dev/profile/" + profile()?.username)} class="username_clickable" style={{ "margin-right": ".3em" }}>{profile()?.display_name || profile()?.username}</span>
+            <div class="data y" style={{ margin: "1em .3em", "gap": ".5em","justify-content": "center" }}>
+              <div
+                class="x"
+                style={{
+                  "font-size": "1.5em",
+                  "flex-wrap": "wrap",
+                  "align-items": "center",
+                  "overflow-wrap": "anywhere",
+                }}
+              >
+                <span
+                  onClick={() =>
+                    window.open(
+                      "https://rotur.dev/profile/" + profile()?.username,
+                    )
+                  }
+                  class="username_clickable"
+                  style={{ "margin-right": ".3em" }}
+                >
+                  {profile()?.display_name || profile()?.username}
+                </span>
+                {profile()?.group_tag ? (
+                  <button
+                    class="group_button"
+                    onClick={() => {
+                      window.open(
+                        `https://rotur.dev/groups/${profile()?.group_tag}`,
+                      );
+                    }}
+                  >
+                    <img
+                      src={`https://api.rotur.dev/groups/${profile()?.group_tag}/icon.jpg`}
+                      alt=""
+                      class="grptgic"
+                    />
+                    {profile()?.group_tag}
+                  </button>
+                ) : (
+                  ""
+                )}
                 <small style={{ "font-size": "14px" }}>
-                  {profile()?.pronouns}
+
                 </small>
               </div>
-              <span style={{"font-size": "small", "margin-bottom": ".3em"}}>{(profile()?.display_name) ? profile()?.username : ""}</span>
-
-              <div class="data_buttons x" style={{ "font-size": "small" }}>
-                {profile()?.group_tag ? (<button onClick={() => { window.open(`https://rotur.dev/groups/${profile()?.group_tag}`) }}>
-                  <img
-                    src={`https://api.rotur.dev/groups/${profile()?.group_tag}/icon.jpg`}
-                    alt=""
-                    class="grptgic"
-                  />
-                  {profile()?.group_tag}
-                </button>) : ""}
-                <button>
-                  {profile()?.system}
-                </button>
-              </div>
+              <span class="user_byline">
+                {profile()?.display_name ? profile()?.username : ""}
+                {profile()?.pronouns && <> &bull; {profile()?.pronouns}</>}
+              </span>
             </div>
           </div>
 
-          <div style={{ "margin": ".3em", "gap": ".3em" }} className="y">
+          <div style={{ margin: ".3em", gap: ".3em" }} className="y">
             <Show when={profile()?.badges?.length}>
               <div class="badges x">
                 {profile().badges.map((badge) => (
@@ -190,12 +232,14 @@ export default function MemberProfile(props) {
                       style={{
                         "white-space": "pre-wrap",
                         "max-height": "150px",
-                        "overflow-y": "auto"
+                        "overflow-y": "auto",
                       }}
                     >
-                      {
-                       (p().bio) ? parseMarkdown(p().bio) : ((p().private) ? "This account is private" : "Hi, I don't have a bio.")
-                      }
+                      {p().bio
+                        ? parseMarkdown(p().bio)
+                        : p().private
+                          ? "This account is private"
+                          : "Hi, I don't have a bio."}
                     </div>
                   </div>
                   <Show when={status()?.activities?.length}>
@@ -221,7 +265,9 @@ export default function MemberProfile(props) {
                             <span
                               class="role_dot"
                               style={{
-                                background: tempState.conn?.roles()?.[role]?.color || "#888"
+                                background:
+                                  tempState.conn?.roles()?.[role]?.color ||
+                                  "#888",
                               }}
                             />
                             {role}
@@ -230,7 +276,7 @@ export default function MemberProfile(props) {
                         <Show when={props.roles.length > 5}>
                           <button
                             class="roles_toggle"
-                            onClick={() => setShowAllRoles(v => !v)}
+                            onClick={() => setShowAllRoles((v) => !v)}
                           >
                             {showAllRoles()
                               ? "Show less"
@@ -238,23 +284,47 @@ export default function MemberProfile(props) {
                           </button>
                         </Show>
                       </div>
-
                     </div>
                   </Show>
 
-                  <small style={{ "margin-top": "1em", "align-items": "center", "gap": ".8em" }} class="x">
-                    <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".8" }}>
+                  <small
+                    style={{
+                      "margin-top": "1em",
+                      "align-items": "center",
+                      gap: ".8em",
+                    }}
+                    class="x"
+                  >
+                    <div
+                      class="x"
+                      style={{
+                        "align-items": "center",
+                        gap: ".3em",
+                        opacity: ".8",
+                      }}
+                    >
                       <HiOutlineCalendar />
                       {p()?.created && formatMonthYear(p()?.created)}
-
                     </div>
-                    <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".5" }}>
-                      <HiOutlineUser />
-                      #{p().index}
-
+                    <div
+                      class="x"
+                      style={{
+                        "align-items": "center",
+                        gap: ".3em",
+                        opacity: ".5",
+                      }}
+                    >
+                      <HiOutlineUser />#{p().index}
                     </div>
 
-                    <div class="x" style={{ "align-items": "center", "gap": ".3em", "opacity": ".5" }}>
+                    <div
+                      class="x"
+                      style={{
+                        "align-items": "center",
+                        gap: ".3em",
+                        opacity: ".5",
+                      }}
+                    >
                       <HiOutlineBanknotes />
                       {p().currency} RC
                     </div>
@@ -265,7 +335,6 @@ export default function MemberProfile(props) {
           </div>
         </div>
       </div>
-
     </>
   );
 }

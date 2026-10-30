@@ -78,6 +78,30 @@
   padding-right: 5px;
 }
 
+.user_byline {
+    font-size: small;
+    display: flex;
+    flex-direction: row;
+    gap: 5pt;
+    align-items: center;
+    opacity: .7;
+}
+
+.group_button {
+    background-color: var(--bg-two);
+    border-radius: var(--br-mid);
+    flex-direction: row;
+    align-items: center;
+    gap: 3pt;
+    display: inline-flex;
+    padding: 0pt 5pt;
+    font-size: small;
+    &>img {
+        width: 10pt;
+        height: 10pt;
+    }
+}
+
 .profile_video_background {
     position: absolute;
     top: 0;
@@ -90,7 +114,6 @@
 
 .badges{
     flex-wrap: wrap;
-    margin-top: .5em;
     & svg {
         width: 17pt;
         transform: scale(2);
@@ -100,6 +123,13 @@
 
 .popup_content {
     color: var(--fg-one);
+
+    & .status_dot {
+        width: 10pt !important;
+        height: 10pt !important;
+        bottom: 6pt;
+        right: 6pt;
+    }
 }
 
 .float_top_right {
@@ -127,7 +157,7 @@
 .flufimusic {
 	display: flex;
 	gap: 5px;
-	
+
 	button {
 		cursor: pointer;
 		background: var(--bg-one);

@@ -118,6 +118,12 @@ class SystemContextMenu {
     });
   }
 
+  openContext(name, x, y, contextElement = null) {
+    const menu = this.menus.find((m) => m["data-context"] === name);
+    if (!menu) return;
+    this.openAt(menu.actions, x, y, contextElement);
+  }
+
   close() {
     if (menuStack.length === 0) return;
 
@@ -198,9 +204,10 @@ class SystemContextMenu {
   #handleOutsideClick(e) {
     if (!menuState.open) return;
     const activeMenu = getActiveMenu();
-    if (activeMenu?.menuRef && !activeMenu.menuRef.contains(e.target)) {
-      this.close();
-    }
+    if (!activeMenu?.menuRef) return;
+    if (activeMenu.menuRef.contains(e.target)) return;
+    if (activeMenu.contextElement?.contains(e.target)) return;
+    this.close();
   }
 
   #handleKeydown(e) {

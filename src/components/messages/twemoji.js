@@ -1,10 +1,14 @@
 export function toTwemojiCodepoints(char) {
   const codepoints = [];
+
   for (const c of char) {
-    let cp = c.codePointAt(0);
+    const cp = c.codePointAt(0);
+
     if (cp === 0xfe0f) continue;
+
     codepoints.push(cp.toString(16));
   }
+
   return codepoints.join("-");
 }
 

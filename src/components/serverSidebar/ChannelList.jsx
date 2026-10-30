@@ -89,6 +89,47 @@ function isImageSrc(src) {
   return typeof src === "string" && src.trim().length > 0;
 }
 
+const RECENT_WINDOW_MS = 3 * 60 * 1000;
+const MAX_TALKER_AVATARS = 3;
+
+const [recentTalkers, setRecentTalkers] = createSignal({});
+const [nowTick, setNowTick] = createSignal(Date.now());
+
+setInterval(() => setNowTick(Date.now()), 15000);
+
+function talkerKey(serverSrc, channelName) {
+  return `${serverSrc}|${channelName}`;
+}
+
+function recordTalker(key, message) {
+  const id = message?.author_id;
+  if (!id) return;
+
+  const ts = Date.now();
+
+  setRecentTalkers((prev) => {
+    const rest = (prev[key] ?? []).filter(
+      (t) => t.id !== id && ts - t.ts < RECENT_WINDOW_MS,
+    );
+
+    return {
+      ...prev,
+      [key]: [{ id, user: message.user, ts }, ...rest].slice(
+        0,
+        MAX_TALKER_AVATARS,
+      ),
+    };
+  });
+}
+
+function getRecentTalkers(key) {
+  const now = nowTick();
+
+  return (recentTalkers()[key] ?? []).filter(
+    (t) => now - t.ts < RECENT_WINDOW_MS,
+  );
+}
+
 export default function ChannelList(props) {
   const cleanupFns = [];
 
@@ -124,14 +165,16 @@ export default function ChannelList(props) {
     const channelName = packet.channel;
     if (!channelName) return;
 
-    if (channelName === props.currentChannel) return;
-
     const serverSrc = props.serverSrc ?? state.current.server?.src;
 
     if (!serverSrc) {
       console.warn("[ChannelList] no serverSrc, can't bump unread for", channelName);
       return;
     }
+
+    recordTalker(talkerKey(serverSrc, channelName), packet.message);
+
+    if (channelName === props.currentChannel) return;
 
     if (!unreads.servers[serverSrc]) {
       setUnreads("servers", serverSrc, {});
@@ -247,6 +290,14 @@ export default function ChannelList(props) {
             return getLiveChannel(ch.name)?.voice_state ?? [];
           };
 
+          const talkers = () =>
+            getRecentTalkers(
+              talkerKey(
+                props.serverSrc ?? state.current.server?.src,
+                ch.name,
+              ),
+            );
+
           return (
             <>
               <div
@@ -296,6 +347,21 @@ export default function ChannelList(props) {
                   )}
                   {ch.display_name || ch.name}
                 </div>
+
+                <Show when={talkers().length > 0}>
+                  <span class="channel_talkers">
+                    <For each={talkers()}>
+                      {(t) => (
+                        <img
+                          class="channel_talker_avatar"
+                          src={"https://avatars.rotur.dev/" + t.id}
+                          title={t.user}
+                          alt=""
+                        />
+                      )}
+                    </For>
+                  </span>
+                </Show>
 
                 <Show when={pingCount() > 0}>
                   <span class="channel_badge channel_badge--ping">

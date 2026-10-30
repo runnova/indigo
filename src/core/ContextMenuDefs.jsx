@@ -17,9 +17,10 @@ import {
   HiOutlineArrowUp,
   HiOutlineArrowDown,
   HiOutlineCheckCircle,
+  HiOutlineUser,
 } from "solid-icons/hi";
 import SystemContextMenu from "../components/Systemcontextmenu.js";
-import { setState, state } from "../App.jsx";
+import { setState, state, switchToChannel } from "../App.jsx";
 import { getMessageById, addFakeMessage } from "../scrolling.jsx";
 import { reconnectServer } from "./server_connection.jsx";
 import {
@@ -68,6 +69,30 @@ const markGroupAsRead = (groupId) => {
   (group?.servers ?? []).forEach(markServerAsRead);
 };
 
+const openDM = async (username) => {
+  const server = state.settings.dmsServer;
+
+  if (
+    state.current.server?.src !== server ||
+    tempState.conn?.status() !== "ready"
+  ) {
+    await switchToChannel(server, null);
+  }
+
+  const channels = tempState.conn.channels?.() ?? [];
+  const target = channels.find(
+    (ch) => ch.display_name?.toLowerCase() === username.toLowerCase(),
+  );
+
+  if (!target) {
+    tempState.notify({
+      text: `No DM channel found for ${username}`,
+    });
+    return;
+  }
+
+  await switchToChannel(server, target.name);
+};
 SystemContextMenu.init([
   {
     "data-context": "server",
@@ -162,6 +187,22 @@ SystemContextMenu.init([
         fn: (el) => {
           //
         },
+      },
+    ],
+  },
+  {
+    "data-context": "member_profile",
+    actions: [
+      {
+        label: "Open DM",
+        icon: HiOutlineChatBubbleLeftRight,
+        fn: (el) => openDM(el.dataset.username),
+      },
+      {
+        label: "View profile",
+        icon: HiOutlineUser,
+        fn: (el) =>
+          window.open("https://rotur.dev/profile/" + el.dataset.username, "_blank"),
       },
     ],
   },
