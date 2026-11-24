@@ -29,7 +29,7 @@ export default function PinnedList(props) {
   });
 
   return (
-    <div class="pinned_messages_list y">
+    <div class="pinned_messages_list pane_message_list y">
       <For each={messages()}>
         {(msg, i) => (
           <Message
@@ -40,6 +40,7 @@ export default function PinnedList(props) {
             username={msg.user}
             content={msg.content}
             attachments={msg.attachments}
+            avatar={`https://avatars.rotur.dev/${msg.user}`}
             reactions={msg.reactions}
             reply={msg.reply}
             time={new Date(msg.timestamp).toLocaleTimeString()}

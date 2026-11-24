@@ -23,6 +23,10 @@ export default async function (conn, setState, state, Rotur, setLoadingProgress)
   const getHostname = (src) =>
     new URL(src.includes("://") ? src : `https://${src}`).hostname;
 
+  if (!state.settings.reducedMotion) {
+      setState("settings", "reducedMotion", window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+  }
+
   setLoadingProgress(50);
   await tempState.rotur.connectSocket();
   setLoadingProgress(80);

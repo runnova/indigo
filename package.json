@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/ed25519": "^3.2.0",
     "@originchats/voice": "^0.1.0",
     "emoji-picker-element": "^1.29.1",
     "emoji-picker-element-data": "^1.8.0",

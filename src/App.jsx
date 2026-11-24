@@ -42,8 +42,7 @@ import UserDisplay from "./components/serverSidebar/UserDisplay.jsx";
 import ServerSidebar from "./components/serverSidebar/ServerSidebar.jsx";
 import MessageComposer from "./components/compose/MessageComposer.jsx";
 
-import { VirtualMessageList } from "./scrolling";
-import { ForumView } from "./components/forumView/ForumView";
+import "./styles/reducedMotion.css";
 
 import RightSidebar from "./components/rightSidebar/RightSidebar.jsx";
 import {
@@ -115,7 +114,7 @@ import {
 } from "./state.js";
 import {
   notify,
-  NotificationContainer
+  NotificationContainer,
 } from "./components/utility/notifications/Notifications.jsx";
 
 export {
@@ -349,6 +348,14 @@ function App() {
         setState("current", "thread", null);
       }, 500);
     }
+  });
+
+  createEffect(() => {
+    // reduced Motion
+    document.body.classList.toggle(
+      "prefers_reduced_motion",
+      state.settings.reducedMotion,
+    );
   });
 
   createEffect((prev) => {
@@ -639,7 +646,7 @@ function App() {
               </div>
             </Show>
 
-            <Show when={!state.current?.channel_type.startsWith("dms_")}>
+           <Show when={!state.current?.channel_type?.startsWith("dms_")}>
               <div class="topbar">
                 <div class="channelbar x">
                   <Show
@@ -704,121 +711,121 @@ function App() {
                             ? "active"
                             : ""
                         }
-                      title="Toggle favorite"
-                      onClick={() =>
-                        toggleFavorite(
-                          {
-                            src: state.current.server?.src,
-                            name:
-                              conn.serverInfo()?.name ??
-                              state.current.server?.name,
-                            icon:
-                              conn.serverInfo()?.icon ??
-                              state.current.server?.icon,
-                          },
-                          currentChannel(),
-                        )
-                      }
-                    >
-                      <HiOutlineStar />
-                    </button>
-                    <button
-                      className={
-                        state.thirdBarContext === "selfroles" ? "active" : ""
-                      }
-                      onClick={() => {
-                        if (
-                          state.thirdBarContext === "selfroles" &&
-                          !thirdBarCollapsed()
-                        ) {
-                          setThirdBarCollapsed(true);
-                        } else {
-                          setState("thirdBarContext", "selfroles");
-                          setThirdBarCollapsed(false);
+                        title="Toggle favorite"
+                        onClick={() =>
+                          toggleFavorite(
+                            {
+                              src: state.current.server?.src,
+                              name:
+                                conn.serverInfo()?.name ??
+                                state.current.server?.name,
+                              icon:
+                                conn.serverInfo()?.icon ??
+                                state.current.server?.icon,
+                            },
+                            currentChannel(),
+                          )
                         }
-                      }}
-                    >
-                      <HiOutlineUserCircle />
-                    </button>
-
-                    <button
-                      className={
-                        state.thirdBarContext === "inbox" ? "active" : ""
-                      }
-                      onClick={() => {
-                        if (
-                          state.thirdBarContext === "inbox" &&
-                          !thirdBarCollapsed()
-                        ) {
-                          setThirdBarCollapsed(true);
-                        } else {
-                          setState("thirdBarContext", "inbox");
-                          setThirdBarCollapsed(false);
+                      >
+                        <HiOutlineStar />
+                      </button>
+                      <button
+                        className={
+                          state.thirdBarContext === "selfroles" ? "active" : ""
                         }
-                      }}
-                    >
-                      <HiOutlineInbox />
-                    </button>
-
-                    <button
-                      className={
-                        state.thirdBarContext === "pinned" ? "active" : ""
-                      }
-                      onClick={() => {
-                        if (
-                          state.thirdBarContext === "pinned" &&
-                          !thirdBarCollapsed()
-                        ) {
-                          setThirdBarCollapsed(true);
-                        } else {
-                          setState("thirdBarContext", "pinned");
-                          setThirdBarCollapsed(false);
-                        }
-                      }}
-                    >
-                      <HiOutlineMapPin />
-                    </button>
-
-                    <button
-                      className={
-                        state.thirdBarContext === "members" ? "active" : ""
-                      }
-                      onClick={() => {
-                        if (
-                          state.thirdBarContext === "members" &&
-                          !thirdBarCollapsed()
-                        ) {
-                          setThirdBarCollapsed(true);
-                        } else {
-                          setState("thirdBarContext", "members");
-                          setThirdBarCollapsed(false);
-                        }
-                      }}
-                    >
-                      <HiOutlineUsers />
-                    </button>
-                    <div class="searchbox">
-                      <input
-                        type="text"
-                        class="message_search_input"
-                        placeholder="Search messages..."
-                        onFocus={() => {
-                          setState("thirdBarContext", "search");
-                          setThirdBarCollapsed(false);
+                        onClick={() => {
+                          if (
+                            state.thirdBarContext === "selfroles" &&
+                            !thirdBarCollapsed()
+                          ) {
+                            setThirdBarCollapsed(true);
+                          } else {
+                            setState("thirdBarContext", "selfroles");
+                            setThirdBarCollapsed(false);
+                          }
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key !== "Enter") return;
-                          setState("searchQuery", e.currentTarget.value);
-                          setState("thirdBarContext", "search");
-                          setThirdBarCollapsed(false);
+                      >
+                        <HiOutlineUserCircle />
+                      </button>
+
+                      <button
+                        className={
+                          state.thirdBarContext === "inbox" ? "active" : ""
+                        }
+                        onClick={() => {
+                          if (
+                            state.thirdBarContext === "inbox" &&
+                            !thirdBarCollapsed()
+                          ) {
+                            setThirdBarCollapsed(true);
+                          } else {
+                            setState("thirdBarContext", "inbox");
+                            setThirdBarCollapsed(false);
+                          }
                         }}
-                      />
-                      <HiOutlineMagnifyingGlass />
-                    </div>
+                      >
+                        <HiOutlineInbox />
+                      </button>
+
+                      <button
+                        className={
+                          state.thirdBarContext === "pinned" ? "active" : ""
+                        }
+                        onClick={() => {
+                          if (
+                            state.thirdBarContext === "pinned" &&
+                            !thirdBarCollapsed()
+                          ) {
+                            setThirdBarCollapsed(true);
+                          } else {
+                            setState("thirdBarContext", "pinned");
+                            setThirdBarCollapsed(false);
+                          }
+                        }}
+                      >
+                        <HiOutlineMapPin />
+                      </button>
+
+                      <button
+                        className={
+                          state.thirdBarContext === "members" ? "active" : ""
+                        }
+                        onClick={() => {
+                          if (
+                            state.thirdBarContext === "members" &&
+                            !thirdBarCollapsed()
+                          ) {
+                            setThirdBarCollapsed(true);
+                          } else {
+                            setState("thirdBarContext", "members");
+                            setThirdBarCollapsed(false);
+                          }
+                        }}
+                      >
+                        <HiOutlineUsers />
+                      </button>
+
+                      <button
+                        className={
+                          state.thirdBarContext === "search" ? "active" : ""
+                        }
+                        onClick={() => {
+                          if (
+                            state.thirdBarContext === "search" &&
+                            !thirdBarCollapsed()
+                          ) {
+                            setThirdBarCollapsed(true);
+                          } else {
+                            setState("thirdBarContext", "search");
+                            setThirdBarCollapsed(false);
+                          }
+                        }}
+                      >
+                        <HiOutlineMagnifyingGlass />
+                      </button>
                     </div>
                   </Show>
                 </div>
-
               </div>
               <div class="x fill server_content_box">
                 <Workspace />

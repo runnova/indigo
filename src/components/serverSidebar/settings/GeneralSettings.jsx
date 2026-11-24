@@ -51,6 +51,18 @@ export function GeneralSettings() {
           <option value="hide">Always Hide</option>
         </SettingSelect>
       </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">
+          Show unread counts in channel list
+        </div>
+        <SettingCheckbox setting="showUnreadAmounts" />
+      </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">
+          Disable animations
+        </div>
+        <SettingCheckbox setting="reducedMotion" />
+      </div>
 
 
       <h2 class="settings_title">Chat</h2>

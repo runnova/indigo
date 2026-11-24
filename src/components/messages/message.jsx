@@ -1,4 +1,11 @@
-import { For, Show, createMemo, createSignal, createEffect } from "solid-js";
+import {
+  For,
+  Show,
+  createMemo,
+  createSignal,
+  createEffect,
+  onMount,
+} from "solid-js";
 import { tempState, state, setState, setPreview } from "../../App.jsx";
 import { openPopout } from "../rightSidebar/memberList/popout.jsx";
 import { parseMarkdown, Embed } from "./ParseMarkdown.jsx";
@@ -10,6 +17,7 @@ import {
   HiOutlineExclamationTriangle,
   HiOutlinePencil,
   HiOutlineXMark,
+  HiOutlineLockClosed,
 } from "solid-icons/hi";
 import { sendMessageEdit } from "../../core/useMessageSigning.js";
 import { timeAgo } from "../Utility.jsx";
@@ -264,10 +272,27 @@ export function Message(props) {
   const [editValue, setEditValue] = createSignal("");
   let editTextarea;
 
+
+  const [revealed, setRevealed] = createSignal(false);
+
+  const shownContent = () =>
+    props.e2ee?.state === "untrusted" && revealed() ? props.e2ee.reveal : props.content;
+
+  const e2eeTooltip = () =>
+    props.e2ee.state === "ok"
+      ? ["End-to-end encrypted", ...(props.e2ee.warnings ?? [])].join("\n")
+      : props.e2ee.state === "untrusted"
+        ? "Encrypted, but not validly signed"
+        : "Couldn't decrypt";
+
+  const e2eeColor = () =>
+    props.e2ee.state === "ok" && !props.e2ee.warnings?.length ? "limegreen" : "yellow";
+
+
   const rendered = createMemo(() =>
     !state.settings.parseMarkdown
-      ? props.content
-      : parseMarkdown(props.content || ""),
+      ? shownContent()
+      : parseMarkdown(shownContent() || ""),
   );
 
   const isMentioned = createMemo(() => {
@@ -399,9 +424,9 @@ export function Message(props) {
 
             <div
               class="reply_text"
-              onClick={() => tempState.virtMsgList.jumpToMessage(replyUser.id)}
+              onClick={() => tempState.virtMsgList.jumpToMessage(props.reply.id)}
             >
-              {replyUser.content || <HiOutlineDocument />}
+              {props.reply.preview || <HiOutlineDocument />}
             </div>
           </Show>
         </div>
@@ -464,6 +489,9 @@ export function Message(props) {
                     data-tooltip-icon={roleIcon().icon}
                   />
                 </Show>
+                <Show when={props.e2ee}>
+                  <HiOutlineLockClosed style={{ color: e2eeColor() }} data-tooltip={e2eeTooltip()} />
+                </Show>
               </div>
               <div
                 class="time"
@@ -473,6 +501,7 @@ export function Message(props) {
               </div>{" "}
               <Show
                 when={
+                  signed() &&
                   signed() !== "verified" &&
                   signed() !== "pending" &&
                   !props.webhook
@@ -507,7 +536,11 @@ export function Message(props) {
             fallback={
               <div class="message_text">
                 <div class="text">{rendered()}</div>
-
+                <Show when={props.e2ee?.state === "untrusted" && !revealed()}>
+                  <button type="button" class="fake-dismiss" onClick={() => setRevealed(true)}>
+                    Show anyway
+                  </button>
+                </Show>
                 <Show when={props.edited}>
                   <HiOutlinePencil
                     data-tooltip={"Edited:" + timeAgo(props.edited_at)}

@@ -135,8 +135,9 @@
     width: calc(100% - 0.3em);
     aspect-ratio: 1 / 1;
     height: fit-content;
-    border-radius: var(--br-mid);
     margin-left: 0.1em;
+    cursor: pointer;
+    border-radius: var(--br-mid);
 
     & > .unread_badge {
         position: absolute;
@@ -226,7 +227,8 @@
     & > svg {
         width: 100%;
         height: 100%;
-        border-radius: var(--br-tiny);
+        border-radius: var(--br-mid);
+        transition: border-radius 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
 
         &.add_server {
             transform: scale(0.5);
@@ -246,6 +248,10 @@
         & > .unread_badge {
             opacity: 1;
         }
+    }
+
+    &:hover > img {
+        border-radius: var(--br-min);
     }
 }
 
@@ -639,7 +645,7 @@ iframe#rotur-auth {
 .member_section_label {
     color: var(--fg-dim);
     font-size: small;
-    padding-left: 0.5em;
+    padding: .3em .7em;
     text-transform: capitalize;
     transition: color 0.2s;
     outline: none;
@@ -875,13 +881,24 @@ iframe#rotur-auth {
     border-right: 1px solid var(--diff-three);
 }
 
-span.channel_badge {
+.channel_badge {
     margin-left: auto;
     color: var(--fg-dim);
     font-size: small;
+    flex: 0 !important;
+
+    &.dot {
+        background-color: var(--fg-dim);
+        width: 10px;
+        flex: 0;
+        height: 10px;
+        transform: scale(0.7);
+        margin-right: 0.5em;
+        border-radius: 2em;
+    }
 }
 
-span.channel_badge--ping {
+.channel_badge--ping {
     background-color: var(--danger);
     color: #fff;
     border-radius: 1em;
@@ -1124,9 +1141,8 @@ img.channel_icon_image {
     border-radius: var(--br-tiny);
     padding: 0.3em 0.5em;
     display: flex;
-    margin-left: 0.5em;
+    margin: 0 0.5em;
     border: 1px solid var(--diff-three);
-    width: 250px;
     align-items: center;
 
     & > input {
@@ -2711,9 +2727,47 @@ hr.channelPageList {
 }
 
 .quick_reactions img.twemoji {
-  width: 13pt;
-  height: 13pt;
-  border-radius: 0;
-  object-fit: contain;
-  vertical-align: middle;
+    width: 13pt;
+    height: 13pt;
+    border-radius: 0;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.members_list_header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 0 .5em;
+    padding-bottom: .5em;
+    opacity: .5;
+    border-bottom: 1px solid var(--diff-three);
+    margin-bottom: .5em;
+    box-sizing: border-box;
+}
+
+.online_direction {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+}
+
+.online_count {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.online_ball {
+    background-color: transparent;
+    padding: 2px;
+    border: 2px solid var(--peace);
+    border-radius: 3em;
+    margin-right: 0.2em;
+}
+
+.pane_message_list {
+    margin: .5em;
+    margin-top: 0;
 }

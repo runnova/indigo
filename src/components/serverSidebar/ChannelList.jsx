@@ -370,9 +370,18 @@ export default function ChannelList(props) {
                 </Show>
 
                 <Show when={pingCount() === 0 && unreadCount() > 0}>
-                  <span class="channel_badge">
-                    {unreadCount()}
-                  </span>
+                  {(() => {
+                    const count = unreadCount();
+                    if (!count) return null;
+
+                    const showAmount = state.settings.showUnreadAmounts;
+
+                    return (
+                      <div class={`channel_badge ${showAmount ? "" : "dot"}`}>
+                        {showAmount ? count : null}
+                      </div>
+                    );
+                  })()}
                 </Show>
               </div>
 

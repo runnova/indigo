@@ -2,7 +2,8 @@ import { createSignal, createEffect, on, batch } from "solid-js";
 import { produce } from "solid-js/store";
 import { unreads, setUnreads, state, tempState } from "../App";
 import { playPingSound } from "./pingSound.js";
-
+import { verifyMessage } from "./useMessageSigning.js";
+import { isEncryptedServer, isSealedMessage, openIncoming } from "./e2ee.js";
 import {
   cacheKey,
   getCached,
@@ -392,7 +393,6 @@ export function createChannelMessages({
 
       return next;
     });
-
     const myName = me();
     if (myName && incomingMessage.user !== myName) {
       const pingedUsers = incomingMessage.pings?.users ?? [];
@@ -461,7 +461,6 @@ export function createChannelMessages({
 
         return {
           ...message,
-          content: incoming.content ?? message.content,
           attachments: incoming.attachments ?? message.attachments ?? [],
           embeds: incoming.embeds ?? message.embeds ?? [],
           edited: true,
@@ -470,6 +469,9 @@ export function createChannelMessages({
           key_id: incoming.key_id ?? null,
           signature: incoming.signature ?? null,
           signed_at: incoming.signed_at ?? null,
+          content: incoming.content ?? message.content,
+          sealed: incoming.sealed ?? message.sealed,
+          e2ee: incoming.e2ee ?? message.e2ee,
         };
       }),
     );
@@ -546,8 +548,55 @@ export function createChannelMessages({
     setCached(currentKey(), msgs, hasOlderMessages());
   });
 
+  const whereNow = () => ({
+    server: tempState?.conn?.serverInfo()?.signing_url || serverSrc(),
+    channel: channel(),
+    thread: threadId?.() || undefined,
+  });
+
+  async function openOne(message) {
+    if (!isSealedMessage(message)) return message;
+    const signed = (await verifyMessage(message, serverSrc())) === "verified";
+    return openIncoming(message, { ...whereNow(), replyTo: message.reply_to?.id }, signed);
+  }
+
+  const messageKey = (event) => (event.message ? "message" : event.val ? "val" : "data");
+
+  async function openEvent(event) {
+    if (!event || event.channel !== channel() || !isEncryptedServer(serverSrc())) return event;
+
+    if (event.cmd === "messages_get" || event.cmd === "messages_around") {
+      const key = event.val ? "val" : "messages";
+      return { ...event, [key]: await Promise.all(getMessageList(event).map(openOne)) };
+    }
+
+    if (event.cmd === "message_new") {
+      const key = messageKey(event);
+      return event[key] ? { ...event, [key]: await openOne(event[key]) } : event;
+    }
+
+    if (event.cmd === "message_edit") {
+      const key = messageKey(event);
+      const incoming = event[key];
+      const existing = messages().find((message) => message.id === event.id);
+      if (!existing || !incoming || !isSealedMessage(incoming)) return event;
+
+      const opened = await openOne({ ...existing, ...incoming, id: event.id, sealed: undefined });
+      return { ...event, [key]: { ...incoming, content: opened.content, sealed: opened.sealed, e2ee: opened.e2ee } };
+    }
+
+    return event;
+  }
+
+  let queue = Promise.resolve();
+
   createEffect(() => {
-    handleEvent(wsEvent());
+    const event = wsEvent();
+    if (!event) return;
+    queue = queue
+      .then(() => openEvent(event))
+      .then(handleEvent)
+      .catch(console.error);
   });
 
   return {

@@ -895,7 +895,7 @@ export function VirtualMessageList(props) {
                               hideTimer = setTimeout(() => {
                                 setHoveredMessage(null);
                                 setHoverRect(null);
-                              }, 200);
+                              }, 50);
                             }}
                           >
                             <Message
@@ -1002,10 +1002,8 @@ export function VirtualMessageList(props) {
             class="message-actions"
             onMouseEnter={() => clearTimeout(hideTimer)}
             onMouseLeave={() => {
-              hideTimer = setTimeout(() => {
                 setHoveredMessage(null);
                 setHoverRect(null);
-              }, 200);
             }}
             style={{
               position: "absolute",

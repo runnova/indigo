@@ -24,7 +24,7 @@ export default function Inbox(props) {
   });
 
   return (
-    <div class="search_results_list y">
+    <div class="search_results_list pane_message_list y">
       <For each={messages()}>
         {(msg, i) => (
           <Message
@@ -37,12 +37,10 @@ export default function Inbox(props) {
             pings={msg.pings}
             attachments={msg.attachments}
             reactions={msg.reactions}
-            reply={msg.reply}
+            reply={msg.reply_to}
+            avatar={`https://avatars.rotur.dev/${msg.user}`}
             time={new Date(msg.timestamp).toLocaleTimeString()}
-            grouped={
-              i() > 0 &&
-              messages()[i() - 1]?.user === msg.user
-            }
+            grouped={false}
           />
         )}
       </For>

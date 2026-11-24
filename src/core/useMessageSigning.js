@@ -1,6 +1,11 @@
 import { tempState, state, setState } from "../App";
 import { executeHook } from "./addons/AddonsSystem.jsx";
 import { getConnectionView } from "./server_connection.jsx";
+import { isEncryptedServer, sealOutgoing } from "./e2ee.js";
+
+export function getSigningUrl() {
+  return tempState?.conn?.serverInfo()?.signing_url;
+}
 
 const SIGNING_URL_WAIT_MS = 8000;
 const verifyCache = new Map();
@@ -72,8 +77,25 @@ function hasCapability(name) {
   return !!tempState?.conn?.serverInfo()?.capabilities?.includes(name);
 }
 
-function getSigningUrl() {
-  return tempState?.conn?.serverInfo()?.signing_url;
+async function protect(payload, { thread, replyTo }) {
+  if (!isEncryptedServer()) return payload;
+
+  try {
+    if (payload.attachments?.length) throw new Error("encrypted files aren't supported yet");
+    const content = await sealOutgoing(payload.content, {
+      server: getSigningUrl(),
+      channel: payload.channel,
+      thread,
+      replyTo,
+    });
+    return { ...payload, content };
+  } catch (error) {
+    if (error.cancelled) return null;
+    const proceed = window.confirm(
+      `This message couldn't be encrypted: ${error.message}\n\nSend it unencrypted?`,
+    );
+    return proceed ? payload : null;
+  }
 }
 
 const normalizeContent = (payload) =>
@@ -132,18 +154,24 @@ export async function sendMessage(content, attachments, onPayload) {
   }
 
   onPayload?.(basePayload);
+  const outgoing = await protect(basePayload, {
+    thread: state.current.thread?.id,
+    replyTo: state.replying?.id,
+  });
+  if (!outgoing) return;
+
   if (hasCapability("message_signatures_v1")) {
     const timestamp = getServerTime();
     const signingUrl = getSigningUrl();
     try {
-      const signed = await signMessageNew(basePayload, timestamp, signingUrl);
+      const signed = await signMessageNew(outgoing, timestamp, signingUrl);
       tempState.conn.send(signed);
     } catch (error) {
       console.error("Failed to sign message:", error);
-      tempState.conn.send(basePayload);
+      tempState.conn.send(outgoing);
     }
   } else {
-    tempState.conn.send(basePayload);
+    tempState.conn.send(outgoing);
   }
   if (state.replying) {
     setState("replying", null);
@@ -251,17 +279,25 @@ export async function sendMessageEdit(id, edit, current) {
   };
   basePayload = await executeHook("message:edit:before-send", basePayload);
 
+  const outgoing = current.sealed
+    ? await protect(basePayload, {
+        thread: state.current.thread?.id,
+        replyTo: current.reply?.id,
+      })
+    : basePayload;
+  if (!outgoing) return;
+
   if (hasCapability("message_signatures_v1")) {
     const timestamp = getServerTime();
     const signingUrl = getSigningUrl();
     try {
-      const signed = await signMessageEdit(basePayload, timestamp, signingUrl);
+      const signed = await signMessageEdit(outgoing, timestamp, signingUrl);
       tempState.conn.send(signed);
     } catch (error) {
       console.error("Failed to sign message edit:", error);
-      tempState.conn.send(basePayload);
+      tempState.conn.send(outgoing);
     }
   } else {
-    tempState.conn.send(basePayload);
+    tempState.conn.send(outgoing);
   }
 }

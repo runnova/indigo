@@ -172,7 +172,7 @@ async function requestRoturToken() {
   await tempState.rotur.login({
     system: "orion",
     timeout: 60_000,
-    requires: "full",
+    requires: ["full", "encryption:keys"],
   });
 
   return tempState.rotur.token;

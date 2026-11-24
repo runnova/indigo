@@ -56,6 +56,7 @@ export const defaultState = {
     pingSound: "triangle",
     quickReactions: "👍, ❤️, 😂, 🎉, 👎",
     autoReplyOnPing: false,
+    showUnreadAmounts: true
   },
 };
 

@@ -1,0 +1,6 @@
+body.prefers_reduced_motion {
+    & * {
+        transition: none;
+        animation: none;
+    }
+}
