@@ -170,7 +170,7 @@ function showSigninDialog() {
 
 async function requestRoturToken() {
   await tempState.rotur.login({
-    system: "orion",
+    system: "app_bcdcfb6d22690806",
     timeout: 60_000,
     requires: ["full", "encryption:keys"],
   });

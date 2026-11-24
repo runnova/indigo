@@ -66,28 +66,21 @@ const roturError = async (res, what) =>
 
 async function publishKey() {
   const token = await getToken();
-  const username = tempState?.conn?.me?.()?.username;
-
-  if (!username) throw new Error("Unable to determine username");
 
   const privateKey = x25519.utils.randomSecretKey();
   const publicKey = x25519.getPublicKey(privateKey);
 
-  const res = await fetch(
-    `${API}/v2/users/${encodeURIComponent(username)}/encryption-keys`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        public_key: oce5.b64encode(publicKey),
-        algorithm: "X25519",
-        name: "originChats web",
-      }),
-    }
-  );
+  const res = await fetch(`${API}/v2/me/encryption-keys`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      public_key: oce5.b64encode(publicKey),
+      name: "originChats web",
+    }),
+  });
 
   if (!res.ok) throw await roturError(res, "Rotur didn't take the key");
 
@@ -183,8 +176,16 @@ function remember(userId, ids) {
   write(TRUST_KEY, trust);
 }
 
-function otherMembers() {
+function channelParticipants(channelName) {
   const myName = tempState?.conn?.me?.()?.username?.toLowerCase();
+  const channels = tempState?.conn?.channels?.() ?? [];
+  const channel = channels.find((c) => c.name === channelName);
+
+  if (channel?.display_name) {
+    const name = channel.display_name.trim();
+    if (name.toLowerCase() !== myName) return [name];
+  }
+
   return (tempState?.conn?.members?.() ?? [])
     .map((member) => member.username)
     .filter((name) => name && name.toLowerCase() !== myName);
@@ -196,7 +197,7 @@ export async function sealOutgoing(text, where) {
   const changed = [];
   const accepted = [];
 
-  for (const name of otherMembers()) {
+  for (const name of channelParticipants(where?.channel)) {
     const { userId, keys } = await keysOf(name);
     if (keys.length === 0) throw new Error(`${name} hasn't turned on encryption`);
 
