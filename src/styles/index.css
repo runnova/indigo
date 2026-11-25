@@ -547,10 +547,6 @@ nav button.active {
             opacity: 1;
         }
 
-        &:active {
-            animation: tap 0.3s cubic-bezier(0.42, 1.67, 0.21, 0.9);
-        }
-
         &.channel_item--active,
         &.channel_item.active {
             background-color: var(--hl-four);
@@ -2223,6 +2219,7 @@ img.big_emoji {
     background-color: var(--bg-three);
     border-radius: var(--br-mid);
     display: flex;
+    cursor: pointer;
     gap: 0.5em;
 
     & .badge {

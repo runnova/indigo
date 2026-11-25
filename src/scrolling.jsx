@@ -846,12 +846,24 @@ export function VirtualMessageList(props) {
                       const replyMessage = createMemo(() => {
                         const m = msg();
                         if (!m?.reply_to?.id) return null;
+
                         const replyId = m.reply_to.id;
-                        return (
+
+                        const fullMessage =
                           getMessageById(replyId) ??
-                          getCachedReply(replyId) ??
-                          (requestReplyMessage(props.channel, replyId), m.reply_to)
-                        );
+                          getCachedReply(replyId);
+
+                        if (fullMessage) {
+                          return {
+                            ...m.reply_to,
+                            ...fullMessage,
+                            preview: fullMessage.content ?? m.reply_to.preview ?? "",
+                          };
+                        }
+
+                        requestReplyMessage(props.channel, replyId);
+
+                        return m.reply_to;
                       });
 
                       const isUnreadDivider = () => message.id === unreadDividerId();

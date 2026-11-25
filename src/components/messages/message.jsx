@@ -426,7 +426,7 @@ export function Message(props) {
               class="reply_text"
               onClick={() => tempState.virtMsgList.jumpToMessage(props.reply.id)}
             >
-              {props.reply.preview || <HiOutlineDocument />}
+              {props.reply.preview || props.reply.content || <HiOutlineDocument />}
             </div>
           </Show>
         </div>

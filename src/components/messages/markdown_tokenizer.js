@@ -18,6 +18,7 @@ const NATIVE_EMOJI_REGEX =
   /^(?:\p{Extended_Pictographic}(?:\uFE0F)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F)?)*)/u;
 
 const CUSTOM_EMOJI_REGEX = /^<emoji:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>/;
+const ORIGINCHATS_EMOJI_REGEX = /^originChats:<emoji>\/\/([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)/;
 const STICKER_REGEX = /^<sticker:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>/;
 const USER_MENTION_REGEX = /^<@([a-zA-Z0-9-]+)>/;
 const ROLE_MENTION_REGEX = /^<@&([a-zA-Z0-9-]+)>/;
@@ -365,9 +366,15 @@ function tryParseTimestamp(text, i) {
 }
 
 function tryParseEmoji(text, i) {
-  if (text[i] !== '<') return null;
+  if (text[i] !== '<' && !text.startsWith("originChats:<emoji>//", i)) {
+    return null;
+  }
 
-  const match = text.slice(i).match(CUSTOM_EMOJI_REGEX);
+  const slice = text.slice(i);
+  const match =
+    slice.match(ORIGINCHATS_EMOJI_REGEX) ||
+    slice.match(CUSTOM_EMOJI_REGEX);
+
   if (!match) return null;
 
   return {

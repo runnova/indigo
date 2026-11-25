@@ -23,7 +23,7 @@ function customStickerUrl(host, id) {
   return `https://${host}/stickers/${id}`;
 }
 
-function emojiOwnerLabel(host) {
+function emojiOwnerLabel(host = "") {
   return host.startsWith("api.rotur") ? "User" : "Server";
 }
 
@@ -35,15 +35,21 @@ function resolveUsername(id) {
   return list.find((u) => u?.id === id)?.username ?? null;
 }
 
-function getParsedMarkdown(id, content) {
-  if (markdownCache.has(id)) {
-    return markdownCache.get(id);
+function resolveMention(id) {
+  const members = tempState?.conn?.members?.() ?? [];
+  const member = members.find((m) => m.id === id);
+
+  if (!member) {
+    return {
+      username: null,
+      displayName: id
+    };
   }
 
-  const parsed = parseMarkdown(content);
-  markdownCache.set(id, parsed);
-
-  return parsed;
+  return {
+    username: member.username,
+    displayName: member.nickname || member.username || id
+  };
 }
 
 export function Embed(props) {
@@ -340,6 +346,9 @@ function renderToken(token, depth = 0) {
           alt={token.char}
           draggable={false}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.replaceWith(document.createTextNode(token.char));
+          }}
           data-tooltip="System Emoji: This is a default emoji"
           data-tooltip-icon={twemojiUrl(token.char)}
         />
@@ -424,10 +433,13 @@ function renderToken(token, depth = 0) {
     }
 
     case "mention": {
-      const username = resolveUsername(token.id);
+      const member = resolveMention(token.id);
       const me = tempState?.conn?.me?.();
       const isMe = me?.id === token.id;
-      const name = username ?? token.id;
+
+      const name = member.displayName;
+      const username = member.username || name;
+
       return (
         <a
           key={key}
@@ -435,12 +447,12 @@ function renderToken(token, depth = 0) {
           class={`mention ${isMe ? "is-self" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            openPopout(name, e.currentTarget);
+            openPopout(username, e.currentTarget);
           }}
         >
           @
           <img
-            src={`https://avatars.rotur.dev/${name}`}
+            src={`https://avatars.rotur.dev/${username}`}
             alt=""
             class="pfp"
             loading="lazy"
@@ -552,22 +564,20 @@ function renderTokens(tokens) {
   return parts;
 }
 
-const BIG_EMOJI_CUSTOM_REGEX = /^<emoji:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>$/;
+const BIG_EMOJI_CUSTOM_REGEX = /^(?:<emoji:([a-zA-Z0-9.:-]+)\/([a-zA-Z0-9_-]+)>|originChats:<emoji>\/\/([a-zA-Z0-9.-]+)\/([a-zA-Z0-9_-]+))$/;
 
 function isBigEmojiMessage(input) {
-  if (!input) return;
-  const trimmed = input.trim();
+  if (!input?.trim()) return false;
 
-  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  const tokens = input.trim().split(/\s+/);
 
-  if (tokens.length === 0 || tokens.length > 3) {
-    return false;
-  }
+  if (tokens.length > 3) return false;
+
+  const emojiRegex = /^(?:\p{RGI_Emoji}|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*|\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3)$/v;
 
   return tokens.every(
     (token) =>
-      BIG_EMOJI_CUSTOM_REGEX.test(token) ||
-      /\p{Extended_Pictographic}/u.test(token),
+      BIG_EMOJI_CUSTOM_REGEX.test(token) || emojiRegex.test(token)
   );
 }
 
@@ -580,15 +590,23 @@ export function parseMarkdown(input) {
         const match = token.match(BIG_EMOJI_CUSTOM_REGEX);
 
         if (match) {
-          const src = customEmojiUrl(match[1], match[2]);
+          const host = match[1] || match[3];
+          const id = match[2] || match[4];
+          const src = customEmojiUrl(host, id);
+
           return (
             <img
               key={getKey()}
-              class="inline_emoji big_emoji"
-              src={src}
-              alt=""
-              data-tooltip={`${emojiOwnerLabel(match[1])} Emoji: Emoji from ${match[1]}`}
-              data-tooltip-icon={src}
+              class="inline_emoji big_emoji twemoji"
+              src={twemojiUrl(token)}
+              alt={token}
+              draggable={false}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.replaceWith(document.createTextNode(token));
+              }}
+              data-tooltip="System Emoji: This is a default emoji"
+              data-tooltip-icon={twemojiUrl(token)}
             />
           );
         }

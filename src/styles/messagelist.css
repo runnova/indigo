@@ -31,13 +31,13 @@
 .message_single {
     position: relative;
     padding: .5em;
-    margin-top: .2em;
+    margin-top: 0em;
     border-radius: var(--br-mid);
     transition: background-color 0.2s;
     word-wrap: anywhere;
 
     &:has(.pfpWO) {
-        padding-bottom: 0;
+        padding-bottom: 5px;
     }
 
     &:hover {
@@ -56,7 +56,7 @@
 
     & > .actual_message {
         gap: 0.5em;
-        align-items: flex-start;
+        align-items: stretch;
     }
 
 
@@ -66,7 +66,7 @@
     }
 
     &.grouped {
-        margin-top: 0;
+        /*margin-bottom: 0.3em;*/
         padding: .2em .5em !important;
 
         & .message_text {
@@ -95,7 +95,7 @@
         align-items: center;
         color: var(--fg-dim);
         user-select: text;
-        margin: .2em 0;
+        margin: .4em 0;
         margin-top: .3em;
     }
 
@@ -154,6 +154,9 @@
         width: 51px;
         flex-shrink: 0;
         opacity: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 
@@ -179,6 +182,7 @@
         transition: box-shadow 0.2s;
         display: inline-flex;
         align-items: center;
+        cursor: pointer;
 
         & > svg {
             width: 1.2em;
