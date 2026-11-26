@@ -465,6 +465,10 @@ export function VirtualMessageList(props) {
   const [unreadCount, setUnreadCount] = createSignal(0);
   const [pendingJumpId, setPendingJumpId] = createSignal(null);
 
+  const smoothMessageActions = createMemo(
+    () => !!state.settings.smoothMessageActions
+  );
+
   let hideTimer;
 
   function scrollToBottom(instant = false) {
@@ -1012,6 +1016,9 @@ export function VirtualMessageList(props) {
         <Show when={hoveredMessage() && hoverRect()}>
           <div
             class="message-actions"
+            classList={{
+              rough: !smoothMessageActions()
+            }}
             onMouseEnter={() => clearTimeout(hideTimer)}
             onMouseLeave={() => {
                 setHoveredMessage(null);

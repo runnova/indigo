@@ -59,6 +59,12 @@ export function GeneralSettings() {
       </div>
       <div class="settings_item x">
         <div class="settings_section_label">
+          Animate the message actions bar
+        </div>
+        <SettingCheckbox setting="smoothMessageActions" />
+      </div>
+      <div class="settings_item x">
+        <div class="settings_section_label">
           Disable animations
         </div>
         <SettingCheckbox setting="reducedMotion" />

@@ -175,6 +175,10 @@
     z-index: 10;
     padding: 2px;
 
+    &.rough {
+        transition: none !important;
+    }
+
     & button {
         padding: 0.4em;
         border-radius: var(--br-mid);
